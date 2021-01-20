@@ -1,4 +1,4 @@
-pragma solidity 0.6.12;
+pragma solidity ^0.5.0;
 
 import "./AddressStorage.sol";
 import "../dependencies/upgradability/InitializableAdminUpgradeabilityProxy.sol";
@@ -11,68 +11,78 @@ import "../../interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol";
 * @author _astromartian, built upon the Aave protocol's AddressesProviderContract(v1)
 **/
 
-
 contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 
-    bool isSighInitialized = false;                             // ADDED BY SIGH FINANCE
-    bool isSighSpeedControllerInitialized = false;              // ADDED BY SIGH FINANCE
-    //events
+    bool isSighInitialized;
+    bool isNFTBoosterInitialized;
+
+    //#############################################
+    //################### EVENTS ##################
+    //#############################################
+    
+    //LendingPool and SIGH Finance Managers
     event PendingSIGHFinanceManagerUpdated( address _pendingSighFinanceManager );
     event SIGHFinanceManagerUpdated( address _sighFinanceManager );
     event PendingLendingPoolManagerUpdated( address _pendingLendingPoolManager );
     event LendingPoolManagerUpdated( address _lendingPoolManager );
 
+    //LendingPool Contracts
     event LendingPoolConfiguratorUpdated(address indexed newAddress);
     event LendingPoolUpdated(address indexed newAddress);
-    event LendingPoolCoreUpdated(address indexed newAddress);
-    event LendingPoolParametersProviderUpdated(address indexed newAddress);
     event LendingPoolLiquidationManagerUpdated(address indexed newAddress);
-    event LendingPoolDataProviderUpdated(address indexed newAddress);
     event LendingRateOracleUpdated(address indexed newAddress);
     event FeeProviderUpdated(address indexed newAddress);
 
-    event SIGHFinanceConfiguratorUpdated(address indexed sighFinanceConfigAddress);       // ADDED BY SIGH FINANCE
-    event SIGHAddressUpdated(address indexed sighAddress);                               // ADDED BY SIGH FINANCE
+    //SIGH Finance Contracts
+    event SIGHFinanceConfiguratorUpdated(address indexed sighFinanceConfigAddress);       
+    event SIGHAddressUpdated(address indexed sighAddress);    
+    event SIGHNFTBoosterUpdated(address indexed boosterAddress);
     event SIGHSpeedControllerUpdated(address indexed speedControllerAddress);
-    event SIGHMechanismHandlerImplUpdated(address indexed newAddress);                   // ADDED BY SIGH FINANCE
-    event SIGHTreasuryImplUpdated(address indexed newAddress);                           // ADDED BY SIGH FINANCE
-    event SIGHStakingImplUpdated(address indexed SIGHStakingAddress);                    // ADDED BY SIGH FINANCE
+    event SIGHVolatilityHarvesterImplUpdated(address indexed newAddress);                   
+    event SIGHTreasuryImplUpdated(address indexed newAddress);                           
+    event SIGHStakingImplUpdated(address indexed SIGHStakingAddress);                    
 
-    event PriceOracleUpdated(address indexed newAddress);
-
-    event SIGHFinanceNFTBOOSTERSUpdated(address indexed newAddress);
+    //Contracts which collect Fee & SIGH Pay
     event SIGHFinanceFeeCollectorUpdated(address indexed newAddress);
     event SIGHFinanceSIGHPAYAggregatorUpdated(address indexed newAddress);
 
+    //Price Oracle and general events
+    event PriceOracleUpdated(address indexed newAddress);
     event ProxyCreated(bytes32 id, address indexed newAddress);
 
+    //#########################################################
+    //################### bytes32 parameters ##################
+    //#########################################################
+    
+    //LendingPool and SIGH Finance Managers    
     bytes32 private constant LENDING_POOL_MANAGER = "LENDING_POOL_MANAGER";                         // MULTISIG ACCOUNT WHICH CONTROLS THE UPDATES TO THE LENDINGPOOL
-    bytes32 private constant PENDING_LENDING_POOL_MANAGER = "PENDING_LENDING_POOL_MANAGER";         // MULTISIG ACCOUNT WHICH CONTROLS THE UPDATES TO THE LENDINGPOOL (CHANGING MECHANISM)
+    bytes32 private constant PENDING_LENDING_POOL_MANAGER = "PENDING_LENDING_POOL_MANAGER";         // MULTISIG ACCOUNT WHICH CONTROLS THE UPDATES TO THE LENDINGPOOL 
     bytes32 private constant SIGH_FINANCE_MANAGER = "SIGH_FINANCE_MANAGER";                         // MULTISIG ACCOUNT WHICH CONTROLS THE UPDATES TO THE SIGH FINANCE
-    bytes32 private constant PENDING_SIGH_FINANCE_MANAGER = "PENDING_SIGH_FINANCE_MANAGER";         // MULTISIG ACCOUNT WHICH CONTROLS THE UPDATES TO THE SIGH FINANCE (CHANGING MECHANISM)
+    bytes32 private constant PENDING_SIGH_FINANCE_MANAGER = "PENDING_SIGH_FINANCE_MANAGER";         // MULTISIG ACCOUNT WHICH CONTROLS THE UPDATES TO THE SIGH FINANCE 
 
+    //LendingPool Contracts    
     bytes32 private constant LENDING_POOL_CONFIGURATOR = "LENDING_POOL_CONFIGURATOR";       // CONTROLLED BY LENDINGPOOL MANAGER. MAKES STATE CHANGES RELATED TO LENDING PROTOCOL
-    bytes32 private constant SIGH_FINANCE_CONFIGURATOR = "SIGH_FINANCE_CONFIGURATOR";       // CONTROLLED BY SIGHFINANCE MANAGER. MAKES STATE CHANGES RELATED TO SIGH FINANCE
-
-    bytes32 private constant LENDING_POOL_CORE = "LENDING_POOL_CORE";
     bytes32 private constant LENDING_POOL = "LENDING_POOL";
     bytes32 private constant LENDING_POOL_LIQUIDATION_MANAGER = "LIQUIDATION_MANAGER";
-    bytes32 private constant LENDING_POOL_PARAMETERS_PROVIDER = "PARAMETERS_PROVIDER";
-    bytes32 private constant DATA_PROVIDER = "DATA_PROVIDER";
     bytes32 private constant LENDING_RATE_ORACLE = "LENDING_RATE_ORACLE";
     bytes32 private constant FEE_PROVIDER = "FEE_PROVIDER";
 
-    bytes32 private constant SIGH = "SIGH";                                             // ADDED BY SIGH FINANCE
-    bytes32 private constant SIGH_SPEED_CONTROLLER = "SIGH_SPEED_CONTROLLER";           // ADDED BY SIGH FINANCE
-    bytes32 private constant SIGH_MECHANISM_HANDLER = "SIGH_MECHANISM_HANDLER";         // ADDED BY SIGH FINANCE
-    bytes32 private constant SIGH_TREASURY = "SIGH_TREASURY";                           // ADDED BY SIGH FINANCE
-    bytes32 private constant SIGH_STAKING = "SIGH_STAKING";                             // ADDED BY SIGH FINANCE
+    //SIGH Finance Contracts
+    bytes32 private constant SIGH_FINANCE_CONFIGURATOR = "SIGH_FINANCE_CONFIGURATOR";       // CONTROLLED BY SIGHFINANCE MANAGER. MAKES STATE CHANGES RELATED TO SIGH FINANCE
+    bytes32 private constant SIGH = "SIGH";
+    bytes32 private constant SIGH_Finance_NFT_BOOSTERS = "SIGH_Finance_NFT_BOOSTERS";
+    bytes32 private constant SIGH_SPEED_CONTROLLER = "SIGH_SPEED_CONTROLLER";           
+    bytes32 private constant SIGH_VOLATILITY_HARVESTER = "SIGH_VOLATILITY_HARVESTER";         
+    bytes32 private constant SIGH_TREASURY = "SIGH_TREASURY";                           
+    bytes32 private constant SIGH_STAKING = "SIGH_STAKING";                             
 
+    //Contracts which collect Fee & SIGH Pay
+    bytes32 private constant SIGH_Finance_Fee_Collector = "SIGH_Finance_Fee_Collector";
+    bytes32 private constant SIGH_Finance_SIGHPAY_AGGREGATOR = "SIGH_Finance_SIGHPAY_AGGREGATOR";
+
+    //Price Oracle and general contracts
     bytes32 private constant PRICE_ORACLE = "PRICE_ORACLE";
 
-    bytes32 private constant SIGH_Finance_Fee_Collector = "SIGH_Finance_Fee_Collector";
-    bytes32 private constant SIGH_Finance_NFT_BOOSTERS = "SIGH_Finance_NFT_BOOSTERS";
-    bytes32 private constant SIGH_Finance_SIGHPAY_AGGREGATOR = "SIGH_Finance_SIGHPAY_AGGREGATOR";
 
 // ################################
 // ######  CONSTRUCTOR ############
@@ -106,20 +116,20 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // #########  PROTOCOL MANAGERS ( LendingPool Manager and SighFinance Manager ) ###########
 // ########################################################################################
 
-    function getLendingPoolManager() external view returns (address) {                            // ADDED BY SIGH FINANCE
+    function getLendingPoolManager() external view returns (address) {                            
         return getAddress(LENDING_POOL_MANAGER);
     }
 
-    function getPendingLendingPoolManager() external view returns (address) {                     // ADDED BY SIGH FINANCE
+    function getPendingLendingPoolManager() external view returns (address) {                     
         return getAddress(PENDING_LENDING_POOL_MANAGER);
     }
 
-    function setPendingLendingPoolManager(address _pendinglendingPoolManager) external onlyLendingPoolManager {                   // ADDED BY SIGH FINANCE
+    function setPendingLendingPoolManager(address _pendinglendingPoolManager) external onlyLendingPoolManager {                   
         _setAddress(PENDING_LENDING_POOL_MANAGER, _pendinglendingPoolManager);
         emit PendingLendingPoolManagerUpdated(_pendinglendingPoolManager);
     }
 
-    function acceptLendingPoolManager() external {                                                                                 // ADDED BY SIGH FINANCE
+    function acceptLendingPoolManager() external {                                                                                 
         address pendingLendingPoolManager = getAddress(PENDING_LENDING_POOL_MANAGER);
         require(msg.sender == pendingLendingPoolManager, "Only the Pending Lending Pool Manager can call this function to be accepted to become the Lending Pool Manager");
         _setAddress(LENDING_POOL_MANAGER, pendingLendingPoolManager);
@@ -128,20 +138,20 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
         emit LendingPoolManagerUpdated( getAddress(LENDING_POOL_MANAGER) );
     }
 
-    function getSIGHFinanceManager() external view returns (address) {                               // ADDED BY SIGH FINANCE
+    function getSIGHFinanceManager() external view returns (address) {                               
         return getAddress(SIGH_FINANCE_MANAGER);
     }
 
-    function getPendingSIGHFinanceManager() external view returns (address) {                        // ADDED BY SIGH FINANCE
+    function getPendingSIGHFinanceManager() external view returns (address) {                        
         return getAddress(PENDING_SIGH_FINANCE_MANAGER);
     }
 
-    function setPendingSIGHFinanceManager(address _PendingSIGHFinanceManager) external onlySIGHFinanceManager {     // ADDED BY SIGH FINANCE
+    function setPendingSIGHFinanceManager(address _PendingSIGHFinanceManager) external onlySIGHFinanceManager {     
         _setAddress(PENDING_SIGH_FINANCE_MANAGER, _PendingSIGHFinanceManager);
         emit PendingSIGHFinanceManagerUpdated(_PendingSIGHFinanceManager);
     }
 
-    function acceptSIGHFinanceManager() external {                                                                   // ADDED BY SIGH FINANCE
+    function acceptSIGHFinanceManager() external {                                                                   
         address _PendingSIGHFinanceManager = getAddress(PENDING_SIGH_FINANCE_MANAGER);
         require(msg.sender == _PendingSIGHFinanceManager, "Only the Pending SIGH Finance Manager can call this function to be accepted to become the SIGH Finance Manager");
         _setAddress(SIGH_FINANCE_MANAGER, _PendingSIGHFinanceManager);
@@ -154,10 +164,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // #########################################################################
 // ####___________ LENDING POOL PROTOCOL CONTRACTS _____________############
 // ########## 1. LendingPoolConfigurator (Upgradagble) #####################
-// ########## 2. LendingPoolCore (Upgradagble) #############################
 // ########## 3. LendingPool (Upgradagble) #################################
-// ########## 4. LendingPoolDataProvider (Upgradagble) #####################
-// ########## 5. LendingPoolParametersProvider (Upgradagble) ###############
 // ########## 6. FeeProvider (Upgradagble) #################################
 // ########## 7. LendingPoolLiquidationManager (Directly Changed) ##########
 // ########## 8. LendingRateOracle (Directly Changed) ######################
@@ -185,27 +192,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
         emit LendingPoolConfiguratorUpdated(_configurator);
     }
 
-// ####################################
-// ######  LendingPoolCore proxy ######
-// ####################################
 
-    /**
-    * @dev returns the address of the LendingPoolCore proxy
-    * @return the lending pool core proxy address
-     */
-    function getLendingPoolCore() external view returns (address payable) {
-        address payable core = address(uint160(getAddress(LENDING_POOL_CORE)));
-        return core;
-    }
-
-    /**
-    * @dev updates the implementation of the lending pool core
-    * @param _lendingPoolCore the new lending pool core implementation
-    **/
-    function setLendingPoolCoreImpl(address _lendingPoolCore) external onlyLendingPoolManager {
-        updateImplInternal(LENDING_POOL_CORE, _lendingPoolCore);
-        emit LendingPoolCoreUpdated(_lendingPoolCore);
-    }
 
 // ################################
 // ######  LendingPool proxy ######
@@ -227,49 +214,8 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
         updateImplInternal(LENDING_POOL, _pool);
         emit LendingPoolUpdated(_pool);
     }
-
-
-// ############################################
-// ######  LendingPoolDataProvider proxy ######
-// ############################################
-
-    /**
-    * @dev returns the address of the LendingPoolDataProvider proxy
-    * @return the lending pool data provider proxy address
-     */
-    function getLendingPoolDataProvider() external view returns (address) {
-        return getAddress(DATA_PROVIDER);
-    }
-
-    /**
-    * @dev updates the implementation of the lending pool data provider
-    * @param _provider the new lending pool data provider implementation
-    **/
-    function setLendingPoolDataProviderImpl(address _provider) external onlyLendingPoolManager {
-        updateImplInternal(DATA_PROVIDER, _provider);
-        emit LendingPoolDataProviderUpdated(_provider);
-    }
-
-// ##################################################
-// ######  LendingPoolParametersProvider proxy ######
-// ##################################################
-    /**
-    * @dev returns the address of the LendingPoolParametersProvider proxy
-    * @return the address of the Lending pool parameters provider proxy
-    **/
-    function getLendingPoolParametersProvider() external view returns (address) {
-        return getAddress(LENDING_POOL_PARAMETERS_PROVIDER);
-    }
-
-    /**
-    * @dev updates the implementation of the lending pool parameters provider
-    * @param _parametersProvider the new lending pool parameters provider implementation
-    **/
-    function setLendingPoolParametersProviderImpl(address _parametersProvider) external onlyLendingPoolManager {
-        updateImplInternal(LENDING_POOL_PARAMETERS_PROVIDER, _parametersProvider);
-        emit LendingPoolParametersProviderUpdated(_parametersProvider);
-    }
-
+    
+    
 // ###################################
 // ######  getFeeProvider proxy ######
 // ###################################
@@ -327,32 +273,47 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     }
 
 
-
-
 // ####################################################################################
 // ####___________ SIGH FINANCE RELATED CONTRACTS _____________########################
 // ########## 1. SIGH (Initialized only once) #########################################
-// ########## 2. SIGHFinanceConfigurator (Upgradagble) ################################
+// ########## 1. SIGH NFT BOOSTERS (Initialized only once) ############################
+// ########## 2. SIGHFinanceConfigurator (Upgradable) #################################
 // ########## 2. SIGH Speed Controller (Initialized only once) ########################
 // ########## 3. SIGHTreasury (Upgradagble) ###########################################
-// ########## 4. SIGHMechanismHandler (Upgradagble) ###################################
+// ########## 4. SIGHVolatilityHarvester (Upgradagble) ###################################
 // ########## 5. SIGHStaking (Upgradagble) ###################################
 // ####################################################################################
 
-// ################################                                                     // ADDED BY SIGH FINANCE
-// ######  SIGH ADDRESS ###########                                                     // ADDED BY SIGH FINANCE
-// ################################                                                     // ADDED BY SIGH FINANCE
+// ################################                                                     
+// ######  SIGH ADDRESS ###########                                                     
+// ################################                                                     
 
     function getSIGHAddress() external view returns (address) {
         return getAddress(SIGH);
     }
 
-    function setSIGHAddress(address sighAddress) external onlySIGHFinanceManager {     // LATER CHANGE TO MAKE IT INITIALIZABLE ONLY ONCE
+    function setSIGHAddress(address sighAddress) external onlySIGHFinanceManager {
         // require (!isSighInitialized, "SIGH Instrument address can only be initialized once.");
         isSighInitialized  = true;
         // updateImplInternal(SIGH, sighAddress);
         _setAddress(SIGH, sighAddress);
         emit SIGHAddressUpdated(sighAddress);
+    }
+
+// #####################################
+// ######  SIGH NFT BOOSTERS ###########
+// #####################################
+
+    // SIGH FINANCE NFT BOOSTERS - Provide Discount on Deposit & Borrow Fee
+    function getSIGHNFTBoosters() external view returns (address) {
+        return getAddress(SIGH_Finance_NFT_BOOSTERS);
+    }
+
+    function setSIGHNFTBoosters(address _SIGHNFTBooster) external onlySIGHFinanceManager {
+        // require (!isNFTBoosterInitialized, "SIGH NFT Boosters address can only be initialized once.");
+//        isNFTBoosterInitialized  = true;
+        _setAddress(SIGH_Finance_NFT_BOOSTERS, _SIGHNFTBooster);
+        emit SIGHNFTBoosterUpdated(_SIGHNFTBooster);
     }
 
 // ############################################
@@ -396,7 +357,6 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
         // require (!isSighSpeedControllerInitialized, "SIGH Speed Controller address can only be initialized once.");
         // isSighSpeedControllerInitialized  = true;
         updateImplInternal(SIGH_SPEED_CONTROLLER, _SIGHSpeedController);
-        // _setAddress(SIGH_SPEED_CONTROLLER, _SIGHSpeedController);
         emit SIGHSpeedControllerUpdated(_SIGHSpeedController);
     }
 
@@ -420,20 +380,20 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     }
 
 // #############################################  ADDED BY SIGH FINANCE
-// ######  SIGHMechanismHandler proxy #######     ADDED BY SIGH FINANCE
+// ######  SIGHVolatilityHarvester proxy #######     ADDED BY SIGH FINANCE
 // #############################################  ADDED BY SIGH FINANCE
 
-    function getSIGHMechanismHandler() external view returns (address) {
-        return getAddress(SIGH_MECHANISM_HANDLER);
+    function getSIGHVolatilityHarvester() external view returns (address) {
+        return getAddress(SIGH_VOLATILITY_HARVESTER);
     }
 
     /**
     * @dev updates the address of the SIGH Distribution Handler Contract (Manages the SIGH Speeds)
-    * @param _SIGHMechanismHandler the new SIGH Distribution Handler (Impl) Address
+    * @param _SIGHVolatilityHarvester the new SIGH Distribution Handler (Impl) Address
     **/
-    function setSIGHMechanismHandlerImpl(address _SIGHMechanismHandler) external onlySIGHFinanceManager  {
-        updateImplInternal(SIGH_MECHANISM_HANDLER, _SIGHMechanismHandler);
-        emit SIGHMechanismHandlerImplUpdated(_SIGHMechanismHandler);
+    function setSIGHVolatilityHarvesterImpl(address _SIGHVolatilityHarvester) external onlySIGHFinanceManager  {
+        updateImplInternal(SIGH_VOLATILITY_HARVESTER, _SIGHVolatilityHarvester);
+        emit SIGHVolatilityHarvesterImplUpdated(_SIGHVolatilityHarvester);
     }
 
 // #############################################  ADDED BY SIGH FINANCE
@@ -449,9 +409,13 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @param _SIGHStaking the new lending pool liquidation manager address
     **/
     function setSIGHStaking(address _SIGHStaking) external onlySIGHFinanceManager  {
-        _setAddress(SIGH_STAKING, _SIGHStaking);
+        updateImplInternal(SIGH_STAKING, _SIGHStaking);
         emit SIGHStakingImplUpdated(_SIGHStaking);
     }
+
+// #############################################
+// ######  SIGH PAY AGGREGATOR #################
+// #############################################
 
     // SIGH FINANCE : SIGH PAY AGGREGATOR - Collects SIGH PAY Payments
     function getSIGHPAYAggregator() external view returns (address) {
@@ -463,6 +427,19 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
         emit SIGHFinanceSIGHPAYAggregatorUpdated(_SIGHPAYAggregator);
     }
 
+// ####################################################
+// ######  SIGH FINANCE FEE COLLECTOR #################
+// ####################################################
+
+    // SIGH FINANCE FEE COLLECTOR - BORROWING / FLASH LOAN FEE TRANSERRED TO THIS ADDRESS
+    function getSIGHFinanceFeeCollector() external view returns (address) {
+        return getAddress(SIGH_Finance_Fee_Collector);
+    }
+
+    function setSIGHFinanceFeeCollector(address _feeCollector) external onlySIGHFinanceManager {
+        _setAddress(SIGH_Finance_Fee_Collector, _feeCollector);
+        emit SIGHFinanceFeeCollectorUpdated(_feeCollector);
+    }
 
 // ###################################################################################
 // ######  THESE CONTRACTS ARE NOT USING PROXY SO ADDRESS ARE DIRECTLY UPDATED #######
@@ -482,25 +459,6 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
         emit PriceOracleUpdated(_priceOracle);
     }
 
-    // SIGH FINANCE FEE COLLECTOR - BORROWING / FLASH LOAN FEE TRANSERRED TO THIS ADDRESS
-    function getSIGHFinanceFeeCollector() external view returns (address) {
-        return getAddress(SIGH_Finance_Fee_Collector);
-    }
-
-    function setSIGHFinanceFeeCollector(address _feeCollector) external onlySIGHFinanceManager {
-        _setAddress(SIGH_Finance_Fee_Collector, _feeCollector);
-        emit SIGHFinanceFeeCollectorUpdated(_feeCollector);
-    }
-
-    // SIGH FINANCE NFT BOOSTERS - Provide Discount on Deposit & Borrow Fee
-    function getSIGHNFTBoosters() external view returns (address) {
-        return getAddress(SIGH_Finance_Fee_Collector);
-    }
-
-    function setSIGHNFTBoosters(address _SIGHNFTBooster) external onlySIGHFinanceManager {
-        _setAddress(SIGH_Finance_Fee_Collector, _SIGHNFTBooster);
-        emit SIGHFinanceNFTBOOSTERSUpdated(_SIGHNFTBooster);
-    }
 
 // #############################################
 // ######  FUNCTION TO UPGRADE THE PROXY #######
