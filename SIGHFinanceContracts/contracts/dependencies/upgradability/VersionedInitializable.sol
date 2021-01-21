@@ -1,4 +1,6 @@
-pragma solidity >=0.4.24 <0.6.0;
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.7.0;
 
 /**
  * @title VersionedInitializable
@@ -14,7 +16,7 @@ pragma solidity >=0.4.24 <0.6.0;
  *
  * @author Aave, SIGH Finance, inspired by the OpenZeppelin Initializable contract
  */
-contract VersionedInitializable {
+abstract contract VersionedInitializable {
     /**
    * @dev Indicates that the contract has been initialized.
    */
@@ -57,11 +59,10 @@ contract VersionedInitializable {
         // deployed when running a constructor, any checks on its code size will
         // yield zero, making it an effective way to detect if a contract is
         // under construction or not.
+        address self = address(this);
         uint256 cs;
         //solium-disable-next-line
-        assembly {
-            cs := extcodesize(address)
-        }
+        assembly { cs := extcodesize(self) }
         return cs == 0;
     }
 

@@ -1,4 +1,6 @@
-pragma solidity ^0.5.0;
+// SPDX-License-Identifier: agpl-3.0
+
+pragma solidity ^0.7.0;
 
 import "./AddressStorage.sol";
 import "../dependencies/upgradability/InitializableAdminUpgradeabilityProxy.sol";
@@ -88,7 +90,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // ######  CONSTRUCTOR ############
 // ################################
 
-    constructor(address SIGHFinanceManagerAddress, address LendingPoolManagerAddress) public {
+    constructor(address SIGHFinanceManagerAddress, address LendingPoolManagerAddress) {
         _setAddress(SIGH_FINANCE_MANAGER, SIGHFinanceManagerAddress);
         _setAddress(LENDING_POOL_MANAGER, LendingPoolManagerAddress);
 
@@ -116,20 +118,20 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // #########  PROTOCOL MANAGERS ( LendingPool Manager and SighFinance Manager ) ###########
 // ########################################################################################
 
-    function getLendingPoolManager() external view returns (address) {                            
+    function getLendingPoolManager() external view override returns (address) {
         return getAddress(LENDING_POOL_MANAGER);
     }
 
-    function getPendingLendingPoolManager() external view returns (address) {                     
+    function getPendingLendingPoolManager() external view override returns (address) {
         return getAddress(PENDING_LENDING_POOL_MANAGER);
     }
 
-    function setPendingLendingPoolManager(address _pendinglendingPoolManager) external onlyLendingPoolManager {                   
+    function setPendingLendingPoolManager(address _pendinglendingPoolManager) external override  onlyLendingPoolManager {
         _setAddress(PENDING_LENDING_POOL_MANAGER, _pendinglendingPoolManager);
         emit PendingLendingPoolManagerUpdated(_pendinglendingPoolManager);
     }
 
-    function acceptLendingPoolManager() external {                                                                                 
+    function acceptLendingPoolManager() external override {
         address pendingLendingPoolManager = getAddress(PENDING_LENDING_POOL_MANAGER);
         require(msg.sender == pendingLendingPoolManager, "Only the Pending Lending Pool Manager can call this function to be accepted to become the Lending Pool Manager");
         _setAddress(LENDING_POOL_MANAGER, pendingLendingPoolManager);
@@ -138,20 +140,20 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
         emit LendingPoolManagerUpdated( getAddress(LENDING_POOL_MANAGER) );
     }
 
-    function getSIGHFinanceManager() external view returns (address) {                               
+    function getSIGHFinanceManager() external view override returns (address) {
         return getAddress(SIGH_FINANCE_MANAGER);
     }
 
-    function getPendingSIGHFinanceManager() external view returns (address) {                        
+    function getPendingSIGHFinanceManager() external view override returns (address) {
         return getAddress(PENDING_SIGH_FINANCE_MANAGER);
     }
 
-    function setPendingSIGHFinanceManager(address _PendingSIGHFinanceManager) external onlySIGHFinanceManager {     
+    function setPendingSIGHFinanceManager(address _PendingSIGHFinanceManager) external override  onlySIGHFinanceManager {
         _setAddress(PENDING_SIGH_FINANCE_MANAGER, _PendingSIGHFinanceManager);
         emit PendingSIGHFinanceManagerUpdated(_PendingSIGHFinanceManager);
     }
 
-    function acceptSIGHFinanceManager() external {                                                                   
+    function acceptSIGHFinanceManager() external override {
         address _PendingSIGHFinanceManager = getAddress(PENDING_SIGH_FINANCE_MANAGER);
         require(msg.sender == _PendingSIGHFinanceManager, "Only the Pending SIGH Finance Manager can call this function to be accepted to become the SIGH Finance Manager");
         _setAddress(SIGH_FINANCE_MANAGER, _PendingSIGHFinanceManager);
@@ -179,7 +181,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev returns the address of the LendingPoolConfigurator proxy
     * @return the lending pool configurator proxy address
     **/
-    function getLendingPoolConfigurator() external view returns (address) {
+    function getLendingPoolConfigurator() external view override returns (address) {
         return getAddress(LENDING_POOL_CONFIGURATOR);
     }
 
@@ -187,7 +189,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev updates the implementation of the lending pool configurator
     * @param _configurator the new lending pool configurator implementation
     **/
-    function setLendingPoolConfiguratorImpl(address _configurator) external onlyLendingPoolManager {
+    function setLendingPoolConfiguratorImpl(address _configurator) external override onlyLendingPoolManager {
         updateImplInternal(LENDING_POOL_CONFIGURATOR, _configurator);
         emit LendingPoolConfiguratorUpdated(_configurator);
     }
@@ -201,7 +203,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev returns the address of the LendingPool proxy
     * @return the lending pool proxy address
     **/
-    function getLendingPool() external view returns (address) {
+    function getLendingPool() external view override returns (address) {
         return getAddress(LENDING_POOL);
     }
 
@@ -210,7 +212,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev updates the implementation of the lending pool
     * @param _pool the new lending pool implementation
     **/
-    function setLendingPoolImpl(address _pool) external onlyLendingPoolManager {
+    function setLendingPoolImpl(address _pool) external override onlyLendingPoolManager {
         updateImplInternal(LENDING_POOL, _pool);
         emit LendingPoolUpdated(_pool);
     }
@@ -223,7 +225,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev returns the address of the FeeProvider proxy
     * @return the address of the Fee provider proxy
     **/
-    function getFeeProvider() external view returns (address) {
+    function getFeeProvider() external view override returns (address) {
         return getAddress(FEE_PROVIDER);
     }
 
@@ -231,7 +233,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev updates the implementation of the FeeProvider proxy
     * @param _feeProvider the new lending pool fee provider implementation
     **/
-    function setFeeProviderImpl(address _feeProvider) external onlyLendingPoolManager {
+    function setFeeProviderImpl(address _feeProvider) external override onlyLendingPoolManager {
         updateImplInternal(FEE_PROVIDER, _feeProvider);
         emit FeeProviderUpdated(_feeProvider);
     }
@@ -246,7 +248,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @return the address of the Lending pool liquidation manager
     **/
 
-    function getLendingPoolLiquidationManager() external view returns (address) {
+    function getLendingPoolLiquidationManager() external view override returns (address) {
         return getAddress(LENDING_POOL_LIQUIDATION_MANAGER);
     }
 
@@ -254,7 +256,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev updates the address of the Lending pool liquidation manager
     * @param _manager the new lending pool liquidation manager address
     **/
-    function setLendingPoolLiquidationManager(address _manager) external onlyLendingPoolManager {
+    function setLendingPoolLiquidationManager(address _manager) external override onlyLendingPoolManager {
         _setAddress(LENDING_POOL_LIQUIDATION_MANAGER, _manager);
         emit LendingPoolLiquidationManagerUpdated(_manager);
     }
@@ -263,11 +265,11 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // ######  LendingRateOracle ##################
 // ##################################################
 
-    function getLendingRateOracle() external view returns (address) {
+    function getLendingRateOracle() external view override returns (address) {
         return getAddress(LENDING_RATE_ORACLE);
     }
 
-    function setLendingRateOracle(address _lendingRateOracle) external onlyLendingPoolManager {
+    function setLendingRateOracle(address _lendingRateOracle) external override onlyLendingPoolManager {
         _setAddress(LENDING_RATE_ORACLE, _lendingRateOracle);
         emit LendingRateOracleUpdated(_lendingRateOracle);
     }
@@ -288,11 +290,11 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // ######  SIGH ADDRESS ###########                                                     
 // ################################                                                     
 
-    function getSIGHAddress() external view returns (address) {
+    function getSIGHAddress() external view override returns (address) {
         return getAddress(SIGH);
     }
 
-    function setSIGHAddress(address sighAddress) external onlySIGHFinanceManager {
+    function setSIGHAddress(address sighAddress) external override onlySIGHFinanceManager {
         // require (!isSighInitialized, "SIGH Instrument address can only be initialized once.");
         isSighInitialized  = true;
         // updateImplInternal(SIGH, sighAddress);
@@ -305,11 +307,11 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // #####################################
 
     // SIGH FINANCE NFT BOOSTERS - Provide Discount on Deposit & Borrow Fee
-    function getSIGHNFTBoosters() external view returns (address) {
+    function getSIGHNFTBoosters() external view override returns (address) {
         return getAddress(SIGH_Finance_NFT_BOOSTERS);
     }
 
-    function setSIGHNFTBoosters(address _SIGHNFTBooster) external onlySIGHFinanceManager {
+    function setSIGHNFTBoosters(address _SIGHNFTBooster) external override onlySIGHFinanceManager {
         // require (!isNFTBoosterInitialized, "SIGH NFT Boosters address can only be initialized once.");
 //        isNFTBoosterInitialized  = true;
         _setAddress(SIGH_Finance_NFT_BOOSTERS, _SIGHNFTBooster);
@@ -324,7 +326,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev returns the address of the SIGHFinanceConfigurator proxy
     * @return the SIGH Finance configurator proxy address
     **/
-    function getSIGHFinanceConfigurator() external view returns (address) {
+    function getSIGHFinanceConfigurator() external view override returns (address) {
         return getAddress(SIGH_FINANCE_CONFIGURATOR);
     }
 
@@ -332,7 +334,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev updates the implementation of the lending pool configurator
     * @param _configurator the new lending pool configurator implementation
     **/
-    function setSIGHFinanceConfiguratorImpl(address _configurator) external onlySIGHFinanceManager {
+    function setSIGHFinanceConfiguratorImpl(address _configurator) external override onlySIGHFinanceManager {
         updateImplInternal(SIGH_FINANCE_CONFIGURATOR, _configurator);
         emit SIGHFinanceConfiguratorUpdated(_configurator);
     }
@@ -345,7 +347,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev returns the address of the SIGH_SPEED_CONTROLLER proxy
     * @return the SIGH Speed Controller address
     **/
-    function getSIGHSpeedController() external view returns (address) {
+    function getSIGHSpeedController() external view override returns (address) {
         return getAddress(SIGH_SPEED_CONTROLLER);
     }
 
@@ -353,7 +355,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev sets the address of the SIGH Speed Controller
     * @param _SIGHSpeedController the SIGH Speed Controller implementation
     **/
-    function setSIGHSpeedController(address _SIGHSpeedController) external onlySIGHFinanceManager {
+    function setSIGHSpeedController(address _SIGHSpeedController) external override onlySIGHFinanceManager {
         // require (!isSighSpeedControllerInitialized, "SIGH Speed Controller address can only be initialized once.");
         // isSighSpeedControllerInitialized  = true;
         updateImplInternal(SIGH_SPEED_CONTROLLER, _SIGHSpeedController);
@@ -366,7 +368,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // ######  SIGHTreasury proxy ######  ADDED BY SIGH FINANCE
 // #################################  ADDED BY SIGH FINANCE
 
-    function getSIGHTreasury() external view returns (address) {
+    function getSIGHTreasury() external view override returns (address) {
         return getAddress(SIGH_TREASURY);
     }
 
@@ -374,7 +376,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev updates the address of the SIGH Treasury Contract
     * @param _SIGHTreasury the new SIGH Treasury Contract address
     **/
-    function setSIGHTreasuryImpl(address _SIGHTreasury) external onlySIGHFinanceManager {
+    function setSIGHTreasuryImpl(address _SIGHTreasury) external override onlySIGHFinanceManager {
         updateImplInternal(SIGH_TREASURY, _SIGHTreasury);
         emit SIGHTreasuryImplUpdated(_SIGHTreasury);
     }
@@ -383,7 +385,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // ######  SIGHVolatilityHarvester proxy #######     ADDED BY SIGH FINANCE
 // #############################################  ADDED BY SIGH FINANCE
 
-    function getSIGHVolatilityHarvester() external view returns (address) {
+    function getSIGHVolatilityHarvester() external view override returns (address) {
         return getAddress(SIGH_VOLATILITY_HARVESTER);
     }
 
@@ -391,7 +393,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev updates the address of the SIGH Distribution Handler Contract (Manages the SIGH Speeds)
     * @param _SIGHVolatilityHarvester the new SIGH Distribution Handler (Impl) Address
     **/
-    function setSIGHVolatilityHarvesterImpl(address _SIGHVolatilityHarvester) external onlySIGHFinanceManager  {
+    function setSIGHVolatilityHarvesterImpl(address _SIGHVolatilityHarvester) external override onlySIGHFinanceManager  {
         updateImplInternal(SIGH_VOLATILITY_HARVESTER, _SIGHVolatilityHarvester);
         emit SIGHVolatilityHarvesterImplUpdated(_SIGHVolatilityHarvester);
     }
@@ -400,7 +402,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // ######  SIGHStaking proxy ###################  ADDED BY SIGH FINANCE
 // #############################################  ADDED BY SIGH FINANCE
 
-    function getSIGHStaking() external view returns (address) {
+    function getSIGHStaking() external view override returns (address) {
         return getAddress(SIGH_STAKING);
     }
 
@@ -408,7 +410,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev updates the address of the SIGH Distribution Handler Contract (Manages the SIGH Speeds)
     * @param _SIGHStaking the new lending pool liquidation manager address
     **/
-    function setSIGHStaking(address _SIGHStaking) external onlySIGHFinanceManager  {
+    function setSIGHStaking(address _SIGHStaking) external override onlySIGHFinanceManager  {
         updateImplInternal(SIGH_STAKING, _SIGHStaking);
         emit SIGHStakingImplUpdated(_SIGHStaking);
     }
@@ -418,11 +420,11 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // #############################################
 
     // SIGH FINANCE : SIGH PAY AGGREGATOR - Collects SIGH PAY Payments
-    function getSIGHPAYAggregator() external view returns (address) {
+    function getSIGHPAYAggregator() external view override returns (address) {
         return getAddress(SIGH_Finance_SIGHPAY_AGGREGATOR);
     }
 
-    function setSIGHPAYAggregator(address _SIGHPAYAggregator) external onlySIGHFinanceManager {
+    function setSIGHPAYAggregator(address _SIGHPAYAggregator) external override onlySIGHFinanceManager {
         updateImplInternal(SIGH_Finance_SIGHPAY_AGGREGATOR, _SIGHPAYAggregator);
         emit SIGHFinanceSIGHPAYAggregatorUpdated(_SIGHPAYAggregator);
     }
@@ -432,11 +434,11 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // ####################################################
 
     // SIGH FINANCE FEE COLLECTOR - BORROWING / FLASH LOAN FEE TRANSERRED TO THIS ADDRESS
-    function getSIGHFinanceFeeCollector() external view returns (address) {
+    function getSIGHFinanceFeeCollector() external view override returns (address) {
         return getAddress(SIGH_Finance_Fee_Collector);
     }
 
-    function setSIGHFinanceFeeCollector(address _feeCollector) external onlySIGHFinanceManager {
+    function setSIGHFinanceFeeCollector(address _feeCollector) external override onlySIGHFinanceManager {
         _setAddress(SIGH_Finance_Fee_Collector, _feeCollector);
         emit SIGHFinanceFeeCollectorUpdated(_feeCollector);
     }
@@ -450,11 +452,11 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * hence the upgradable proxy pattern is not used
     **/
 
-    function getPriceOracle() external view returns (address) {
+    function getPriceOracle() external view override returns (address) {
         return getAddress(PRICE_ORACLE);
     }
 
-    function setPriceOracle(address _priceOracle) external onlyLendingPoolManager {
+    function setPriceOracle(address _priceOracle) external override onlyLendingPoolManager {
         _setAddress(PRICE_ORACLE, _priceOracle);
         emit PriceOracleUpdated(_priceOracle);
     }

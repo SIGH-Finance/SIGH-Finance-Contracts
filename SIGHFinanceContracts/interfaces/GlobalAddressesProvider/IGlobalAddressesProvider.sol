@@ -1,4 +1,6 @@
-pragma solidity ^0.5.0;
+// SPDX-License-Identifier: agpl-3.0
+
+pragma solidity ^0.7.0;
 
 /**
 @title GlobalAddressesProvider interface
@@ -38,17 +40,8 @@ interface IGlobalAddressesProvider  {
     function getLendingPoolConfigurator() external view returns (address);
     function setLendingPoolConfiguratorImpl(address _configurator) external;
 
-    function getLendingPoolCore() external view returns (address payable);
-    function setLendingPoolCoreImpl(address _lendingPoolCore) external;
-
     function getLendingPool() external view returns (address);
     function setLendingPoolImpl(address _pool) external;
-
-    function getLendingPoolDataProvider() external view returns (address);
-    function setLendingPoolDataProviderImpl(address _provider) external;
-
-    function getLendingPoolParametersProvider() external view returns (address);
-    function setLendingPoolParametersProviderImpl(address _parametersProvider) external;
 
     function getFeeProvider() external view returns (address);
     function setFeeProviderImpl(address _feeProvider) external;
@@ -72,6 +65,9 @@ interface IGlobalAddressesProvider  {
     function getSIGHAddress() external view returns (address);
     function setSIGHAddress(address sighAddress) external;
 
+    function getSIGHNFTBoosters() external view returns (address) ;
+    function setSIGHNFTBoosters(address _SIGHNFTBooster) external ;
+
     function getSIGHFinanceConfigurator() external view returns (address);
     function setSIGHFinanceConfiguratorImpl(address sighAddress) external;
 
@@ -87,12 +83,10 @@ interface IGlobalAddressesProvider  {
     function getSIGHStaking() external view returns (address);                      //  ADDED FOR SIGH FINANCE
     function setSIGHStaking(address _SIGHVolatilityHarvester) external;             //  ADDED FOR SIGH FINANCE
 
-    function getSIGHPAYAggregator() external view returns (address);                      //  ADDED FOR SIGH FINANCE
-    function setSIGHPAYAggregator(address _SIGHPAYAggregator) external;             //  ADDED FOR SIGH FINANCE
-
 // #######################################################
 // ####___________ PRICE ORACLE CONTRACT _____________####
 // ####_____ SIGH FINANCE FEE COLLECTOR : ADDRESS ____####
+// ####_____   SIGH PAYCOLLECTOR : ADDRESS        ____####
 // #######################################################
 
     function getPriceOracle() external view returns (address);
@@ -103,8 +97,7 @@ interface IGlobalAddressesProvider  {
     function getSIGHFinanceFeeCollector() external view returns (address) ;
     function setSIGHFinanceFeeCollector(address _feeCollector) external ;
 
-    // SIGH FINANCE FEE COLLECTOR - DEPOSIT / BORROWING / FLASH LOAN FEE TRANSERRED TO THIS ADDRESS
-    function getSIGHNFTBoosters() external view returns (address) ;
-    function setSIGHNFTBoosters(address _SIGHNFTBooster) external ;
+    function getSIGHPAYAggregator() external view returns (address);                      //  ADDED FOR SIGH FINANCE
+    function setSIGHPAYAggregator(address _SIGHPAYAggregator) external;             //  ADDED FOR SIGH FINANCE
 
 }

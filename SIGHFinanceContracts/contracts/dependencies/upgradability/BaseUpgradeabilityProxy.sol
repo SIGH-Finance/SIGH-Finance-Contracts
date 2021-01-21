@@ -1,7 +1,9 @@
-pragma solidity ^0.5.0;
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.7.0;
 
 import "./Proxy.sol";
-import "openzeppelin-solidity/contracts/utils/Address.sol";
+import "../openzeppelin/utils/Address.sol";
 
 /**
  * @title BaseUpgradeabilityProxy
@@ -24,9 +26,9 @@ contract BaseUpgradeabilityProxy is Proxy {
 
     /**
    * @dev Returns the current implementation.
-   * @return Address of the current implementation
+   * @return impl Address of the current implementation
    */
-    function _implementation() internal view returns (address impl) {
+    function _implementation() internal view override returns (address impl) {
         bytes32 slot = IMPLEMENTATION_SLOT;
         //solium-disable-next-line
         assembly {
