@@ -15,7 +15,6 @@ import {IReserveInterestRateStrategy} from '../../../interfaces/IReserveInterest
 import {MathUtils} from '../math/MathUtils.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
-import {Errors} from '../helpers/Errors.sol';
 
 import "../configuration/InstrumentConfiguration.sol";
 import {DataTypes} from '../types/DataTypes.sol';

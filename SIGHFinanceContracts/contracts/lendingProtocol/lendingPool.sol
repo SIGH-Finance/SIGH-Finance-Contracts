@@ -12,24 +12,24 @@ import "./flashLoan/interfaces/IFlashLoanReceiver.sol";
 
 import "../GlobalAddressesProvider/IGlobalAddressesProvider.sol";
 
-import {IAToken} from '../../interfaces/IAToken.sol';
-import {IVariableDebtToken} from '../../interfaces/IVariableDebtToken.sol';
-import {IStableDebtToken} from '../../interfaces/IStableDebtToken.sol';
+import {IIToken} from '../../interfaces/lendingProtocol/IIToken.sol';
+import {IVariableDebtToken} from "../../interfaces/lendingProtocol/IVariableDebtToken.sol";
+import {IStableDebtToken} from '../../interfaces/lendingProtocol/IStableDebtToken.sol';
 
 import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
 
 
 import {Helpers} from '../libraries/helpers/Helpers.sol';
-import {Errors} from '../libraries/helpers/Errors.sol';
 import {WadRayMath} from '../libraries/math/WadRayMath.sol';
 import {PercentageMath} from '../libraries/math/PercentageMath.sol';
-import {ReserveLogic} from '../libraries/logic/ReserveLogic.sol';
-import {GenericLogic} from '../libraries/logic/GenericLogic.sol';
-import {ValidationLogic} from '../libraries/logic/ValidationLogic.sol';
-import {ReserveConfiguration} from '../libraries/configuration/ReserveConfiguration.sol';
+import {InstrumentReserveLogic} from './libraries/logic/InstrumentReserveLogic.sol';
+import {GenericLogic} from './libraries/logic/GenericLogic.sol';
+import {ValidationLogic} from './libraries/logic/ValidationLogic.sol';
+import {InstrumentConfiguration} from './libraries/configuration/InstrumentConfiguration.sol';
 import {UserConfiguration} from '../libraries/configuration/UserConfiguration.sol';
 import {DataTypes} from '../libraries/types/DataTypes.sol';
 import {LendingPoolStorage} from './LendingPoolStorage.sol';
+
 
 /**
  * @title LendingPool contract
@@ -70,14 +70,11 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
   }
 
   function _whenNotPaused() internal view {
-    require(!_paused, Errors.LP_IS_PAUSED);
+    require(!_paused, "Lending Pool is Paused");
   }
 
   function _onlyLendingPoolConfigurator() internal view {
-    require(
-      _addressesProvider.getLendingPoolConfigurator() == msg.sender,
-      Errors.LP_CALLER_NOT_LENDING_POOL_CONFIGURATOR
-    );
+    require(_addressesProvider.getLendingPoolConfigurator() == msg.sender, "Caller not Lending Pool Configurator");
   }
 
   function getRevision() internal pure override returns (uint256) {
@@ -123,7 +120,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
     IERC20(asset).safeTransferFrom(msg.sender, aToken, amount);
 
-    bool isFirstDeposit = IAToken(aToken).mint(onBehalfOf, amount, reserve.liquidityIndex);
+    bool isFirstDeposit = IIToken(aToken).mint(onBehalfOf, amount, reserve.liquidityIndex);
 
     if (isFirstDeposit) {
       _usersConfig[onBehalfOf].setUsingAsCollateral(reserve.id, true);
@@ -153,7 +150,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
     address aToken = reserve.aTokenAddress;
 
-    uint256 userBalance = IAToken(aToken).balanceOf(msg.sender);
+    uint256 userBalance = IIToken(aToken).balanceOf(msg.sender);
 
     uint256 amountToWithdraw = amount;
 
@@ -181,7 +178,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
       emit ReserveUsedAsCollateralDisabled(asset, msg.sender);
     }
 
-    IAToken(aToken).burn(msg.sender, to, amountToWithdraw, reserve.liquidityIndex);
+    IIToken(aToken).burn(msg.sender, to, amountToWithdraw, reserve.liquidityIndex);
 
     emit Withdraw(asset, msg.sender, to, amountToWithdraw);
 
@@ -446,7 +443,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
           receiveAToken
         )
       );
-    require(success, Errors.LP_LIQUIDATION_CALL_FAILED);
+    require(success, "Liquidation Call failed");
 
     (uint256 returnCode, string memory returnMessage) = abi.decode(result, (uint256, string));
 
@@ -505,13 +502,10 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
       premiums[vars.i] = amounts[vars.i].mul(FLASHLOAN_PREMIUM_TOTAL).div(10000);
 
-      IAToken(aTokenAddresses[vars.i]).transferUnderlyingTo(receiverAddress, amounts[vars.i]);
+      IIToken(aTokenAddresses[vars.i]).transferUnderlyingTo(receiverAddress, amounts[vars.i]);
     }
 
-    require(
-      vars.receiver.executeOperation(assets, amounts, premiums, msg.sender, params),
-      Errors.LP_INVALID_FLASH_LOAN_EXECUTOR_RETURN
-    );
+    require(vars.receiver.executeOperation(assets, amounts, premiums, msg.sender, params), "INVALID FLASH LOAN EXECUTOR RETURN");
 
     for (vars.i = 0; vars.i < assets.length; vars.i++) {
       vars.currentAsset = assets[vars.i];
@@ -633,7 +627,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     external
     view
     override
-    returns (DataTypes.ReserveConfigurationMap memory)
+    returns (DataTypes.InstrumentConfigurationMap memory)
   {
     return _reserves[asset].configuration;
   }
@@ -725,7 +719,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     uint256 balanceFromBefore,
     uint256 balanceToBefore
   ) external override whenNotPaused {
-    require(msg.sender == _reserves[asset].aTokenAddress, Errors.LP_CALLER_MUST_BE_AN_ATOKEN);
+    require(msg.sender == _reserves[asset].aTokenAddress, "Caller must be an AToken");
 
     ValidationLogic.validateTransfer(
       from,
@@ -770,7 +764,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     address variableDebtAddress,
     address interestRateStrategyAddress
   ) external override onlyLendingPoolConfigurator {
-    require(Address.isContract(asset), Errors.LP_NOT_CONTRACT);
+    require(Address.isContract(asset), "Instrument address not contract");
     _reserves[asset].init(
       aTokenAddress,
       stableDebtAddress,
@@ -894,7 +888,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     );
 
     if (vars.releaseUnderlying) {
-      IAToken(vars.aTokenAddress).transferUnderlyingTo(vars.user, vars.amount);
+      IIToken(vars.aTokenAddress).transferUnderlyingTo(vars.user, vars.amount);
     }
 
     emit Borrow(
@@ -913,7 +907,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
   function _addReserveToList(address asset) internal {
     uint256 reservesCount = _reservesCount;
 
-    require(reservesCount < MAX_NUMBER_RESERVES, Errors.LP_NO_MORE_RESERVES_ALLOWED);
+    require(reservesCount < MAX_NUMBER_RESERVES, "No more instruments can be supported");
 
     bool reserveAlreadyAdded = _reserves[asset].id != 0 || _reservesList[0] == asset;
 
