@@ -243,7 +243,7 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
             }
         }
         all_Instruments[index] = all_Instruments[length_ - 1];
-        all_Instruments.length--;
+        all_Instruments.pop();
         uint newLen = length_ - 1;
         require(all_Instruments.length == newLen,"Instrument not properly removed from the list of instruments supported");
         
@@ -356,11 +356,11 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
      * @notice Recalculate and update SIGH speeds for all Supported SIGH markets
      */
     function refreshSIGHSpeeds() public override returns (bool) {
-        uint256 timeElapsedSinceLastRefresh = sub_(now , prevHarvestRefreshTimestamp, "Refresh SIGH Speeds : Subtraction underflow for timestamps"); 
+        uint256 timeElapsedSinceLastRefresh = sub_(block.timestamp , prevHarvestRefreshTimestamp, "Refresh SIGH Speeds : Subtraction underflow for timestamps"); 
 
         if ( timeElapsedSinceLastRefresh >= deltaTimestamp) {
             refreshSIGHSpeedsInternal();
-            prevHarvestRefreshTimestamp = now;                                        // STATE UPDATED
+            prevHarvestRefreshTimestamp = block.timestamp;                                        // STATE UPDATED
             return true;
         }
         return false;
@@ -381,8 +381,8 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
      */    
     function refreshSIGHSpeedsInternal() internal {
         address[] memory all_Instruments_ = all_Instruments;
-        uint deltaBlocks_ = sub_( now , blockNumbersForPriceSnapshots_[curClock], "DeltaTimestamp resulted in Underflow");       // Delta Blocks over past 24 hours
-        blockNumbersForPriceSnapshots_[curClock] = now;                                                                    // STATE UPDATE : Block Number for the priceSnapshot Updated
+        uint deltaBlocks_ = sub_( block.timestamp , blockNumbersForPriceSnapshots_[curClock], "DeltaTimestamp resulted in Underflow");       // Delta Blocks over past 24 hours
+        blockNumbersForPriceSnapshots_[curClock] = block.timestamp;                                                                    // STATE UPDATE : Block Number for the priceSnapshot Updated
 
         require(updatedInstrumentIndexesInternal(), "Updating Instrument Indexes Failed");       //  accure the indexes 
 

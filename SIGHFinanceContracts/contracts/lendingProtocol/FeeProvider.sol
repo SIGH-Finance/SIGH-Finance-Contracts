@@ -61,7 +61,7 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
 
     //only LendingPool contract can call these functions
     modifier onlyLendingPool {
-        require(globalAddressesProvider.getLendingPool()() == msg.sender, "The caller must be the Lending Pool Contract");
+        require(globalAddressesProvider.getLendingPool() == msg.sender, "The caller must be the Lending Pool Contract");
         _;
     }
 
@@ -86,8 +86,8 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
     }
 
     function refreshConfiguration() external override onlySighFinanceConfigurator returns (bool) {
-        priceOracle = globalAddressesProvider.getPriceOracle();
-        SIGHNFTBoosters = globalAddressesProvider.getSIGHNFTBoosters();
+        priceOracle = IPriceOracleGetter(globalAddressesProvider.getPriceOracle());
+        SIGHNFTBoosters = ISIGHBoosters(globalAddressesProvider.getSIGHNFTBoosters());
         return true;
     }
 
@@ -102,7 +102,7 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
 
         uint totalFee = _amount.percentMul(totalDepositFeePercent);       // totalDepositFeePercent = 50 represents 0.5%
         uint platformFee = totalFee.percentMul(platformFeePercent);       // platformFeePercent = 5000 represents 50%
-        uint sighPay = totalFee.sub_(platformFee);
+        uint sighPay = totalFee.sub(platformFee);
 
         if (boosterId == 0) {
             return (totalFee,platformFee,sighPay);

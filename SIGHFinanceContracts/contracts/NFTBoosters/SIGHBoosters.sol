@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
-
+pragma experimental ABIEncoderV2;
 pragma solidity ^0.7.0;
 
 import "../dependencies/openzeppelin/token/ERC721/IERC721Metadata.sol";
@@ -50,15 +50,16 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         uint256 _platformFeeDiscount;
         uint256 _sighPayDiscount;
     }
-
+    
+    string[] private boosterTypesList ;
     mapping (string => boosterCategory) private boosterCategories;
-    mapping (string => uint256) private totalBoosters;      // (Booster Category => boosters Available) Mapping
+    mapping (string => uint256) private totalBoosters;                            // (Booster Category => boosters Available) Mapping
     mapping (uint256 => string) private _BoosterCategory;
     mapping (uint256 => address) private _BoosterApprovals;                       // Mapping from BoosterID to approved address
     mapping (address => mapping (address => bool)) private _operatorApprovals;    // Mapping from owner to operator approvals
    
     mapping (address => BoostersEnumerableSet.BoosterSet) private farmersWithBoosts;     // Mapping from holder address to their (enumerable) set of owned tokens & categories
-    BoostersEnumerableMap.UintToNFTMap private boostersData;                    // Enumerable mapping from token ids to their owners & categories
+    BoostersEnumerableMap.UintToNFTMap private boostersData;                            // Enumerable mapping from token ids to their owners & categories
 
 
     constructor(string memory name_, string memory symbol_)  {
@@ -74,6 +75,16 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     // #################################
     // ######## ADMIN FUNCTIONS ########
     // #################################
+
+    function createNewBoosters(string[] memory _type,  string[] memory boosterURI) public override onlyOwner returns (uint256) {
+        require( _type.length == boosterURI.length, 'Array Size not equal');
+        bytes memory _data;
+        uint i;
+        for(; i< _type.length; i++) {
+            createNewSIGHBooster(msg.sender, _type[i], boosterURI[i], _data);
+        }
+        return i;
+    }
 
     function createNewSIGHBooster(address _owner, string memory _type,  string memory boosterURI, bytes memory _data) public override onlyOwner returns (uint256) {
         require(boosterCategories[_type].isSupported,'Not a valid Booster Type');
@@ -95,9 +106,14 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         require(_platformFeeDiscount_ > 0,"SIGH BOOSTERS: Platform Fee Discount cannot be 0");
         require(_sighPayDiscount_ > 0,"SIGH BOOSTERS: SIGH Pay Fee Discount cannot be 0");
         boosterCategories[_type] =  boosterCategory({isSupported: true, totalBoosters:0, _platformFeeDiscount: _platformFeeDiscount_, _sighPayDiscount: _sighPayDiscount_  });
+        boosterTypesList.push(_type);
         return true;
     }
-
+    
+    function _updateBaseURI(string memory baseURI )  public override onlyOwner {
+        _baseURI = baseURI;
+     }
+    
     function updateBoosterURI(uint256 boosterId, string memory boosterURI )  public override onlyOwner returns (bool) {
         require(_exists(boosterId), "SIGH BOOSTERS: URI set of nonexistent token");
         _setBoosterURI(boosterId,boosterURI);
@@ -268,7 +284,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     // get Booster Discount Multiplier
     function getDiscountRatiosForBooster(uint256 boosterId) external view returns ( uint platformFeeDiscount, uint sighPayDiscount ) {
-        require(!_exists(boosterId), "SIGH BOOSTERS: Booster doesn't exist");
+        require(_exists(boosterId), "SIGH BOOSTERS: Booster doesn't exist");
         platformFeeDiscount =  boosterCategories[getBoosterCategory(boosterId)]._platformFeeDiscount;
         sighPayDiscount =  boosterCategories[getBoosterCategory(boosterId)]._sighPayDiscount;
     }
@@ -276,9 +292,24 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     function isValidBooster(uint256 boosterId) external view returns (bool) {
         return _exists(boosterId);
     }
-
-
-
+    
+    
+    // Returns a list containing the all the Booster categories currently supported
+    function getAllBoosterTypes() external view returns (string[] memory) {
+        return boosterTypesList;
+    }   
+    
+    
+    // Returns a list of BoosterIDs of the boosters owned by the user
+    function getAllBoostersOwned(address user) external view returns(uint[] memory boosterIds) {
+        BoostersEnumerableSet.BoosterSet storage boostersOwned = farmersWithBoosts[user];
+        
+        for (uint i; i < boostersOwned.length() ; i++) {
+            BoostersEnumerableSet.ownedBooster memory _booster = boostersOwned.at(i);
+            boosterIds[i] = _booster.boostId;
+        }
+        
+    }
 
 
 

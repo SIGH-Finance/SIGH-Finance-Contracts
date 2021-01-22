@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-
+pragma experimental ABIEncoderV2;
 pragma solidity ^0.7.0;
 
 interface ISIGHBoosters {
@@ -7,9 +7,11 @@ interface ISIGHBoosters {
     // #################################
     // ######## ADMIN FUNCTIONS ########
     // #################################
-
+    
+    function createNewBoosters(string[] memory _type,  string[] memory boosterURI) external returns (uint256);
     function createNewSIGHBooster(address _owner, string memory _type,  string memory boosterURI, bytes memory _data ) external returns (uint256) ;
     function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_) external returns (bool) ;
+    function _updateBaseURI(string memory baseURI )  external ;
     function updateBoosterURI(uint256 boosterId, string memory boosterURI )  external returns (bool) ;
 
     // ###########################################

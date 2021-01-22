@@ -63,7 +63,7 @@ contract SIGH is ERC20('SIGH : A free distributor of future expected accumulated
     event accountBlocked(address _account, uint balance);
     event accountUnBlocked(address _account, uint balance);
     // constructing
-    constructor () public {
+    constructor () {
         _owner = _msgSender();
     }
 
@@ -102,14 +102,15 @@ contract SIGH is ERC20('SIGH : A free distributor of future expected accumulated
     function blockAnAccount(address _account) external returns (bool) {
         require(msg.sender == globalAddressesProvider.getSIGHFinanceManager(), 'Only SIGH Finance Manager can call this function');
         blockList[_account] = true;
-        emit accountBlocked(_account, balanceOf[_account] );
+        uint balance = balanceOf(_account);
+        emit accountBlocked(_account, balance );
         return true;
     }
 
     function unBlockAnAccount(address _account) external returns (bool) {
         require(msg.sender == globalAddressesProvider.getSIGHFinanceManager(), 'Only SIGH Finance Manager can call this function');
         blockList[_account] = false;
-        emit accountUnBlocked(_account, balanceOf[_account] );
+        emit accountUnBlocked(_account, balanceOf(_account) );
         return true;
     }
 
@@ -153,7 +154,7 @@ contract SIGH is ERC20('SIGH : A free distributor of future expected accumulated
         if ( Current_Schedule < _CalculateCurrentSchedule() ) {
             Current_Schedule = add(Current_Schedule,uint256(1),"NEW Schedule : Addition gave error");
             currentDivisibilityFactor = _schedules[Current_Schedule].divisibilityFactor;
-            emit NewSchedule(Current_Schedule,currentDivisibilityFactor, block.number, now);
+            emit NewSchedule(Current_Schedule,currentDivisibilityFactor, block.number, block.timestamp);
         }
 
         uint currentSupply = totalSupply();

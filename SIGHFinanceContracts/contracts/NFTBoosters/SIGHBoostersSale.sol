@@ -41,7 +41,7 @@ contract SIGHBoostersSale is Ownable {
     // ######## ADMIN FUNCTIONS ########
     // #################################
 
-    function addBoostersForSale(string memory _BoosterType, uint256[] memory boosterids, uint256 _price ) external onlyOwner {
+    function addBoostersForSale(string memory _BoosterType, uint256[] memory boosterids) external onlyOwner {
         require( _SIGH_NFT_BoostersContract.isCategorySupported(_BoosterType),"SIGH Finance : Not a valid Booster Type");
 
         if (!boosterTypes[_BoosterType]) {
@@ -93,7 +93,7 @@ contract SIGHBoostersSale is Ownable {
         uint amountToBePaid = boostersToBuy.mul(listOfBoosters[_BoosterType].salePrice);
 
         transferFunds(msg.sender,amountToBePaid);
-        transferBoosters(msg.sender, _BoosterType, boostersToBuy);
+        require(transferBoosters(msg.sender, _BoosterType, boostersToBuy),'Failed to transfer the Boosters');
     }
 
 
@@ -122,21 +122,21 @@ contract SIGHBoostersSale is Ownable {
     // ####################################
 
     // Transfers 'totalBoosters' number of BOOSTERS of type '_BoosterType' to the 'to' address
-    function transferBoosters(address to, string memory _BoosterType, uint totalBoosters) internal {
+    function transferBoosters(address to, string memory _BoosterType, uint totalBoosters) internal returns (bool) {
         uint counter;
         uint listLength = listOfBoosters[_BoosterType].boosterIdsList.length;
 
         for (uint i; i < listLength; i++ ) {
             uint256 _boosterId = listOfBoosters[_BoosterType].boosterIdsList[i];  // current BoosterID
 
-            if (boosterIdsForSale[_boosterId]) {
+            if (boosterIdsForSale[_boosterId] && listOfBoosters[_BoosterType].boosterIdsList[i] > 0) {
+
                 // Transfer the Booster and Verify the same
                 _SIGH_NFT_BoostersContract.safeTransferFrom(_BoosterVault,to,_boosterId);
                 require(to == _SIGH_NFT_BoostersContract.ownerOfBooster(_boosterId),"Booster Transfer failed");
 
-                // Remove the Booster ID from the list of Boosters available
-                listOfBoosters[_BoosterType].boosterIdsList[i] = listOfBoosters[_BoosterType].boosterIdsList[listLength - 1];
-                listOfBoosters[_BoosterType].boosterIdsList[i].length--;
+                // Remove the Booster ID by making it 0
+                listOfBoosters[_BoosterType].boosterIdsList[i] = 0;
 
                 // Update the number of boosters available & sold
                 listOfBoosters[_BoosterType].totalAvailable = listOfBoosters[_BoosterType].totalAvailable.sub(1);
@@ -149,10 +149,11 @@ contract SIGHBoostersSale is Ownable {
                 emit BoosterSold(to, _BoosterType, _boosterId, listOfBoosters[_BoosterType].salePrice );
 
                 if (counter == totalBoosters) {
-                    break;
+                    return true;
                 }
             }
         }
+        return false;
     }
 
     // Transfers 'amount' of DAI to the contract

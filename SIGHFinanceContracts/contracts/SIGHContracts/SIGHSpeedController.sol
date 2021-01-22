@@ -173,7 +173,7 @@ contract SIGHSpeedController is ISIGHSpeedController, VersionedInitializable  {
     }
 
     storedSupportedProtocols[index] = storedSupportedProtocols[len - 1];
-    storedSupportedProtocols.length--;
+    storedSupportedProtocols.pop();
     uint newLength = len - 1;
     require(storedSupportedProtocols.length == newLength, 'The length of the list was not properly decremented.' );
 
@@ -397,7 +397,7 @@ contract SIGHSpeedController is ISIGHSpeedController, VersionedInitializable  {
     return c;
   }
 
-  function mul_(uint a, Exp memory b) internal  returns (uint) {
+  function mul_(uint a, Exp memory b) internal view  returns (uint) {
       return mul(a, b.mantissa,'Exp multiplication failed') / expScale;
   }
 
