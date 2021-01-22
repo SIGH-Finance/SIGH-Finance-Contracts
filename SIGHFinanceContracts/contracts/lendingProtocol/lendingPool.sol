@@ -118,25 +118,26 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     function deposit( address _instrument, uint256 _amount, uint256 boosterId ) external override whenNotPaused  {
 
         DataTypes.InstrumentData storage instrument =_instruments[_instrument];
-        ValidationLogic.validateDeposit(instrument, _amount);                       // Makes the deposit checks
+        ValidationLogic.validateDeposit(instrument, _amount);  // checks if the instrument is active and not frozen                     // Makes the deposit checks
 
         address iToken = instrument.iTokenAddress;
+        address _SIGHPayAggregator = addressesProvider.getSIGHPayAggregator();
 
         // Split Deposit fee in Reserve Fee and Platform Fee. Calculations based on the discount (if any) provided by the boosterId
         (uint256 totalFee, uint256 platformFee, uint256 reserveFee) = feeProvider.calculateDepositFee(msg.sender,_instrument, _amount, boosterId);
-        if (platformFee > 0) {
+        if (platformFee > 0 && addressesProvider.getSIGHFinanceFeeCollector()  != address(0) ) {
             IERC20(_instrument).safeTransferFrom( msg.sender, addressesProvider.getSIGHFinanceFeeCollector(), platformFee );
         }
-        if (reserveFee > 0) {
-            IERC20(_instrument).safeTransferFrom( msg.sender, addressesProvider.getSIGHPayAggregator(), reserveFee );
+        if (reserveFee > 0 && _SIGHPayAggregator  != address(0) ) {
+            IERC20(_instrument).safeTransferFrom( msg.sender, _SIGHPayAggregator, reserveFee );
         }
 
-        instrument.updateState();
+        sighVolatiltiyHarvester.updateSIGHSupplyIndex(_instrument);  // Update SIGH Supply Index                  // Update SIGH Liquidity Index for Instrument
+        instrument.updateState(_SIGHPayAggregator);
         instrument.updateInterestRates(_instrument, iToken, _amount.sub(totalFee), 0);
-        sighVolatiltiyHarvester.updateSIGHSupplyIndex(_instrument);                    // Update SIGH Liquidity Index for Instrument
 
-        IERC20(_instrument).safeTransferFrom(msg.sender, iToken, _amount.sub(totalFee));
-        bool isFirstDeposit = IIToken(iToken).mint(msg.sender, _amount.sub(totalFee) , instrument.liquidityIndex);
+        IERC20(_instrument).safeTransferFrom(msg.sender, iToken, _amount.sub(totalFee)); // Transfer the Deposit amount
+        bool isFirstDeposit = IIToken(iToken).mint(msg.sender, _amount.sub(totalFee) , instrument.liquidityIndex); // Mint the ITokens
 
         if (isFirstDeposit) {
             _usersConfig[msg.sender].setUsingAsCollateral(instrument.id, true);
