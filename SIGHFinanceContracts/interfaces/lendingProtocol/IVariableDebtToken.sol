@@ -1,4 +1,5 @@
-pragma solidity ^0.4.0;
+// SPDX-License-Identifier: agpl-3.0
+pragma solidity 0.7.0;
 
 import {IScaledBalanceToken} from './IScaledBalanceToken.sol';
 

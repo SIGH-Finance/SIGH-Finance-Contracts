@@ -2,8 +2,8 @@
 pragma solidity 0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "../../../dependencies/openzeppelin/math/SafeMath.sol";
-import "../../../dependencies/openzeppelin/token/ERC20/IERC20.sol";
+import  {SafeMath} from "../../../dependencies/openzeppelin/math/SafeMath.sol";
+import  {IERC20} from "../../../dependencies/openzeppelin/token/ERC20/IERC20.sol";
 
 import {InstrumentReserveLogic} from './InstrumentReserveLogic.sol';
 import {GenericLogic} from './GenericLogic.sol';
@@ -11,12 +11,12 @@ import {GenericLogic} from './GenericLogic.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
 
-import {SafeERC20} from '../../../dependencies/openzeppelin/contracts/SafeERC20.sol';
+import {SafeERC20} from '../../../dependencies/openzeppelin/token/ERC20/SafeERC20.sol';
 import {InstrumentConfiguration} from '../configuration/InstrumentConfiguration.sol';
 import {UserConfiguration} from '../configuration/UserConfiguration.sol';
 import {Errors} from '../helpers/Errors.sol';
 import {Helpers} from '../helpers/Helpers.sol';
-import {IReserveInterestRateStrategy} from '../../../interfaces/IReserveInterestRateStrategy.sol';
+import {IInstrumentInterestRateStrategy} from "../../../../interfaces/lendingProtocol/IInstrumentInterestRateStrategy.sol";
 import {DataTypes} from '../types/DataTypes.sol';
 
 /**
@@ -229,7 +229,7 @@ library ValidationLogic {
         //if the liquidity rate is below REBALANCE_UP_THRESHOLD of the max variable APR at 95% usage, then we allow rebalancing of the stable rate positions.
 
         uint256 currentLiquidityRate = instrument.currentLiquidityRate;
-        uint256 maxVariableBorrowRate = IReserveInterestRateStrategy(instrument.interestRateStrategyAddress).getMaxVariableBorrowRate();
+        uint256 maxVariableBorrowRate = IInstrumentInterestRateStrategy(instrument.interestRateStrategyAddress).getMaxVariableBorrowRate();
 
         require( usageRatio >= REBALANCE_UP_USAGE_RATIO_THRESHOLD && currentLiquidityRate <= maxVariableBorrowRate.percentMul(REBALANCE_UP_LIQUIDITY_RATE_THRESHOLD), "LP INTEREST RATE REBALANCE CONDITIONS NOT MET");
     }

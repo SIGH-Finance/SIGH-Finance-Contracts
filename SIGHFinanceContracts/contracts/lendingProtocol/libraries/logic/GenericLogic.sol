@@ -2,8 +2,8 @@
 pragma solidity 0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "../../../dependencies/openzeppelin/math/SafeMath.sol";
-import "../../../dependencies/openzeppelin/token/ERC20/IERC20.sol";
+import {SafeMath} from "../../../dependencies/openzeppelin/math/SafeMath.sol";
+import {IERC20} from "../../../dependencies/openzeppelin/token/ERC20/IERC20.sol";
 
 import {InstrumentReserveLogic} from './InstrumentReserveLogic.sol';
 import {InstrumentConfiguration} from '../configuration/InstrumentConfiguration.sol';
@@ -13,7 +13,7 @@ import {DataTypes} from '../types/DataTypes.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
 
-import {IPriceOracleGetter} from '../../../interfaces/IPriceOracleGetter.sol';
+import {IPriceOracleGetter} from "../../../../interfaces/IPriceOracleGetter.sol";
 
 /**
  * @title GenericLogic library

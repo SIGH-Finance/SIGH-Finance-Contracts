@@ -2,22 +2,20 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.7.0;
 
-import "../../../dependencies/openzeppelin/math/SafeMath.sol";
-import "../../../dependencies/openzeppelin/token/ERC20/IERC20.sol";
-import "../../../dependencies/openzeppelin/token/ERC20/SafeERC20.sol";
-
-import {IAToken} from '../../../interfaces/IAToken.sol';
-import {IStableDebtToken} from '../../../interfaces/IStableDebtToken.sol';
-import {IVariableDebtToken} from '../../../interfaces/IVariableDebtToken.sol';
-
-import {IReserveInterestRateStrategy} from '../../../interfaces/IReserveInterestRateStrategy.sol';
+import {SafeMath} from "../../../dependencies/openzeppelin/math/SafeMath.sol";
+import {IERC20} from "../../../dependencies/openzeppelin/token/ERC20/IERC20.sol";
+import {SafeERC20} from "../../../dependencies/openzeppelin/token/ERC20/SafeERC20.sol";
 
 import {MathUtils} from '../math/MathUtils.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
 
-import "../configuration/InstrumentConfiguration.sol";
+import {InstrumentConfiguration} from "../configuration/InstrumentConfiguration.sol";
 import {DataTypes} from '../types/DataTypes.sol';
+import {IInstrumentInterestRateStrategy} from "../../../../interfaces/lendingProtocol/IInstrumentInterestRateStrategy.sol";
+import {IVariableDebtToken} from "../../../../interfaces/lendingProtocol/IVariableDebtToken.sol";
+import {IStableDebtToken} from "../../../../interfaces/lendingProtocol/IStableDebtToken.sol";
+import {IIToken} from "../../../../interfaces/lendingProtocol/IIToken.sol";
 
 
 /**
@@ -118,9 +116,10 @@ library InstrumentReserveLogic {
     * @param iTokenAddress The address of the overlying atoken contract
     * @param interestRateStrategyAddress The address of the interest rate strategy contract
     **/
-    function init( DataTypes.InstrumentData storage instrument, address iTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress) external {
+    function init( DataTypes.InstrumentData storage instrument, uint8 decimals , address iTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress) external {
         require(instrument.iTokenAddress == address(0), "The underlying instrument is already supported by SIGH Finance's lending protocol");
 
+        instrument.decimals = decimals;
         instrument.liquidityIndex = uint128(WadRayMath.ray());
         instrument.variableBorrowIndex = uint128(WadRayMath.ray());
         instrument.iTokenAddress = iTokenAddress;
@@ -157,7 +156,7 @@ library InstrumentReserveLogic {
         vars.totalVariableDebt = IVariableDebtToken(instrument.variableDebtTokenAddress).scaledTotalSupply().rayMul(instrument.variableBorrowIndex);
         vars.availableLiquidity = IERC20(instrumentAddress).balanceOf(iTokenAddress);
 
-        (vars.newLiquidityRate, vars.newStableRate, vars.newVariableRate) = IReserveInterestRateStrategy(instrument.interestRateStrategyAddress).calculateInterestRates(
+        (vars.newLiquidityRate, vars.newStableRate, vars.newVariableRate) = IInstrumentInterestRateStrategy(instrument.interestRateStrategyAddress).calculateInterestRates(
                                                                                                                                                 instrumentAddress,
                                                                                                                                                 vars.availableLiquidity.add(liquidityAdded).sub(liquidityTaken),
                                                                                                                                                 vars.totalStableDebt,
@@ -222,7 +221,7 @@ library InstrumentReserveLogic {
         vars.amountToMint = vars.totalDebtAccrued.percentMul(vars.reserveFactor);
 
         if (vars.amountToMint != 0) {
-            IAToken(instrument.iTokenAddress).mintToTreasury(vars.amountToMint, sighPayAggregator, newLiquidityIndex);
+            IIToken(instrument.iTokenAddress).mintToTreasury(vars.amountToMint, sighPayAggregator, newLiquidityIndex);
         }
     }
 
@@ -248,7 +247,7 @@ library InstrumentReserveLogic {
 
             //as the liquidity rate might come only from stable rate loans, we need to ensure that there is actual variable debt before accumulating
             if (scaledVariableDebt != 0) {
-                uint256 cumulatedVariableBorrowInterest = MathUtils.calculateCompoundedInterest(reserve.currentVariableBorrowRate, timestamp);
+                uint256 cumulatedVariableBorrowInterest = MathUtils.calculateCompoundedInterest(instrument.currentVariableBorrowRate, timestamp);
                 newVariableBorrowIndex = cumulatedVariableBorrowInterest.rayMul(variableBorrowIndex);
                 require( newVariableBorrowIndex <= type(uint128).max, "Updating Indexes : Variable Borrow Index overflow error" );
                 instrument.variableBorrowIndex = uint128(newVariableBorrowIndex);

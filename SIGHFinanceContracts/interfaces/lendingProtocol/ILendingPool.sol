@@ -4,7 +4,7 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "../GlobalAddressesProvider/IGlobalAddressesProvider.sol";
-import {DataTypes} from '../protocol/libraries/types/DataTypes.sol';
+import {DataTypes} from "../../contracts/lendingProtocol/libraries/types/DataTypes.sol";
 
 interface ILendingPool {
 
@@ -16,13 +16,12 @@ interface ILendingPool {
    * @dev Emitted on deposit()
    * @param instrument The address of the underlying asset of the instrument
    * @param user The address initiating the deposit
-   * @param onBehalfOf The beneficiary of the deposit, receiving the iTokens
    * @param amount The amount deposited
    * @param platformFee Platform Fee charged
    * @param reserveFee Reserve Fee charged
    * @param boosterID The boosterID of the Booster used to get a discount on the Fee
    **/
-  event Deposit(address indexed instrument, address user, address indexed onBehalfOf, uint256 amount, uint256 platformFee, uint256 reserveFee, uint16 boosterID);
+  event Deposit(address indexed instrument, address indexed user,uint256 amount, uint256 platformFee, uint256 reserveFee, uint16 boosterID);
 
   /**
    * @dev Emitted on withdraw()
@@ -143,12 +142,9 @@ interface ILendingPool {
    * - E.g. User deposits 100 USDC and gets in return 100 aUSDC
    * @param asset The address of the underlying asset to deposit
    * @param amount The amount to be deposited
-   * @param onBehalfOf The address that will receive the iTokens, same as msg.sender if the user
-   *   wants to receive them on his own wallet, or a different address if the beneficiary of iTokens
-   *   is a different wallet
    * @param boosterID of the Booster used to get a discount on the Fee. 0 if no Booster NFT available
    **/
-  function deposit(address asset, uint256 amount, address onBehalfOf, uint16 boosterID) external;
+  function deposit(address asset, uint256 amount, uint256 boosterID) external;
 
   /**
    * @dev Withdraws an `amount` of underlying asset, burning the equivalent iTokens owned
@@ -268,18 +264,13 @@ interface ILendingPool {
       uint256 healthFactor
     );
 
-  function initInstrument(address instrument, address iTokenAddress, address stableDebtAddress, address variableDebtAddress, address interestRateStrategyAddress) external;
+  function initInstrument(address instrument, uint8 decimals, address iTokenAddress, address stableDebtAddress, address variableDebtAddress, address _sighStreamAddress, address interestRateStrategyAddress) external;
 
   function setInstrumentInterestRateStrategyAddress(address instrument, address rateStrategyAddress) external;
 
   function setConfiguration(address instrument, uint256 configuration) external;
 
-  /**
-   * @dev Returns the configuration of the instrument
-   * @param asset The address of the underlying asset
-   * @return The configuration of the instrument
-   **/
-  function getConfiguration(address asset) external view returns (DataTypes.InstrumentConfigurationMap memory);
+
 
   /**
    * @dev Returns the configuration of the user across all the instruments
@@ -318,4 +309,7 @@ interface ILendingPool {
   function setPause(bool val) external;
 
   function paused() external view returns (bool);
+
+  function getSIGHVolatilityHarvester() external view returns (address);
+
 }

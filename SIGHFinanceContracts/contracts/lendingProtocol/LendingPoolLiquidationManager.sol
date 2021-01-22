@@ -1,26 +1,28 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.7.0;
 
-import "../dependencies/openzeppelin/math/SafeMath.sol";
-import "../dependencies/openzeppelin/token/ERC20/IERC20.sol";
-import "../dependencies/upgradability/VersionedInitializable.sol";
-import {SafeERC20} from '../../dependencies/openzeppelin/contracts/SafeERC20.sol';
+import {VersionedInitializable} from "../dependencies/upgradability/VersionedInitializable.sol";
+import {SafeERC20} from '../dependencies/openzeppelin/token/ERC20/SafeERC20.sol';
+import {IERC20} from '../dependencies/openzeppelin/token/ERC20/IERC20.sol';
 
-import "./libraries/logic/GenericLogic.sol";
-import "./libraries/helpers/Helpers.sol";
-import "./libraries/logic/ValidationLogic.sol";
+import {GenericLogic} from "./libraries/logic/GenericLogic.sol";
+import {Helpers} from "./libraries/helpers/Helpers.sol";
+import {ValidationLogic} from "./libraries/logic/ValidationLogic.sol";
 import {WadRayMath} from './libraries/math/WadRayMath.sol';
+
+import {SafeMath} from "../dependencies/openzeppelin/math/SafeMath.sol";
 import {PercentageMath} from './libraries/math/PercentageMath.sol';
 import {Errors} from './libraries/helpers/Errors.sol';
 import {DataTypes} from './libraries/types/DataTypes.sol';
 
-import {IAToken} from '../../interfaces/IAToken.sol';
-import {IStableDebtToken} from '../../interfaces/IStableDebtToken.sol';
-import {IVariableDebtToken} from '../../interfaces/IVariableDebtToken.sol';
-import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
-import {ILendingPoolLiquidationManager} from '../../interfaces/ILendingPoolLiquidationManager.sol';
+
 
 import {LendingPoolStorage} from './LendingPoolStorage.sol';
+import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
+import {IIToken} from "../../interfaces/lendingProtocol/IIToken.sol";
+import {IStableDebtToken} from "../../interfaces/lendingProtocol/IStableDebtToken.sol";
+import {IVariableDebtToken} from "../../interfaces/lendingProtocol/IVariableDebtToken.sol";
+import {ILendingPoolLiquidationManager} from "../../interfaces/lendingProtocol/ILendingPoolLiquidationManager.sol";
 
 
 /**
@@ -52,7 +54,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
     uint256 debtAmountNeeded;
     uint256 healthFactor;
     uint256 liquidatorPreviousATokenBalance;
-    IAToken collateralAtoken;
+    IIToken collateralAtoken;
     bool isCollateralEnabled;
     DataTypes.InterestRateMode borrowRateMode;
     uint256 errorCode;
@@ -63,7 +65,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
 
 
     // as the contract extends the VersionedInitializable contract to match the state of the LendingPool contract, the getRevision() function is needed.
-    function getRevision() internal pure returns (uint256) {
+    function getRevision() internal override pure returns (uint256) {
         return LIQUIDATION_MANAGER_REVISION;
     }
 
@@ -73,13 +75,13 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
 
     /**
     * @dev users can invoke this function to liquidate an undercollateralized position. (Also defined in the LendingPool Contract, which delegates the Call here)
-    * @param _collateral the address of the collateral to liquidated
-    * @param _instrument the address of the principal instrument
-    * @param _user the address of the borrower
-    * @param _purchaseAmount the amount of principal that the liquidator wants to repay
-    * @param _receiveIToken true if the liquidators wants to receive the iTokens, false if he wants to receive the underlying asset directly
+    * @param collateralAsset the address of the collateral to liquidated
+    * @param debtAsset the address of the principal instrument
+    * @param user the address of the borrower
+    * @param debtToCover the amount of principal that the liquidator wants to repay
+    * @param receiveIToken true if the liquidators wants to receive the iTokens, false if he wants to receive the underlying asset directly
     **/
-    function liquidationCall( address collateralAsset, address debtAsset, address user, uint256 debtToCover, bool receiveIToken ) external payable returns (uint256, string memory) {
+    function liquidationCall( address collateralAsset, address debtAsset, address user, uint256 debtToCover, bool receiveIToken ) external override returns (uint256, string memory) {
 
         DataTypes.InstrumentData storage collateralInstrument =_instruments[collateralAsset];
         DataTypes.InstrumentData storage debtInstrument =_instruments[debtAsset];
@@ -87,7 +89,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
 
         LiquidationCallLocalVars memory vars;        // Usage of a memory struct of vars to avoid "Stack too deep" errors due to local variables
 
-        (, , , , vars.healthFactor) = GenericLogic.calculateUserAccountData( user,_instruments, userConfig,_instrumentsList,_instrumentsCount, _addressesProvider.getPriceOracle() );
+        (, , , , vars.healthFactor) = GenericLogic.calculateUserAccountData( user,_instruments, userConfig,_instrumentsList,_instrumentsCount, addressesProvider.getPriceOracle() );
         (vars.userStableDebt, vars.userVariableDebt) = Helpers.getUserCurrentDebt(user, debtInstrument);
         (vars.errorCode, vars.errorMsg) = ValidationLogic.validateLiquidationCall( collateralInstrument, debtInstrument, userConfig, vars.healthFactor, vars.userStableDebt, vars.userVariableDebt );
 
@@ -95,7 +97,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
             return (vars.errorCode, vars.errorMsg);
         }
 
-        vars.collateralAtoken = IAToken(collateralInstrument.iTokenAddress);
+        vars.collateralAtoken = IIToken(collateralInstrument.iTokenAddress);
         vars.userCollateralBalance = vars.collateralAtoken.balanceOf(user);
 
         vars.maxLiquidatableDebt = vars.userStableDebt.add(vars.userVariableDebt).percentMul(  LIQUIDATION_CLOSE_FACTOR_PERCENT );
@@ -159,7 +161,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
             if (vars.liquidatorPreviousATokenBalance == 0) {
                 DataTypes.UserConfigurationMap storage liquidatorConfig = _usersConfig[msg.sender];
                 liquidatorConfig.setUsingAsCollateral(collateralInstrument.id, true);
-                emit ReserveUsedAsCollateralEnabled(collateralAsset, msg.sender);
+                emit InstrumentUsedAsCollateralEnabled(collateralAsset, msg.sender);
             }
         }
         else {
@@ -214,7 +216,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
     function _calculateAvailableCollateralToLiquidate(  DataTypes.InstrumentData storage collateralInstrument,  DataTypes.InstrumentData storage debtInstrument,  address collateralAsset,  address debtAsset, uint256 debtToCover, uint256 userCollateralBalance ) internal view returns (uint256, uint256) {
         uint256 collateralAmount = 0;
         uint256 debtAmountNeeded = 0;
-        IPriceOracleGetter oracle = IPriceOracleGetter(_addressesProvider.getPriceOracle());
+        IPriceOracleGetter oracle = IPriceOracleGetter(addressesProvider.getPriceOracle());
 
         AvailableCollateralToLiquidateLocalVars memory vars;
 

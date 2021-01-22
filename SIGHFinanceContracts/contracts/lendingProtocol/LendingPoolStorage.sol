@@ -4,10 +4,11 @@ pragma solidity 0.7.0;
 import {IGlobalAddressesProvider} from "../../interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol";
 import {UserConfiguration} from './libraries/configuration/UserConfiguration.sol';
 import {InstrumentConfiguration} from './libraries/configuration/InstrumentConfiguration.sol';
-import {DataTypes} from '../libraries/types/DataTypes.sol';
+import {DataTypes} from './libraries/types/DataTypes.sol';
 
 import {InstrumentReserveLogic} from './libraries/logic/InstrumentReserveLogic.sol';
-
+import "../../interfaces/lendingProtocol/IFeeProvider.sol";
+import "../../interfaces/SIGHContracts/ISIGHVolatilityHarvester.sol";
 
 contract LendingPoolStorage {
 
@@ -15,7 +16,9 @@ contract LendingPoolStorage {
   using InstrumentConfiguration for DataTypes.InstrumentConfigurationMap;
   using UserConfiguration for DataTypes.UserConfigurationMap;
 
-  IGlobalAddressesProvider internal _addressesProvider;
+  IGlobalAddressesProvider internal addressesProvider;
+  ISIGHVolatilityHarvester internal sighVolatiltiyHarvester;
+  IFeeProvider internal feeProvider;
 
   mapping(address => DataTypes.InstrumentData) internal _instruments;
   mapping(address => DataTypes.UserConfigurationMap) internal _usersConfig;

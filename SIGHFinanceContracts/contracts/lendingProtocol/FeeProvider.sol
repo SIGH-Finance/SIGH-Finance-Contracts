@@ -2,12 +2,16 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.7.0;
 
-import "../dependencies/upgradability/VersionedInitializable.sol";
-import "./libraries/math/PercentageMath.sol";
-import "./libraries/math/Exponential.sol";
+import {VersionedInitializable} from "../dependencies/upgradability/VersionedInitializable.sol";
+import {IERC20} from "../dependencies/openzeppelin/token/ERC20/IERC20.sol";
+import {PercentageMath} from "./libraries/math/PercentageMath.sol";
+import {Exponential} from "./libraries/math/Exponential.sol";
 
-import "../../interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol";
-import "../../interfaces/NFTBoosters/ISIGHBoosters.sol";
+import {IGlobalAddressesProvider} from "../../interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol";
+import {ISIGHBoosters} from "../../interfaces/NFTBoosters/ISIGHBoosters.sol";
+import {IFeeProvider} from "../../interfaces/lendingProtocol/IFeeProvider.sol";
+import {IPriceOracleGetter} from "../../interfaces/IPriceOracleGetter.sol";
+
 
 /**
 * @title FeeProvider contract
@@ -17,7 +21,6 @@ import "../../interfaces/NFTBoosters/ISIGHBoosters.sol";
 contract FeeProvider is IFeeProvider, VersionedInitializable {
 
     using PercentageMath for uint256;
-    using Exponential for uint256;
 
     IGlobalAddressesProvider private globalAddressesProvider;
     IPriceOracleGetter private priceOracle ;
@@ -42,7 +45,7 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
     mapping (string => mapping (uint => optionType) ) private fuelTopUpOptions; // BoosterType => ( optionNo => optionType )
 
     struct booster{
-        bool inititated;                // To check if this booster has ever been used or not
+        bool initiated;                // To check if this booster has ever been used or not
         uint256 totalFuelRemaining;     // Current Amount of fuel available
         uint256 totalFuelUsed;          // Total Fuel used
     }
@@ -50,22 +53,15 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
     mapping (uint256 => booster) private boosterFuelInfo;    // boosterID => Fuel Remaining (Remaining Volume on which discount will be given) Mapping
 
 
-    event depositFeePercentUpdated(uint _depositFeePercent);
-    event borrowFeePercentUpdated(uint totalBorrowFeePercent_);
-    event flashLoanFeePercentUpdated(uint totalFlashLoanFeePercent_);
-    event platformFeePercentUpdated(uint _platformFeePercent);
-
-    event initalFuelForABoosterCategoryUpdated(string categoryName,uint initialFuel);
-    event topUpOptionUpdated(string category, uint optionNo,uint _fee, uint _multiplier);
-    event tokenForPaymentUpdated(address prevToken,address tokenAccepted);
-    event tokensTransferred(address token, address destination, uint amount,uint newBalance );
-
-    event _boosterTopUp( uint boosterID,string category,uint optionNo,uint amount,uint topUp,uint totalFuelRemaining);
-
-
     //only SIGH Distribution Manager can use functions affected by this modifier
     modifier onlySighFinanceConfigurator {
-        require(globalAddressesProvider.getSIGHFinanceConfigurator() == msg.sender, "The caller must be the SIGH Finanace Configurator");
+        require(globalAddressesProvider.getSIGHFinanceConfigurator() == msg.sender, "The caller must be the SIGH Finance Configurator");
+        _;
+    }
+
+    //only LendingPool contract can call these functions
+    modifier onlyLendingPool {
+        require(globalAddressesProvider.getLendingPool()() == msg.sender, "The caller must be the Lending Pool Contract");
         _;
     }
 
@@ -75,7 +71,7 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
 
     uint256 constant public FEE_PROVIDER_REVISION = 0x1;
 
-    function getRevision() internal pure returns(uint256) {
+    function getRevision() internal pure override returns(uint256) {
         return FEE_PROVIDER_REVISION;
     }
     /**
@@ -84,12 +80,12 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
     */
     function initialize(address _addressesProvider) public initializer {
         globalAddressesProvider = IGlobalAddressesProvider(_addressesProvider);
-        depositFeePercent = 50;           // deposit fee = 0.5%
-        totalFlashLoanFeePercent = 5;     // Flash loan fee = 0.05%
-        originationFeePercentage = 0.0005 * 1e18;           // borrow fee is set as default as 500 basis points of the loan amount (0.05%)
+        totalDepositFeePercent = 50;            // deposit fee = 0.5%
+        totalFlashLoanFeePercent = 5;           // Flash loan fee = 0.05%
+        totalBorrowFeePercent =  50;            // borrow fee = 0.5%
     }
 
-    function refreshConfiguration() external onlySighFinanceConfigurator returns (bool) {
+    function refreshConfiguration() external override onlySighFinanceConfigurator returns (bool) {
         priceOracle = globalAddressesProvider.getPriceOracle();
         SIGHNFTBoosters = globalAddressesProvider.getSIGHNFTBoosters();
         return true;
@@ -102,11 +98,11 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
 // ###### 1. calculateBorrowFee() ##########
 // ############################################################################################################################
 
-    function calculateDepositFee(address _user,address instrument, uint256 _amount, uint boosterId) external onlyLendingPool returns (uint256 ,uint256 ,uint256 ) {
+    function calculateDepositFee(address _user,address instrument, uint256 _amount, uint boosterId) external override onlyLendingPool returns (uint256 ,uint256 ,uint256 ) {
 
-        totalFee = _amount.percentMul(totalDepositFeePercent);       // totalDepositFeePercent = 50 represents 0.5%
-        platformFee = totalFee.percentMul(platformFeePercent);       // platformFeePercent = 5000 represents 50%
-        sighPay = totalFee.sub_(platformFee);                        
+        uint totalFee = _amount.percentMul(totalDepositFeePercent);       // totalDepositFeePercent = 50 represents 0.5%
+        uint platformFee = totalFee.percentMul(platformFeePercent);       // platformFeePercent = 5000 represents 50%
+        uint sighPay = totalFee.sub_(platformFee);
 
         if (boosterId == 0) {
             return (totalFee,platformFee,sighPay);
@@ -114,10 +110,10 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
 
         require( _user == SIGHNFTBoosters.ownerOf(boosterId), "Deposit() caller doesn't have the mentioned SIGH Booster needed to claim the discount. Please check the BoosterID that you provided again." );
 
-        if ( !boosterFuelInfo[boosterId].inititated ) {
-            string memory category = SIGHNFTBoosters.getBoosterCategory(boosterID);
+        if ( !boosterFuelInfo[boosterId].initiated ) {
+            string memory category = SIGHNFTBoosters.getBoosterCategory(boosterId);
             boosterFuelInfo[boosterId].totalFuelRemaining = initialFuelAmount[category];
-            boosterFuelInfo[boosterId].inititated = true;
+            boosterFuelInfo[boosterId].initiated = true;
         }
 
         if ( boosterFuelInfo[boosterId].totalFuelRemaining > 0 ) {
@@ -142,7 +138,7 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
     }
 
 
-    function calculateFlashLoanFee(address _user, uint256 _amount, uint boosterId) external onlyLendingPool returns (uint256 flashLoanFee) {
+    function calculateFlashLoanFee(address _user, uint256 _amount, uint boosterId) external override onlyLendingPool returns (uint256 flashLoanFee) {
         flashLoanFee = _amount.percentMul(totalFlashLoanFeePercent);       // totalFlashLoanFeePercent = 5 represents 0.05%
 
         if (boosterId == 0) {
@@ -156,21 +152,21 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
 
     }
 
-    function calculateBorrowFee(address _user, address instrument, uint256 _amount, uint boosterId) external onlyLendingPool returns (uint256 platformFee, uint256 reserveFee) { 
-        totalFee = _amount.percentMul(totalBorrowFeePercent);       // totalDepositFeePercent = 50 represents 0.5%
-        platformFee = totalFee.percentMul(platformFeePercent);       // platformFeePercent = 5000 represents 50%
-        sighPay = totalFee.sub_(platformFee);                        
+    function calculateBorrowFee(address _user, address instrument, uint256 _amount, uint boosterId) external override onlyLendingPool returns (uint256, uint256) {
+        uint totalFee = _amount.percentMul(totalBorrowFeePercent);       // totalDepositFeePercent = 50 represents 0.5%
+        uint256 platformFee = totalFee.percentMul(platformFeePercent);       // platformFeePercent = 5000 represents 50%
+        uint256 reserveFee = totalFee.sub_(platformFee);
 
         if (boosterId == 0) {
-            return (totalFee,platformFee,sighPay);
+            return (platformFee,reserveFee);
         }
 
         require( _user == SIGHNFTBoosters.ownerOf(boosterId), "User against which borrow is being initiated doesn't have the mentioned SIGH Booster needed to claim the discount. Please check the BoosterID that you provided again." );
 
-        if ( !boosterFuelInfo[boosterId].inititated ) {
-            string memory category = SIGHNFTBoosters.getBoosterCategory(boosterID);
+        if ( !boosterFuelInfo[boosterId].initiated ) {
+            string memory category = SIGHNFTBoosters.getBoosterCategory(boosterId);
             boosterFuelInfo[boosterId].totalFuelRemaining = initialFuelAmount[category];
-            boosterFuelInfo[boosterId].inititated = true;
+            boosterFuelInfo[boosterId].initiated = true;
         }
 
         if (  boosterFuelInfo[boosterId].totalFuelRemaining > 0 ) {
@@ -186,22 +182,22 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
             return (0,0,0);
         }
 
-        (uint platformFeeDiscount, uint sighPayDiscount) = SIGHNFTBoosters.getDiscountRatiosForBooster(boosterId);
+        (uint platformFeeDiscount, uint reserveFeeDiscount) = SIGHNFTBoosters.getDiscountRatiosForBooster(boosterId);
         platformFee = platformFee.sub_( platformFee.div_(platformFeeDiscount) ) ;
-        sighPay = sighPay.sub_( sighPay.div_(sighPayDiscount) ) ;
+        reserveFee = reserveFee.sub_( reserveFee.div_(reserveFeeDiscount) ) ;
 
-        return (platformFee,sighPay) ;
+        return (platformFee,reserveFee) ;
     }
 
 // #################################
 // ####### FUNCTIONS TO INCREASE FUEL LIMIT  ########
 // #################################
 
-    function fuelTopUp(uint optionNo, uint boosterID) external {
-        require( SIGHNFTBoosters.isValidBooster(boosterId) , "Not a Valid Booster" );
+    function fuelTopUp(uint optionNo, uint boosterID) override external {
+        require( SIGHNFTBoosters.isValidBooster(boosterID) , "Not a Valid Booster" );
         string memory category = SIGHNFTBoosters.getBoosterCategory(boosterID);
 
-        optionType selectedOption = fuelTopUpOptions[category][optionNo];
+        optionType memory selectedOption = fuelTopUpOptions[category][optionNo];
         uint amount = selectedOption.fee;
         require(amount > 0,"Option selected not valid");
 
@@ -227,31 +223,31 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
 // ####### ADMIN FUNCTIONS  ########
 // #################################
 
-    function updateTotalDepositFeePercent(uint _depositFeePercent) external onlySighFinanceConfigurator returns (bool) {
+    function updateTotalDepositFeePercent(uint _depositFeePercent) external override onlySighFinanceConfigurator returns (bool) {
         totalDepositFeePercent = _depositFeePercent;
         emit depositFeePercentUpdated(_depositFeePercent);
         return true;
     }
 
-    function updateTotalBorrowFeePercent(uint totalBorrowFeePercent_) external onlySighFinanceConfigurator returns (bool) {
+    function updateTotalBorrowFeePercent(uint totalBorrowFeePercent_) external override onlySighFinanceConfigurator returns (bool) {
         totalBorrowFeePercent = totalBorrowFeePercent_;
         emit borrowFeePercentUpdated(totalBorrowFeePercent_);
         return true;
     }
 
-    function updateTotalFlashLoanFeePercent(uint totalFlashLoanFeePercent_ ) external onlySighFinanceConfigurator returns (bool) {
+    function updateTotalFlashLoanFeePercent(uint totalFlashLoanFeePercent_ ) external override onlySighFinanceConfigurator returns (bool) {
         totalFlashLoanFeePercent = totalFlashLoanFeePercent_;
         emit flashLoanFeePercentUpdated(totalFlashLoanFeePercent_);
         return true;
     }
 
-    function updatePlatformFeePercent(uint _platformFeePercent) external onlySighFinanceConfigurator returns (bool) {
+    function updatePlatformFeePercent(uint _platformFeePercent) external override onlySighFinanceConfigurator returns (bool) {
         platformFeePercent = _platformFeePercent;
         emit platformFeePercentUpdated(_platformFeePercent);
         return true;
     }
 
-    function UpdateABoosterCategoryFuelAmount(string categoryName, uint initialFuel ) external onlySighFinanceConfigurator returns (bool) {
+    function UpdateABoosterCategoryFuelAmount(string memory categoryName, uint initialFuel ) external override onlySighFinanceConfigurator returns (bool) {
         require(initialFuel > 0, 'Initial Fuel cannot be 0'); 
         require(SIGHNFTBoosters.isCategorySupported(categoryName),'Category not present');
         initialFuelAmount[categoryName] = initialFuel;
@@ -260,14 +256,14 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
         return true;
     }
 
-    function updateATopUpOption(string category, uint optionNo, uint _fee, uint _multiplier) external onlySighFinanceConfigurator returns (bool) {
-        optionType newType = optionType({ fee: _fee, multiplier: _multiplier  });
+    function updateATopUpOption(string memory category, uint optionNo, uint _fee, uint _multiplier) external override onlySighFinanceConfigurator returns (bool) {
+        optionType storage newType = optionType({ fee: _fee, multiplier: _multiplier  });
         fuelTopUpOptions[category][optionNo] = newType;
         emit topUpOptionUpdated(category, optionNo, _fee, _multiplier);
         return true;
     }
 
-    function updateTokenAccepted(address _token) external onlySighFinanceConfigurator returns (bool) {
+    function updateTokenAccepted(address _token) external override onlySighFinanceConfigurator returns (bool) {
         require(_token != address(0),'Not a valid address');
         address prevToken = tokenAccepted;
         tokenAccepted = _token;
@@ -275,8 +271,8 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
         return true;
     }
 
-    function transferFunds(address token, address destination, uint amount) external onlySighFinanceConfigurator returns (bool) {
-        require(_token != address(0),'Not a valid token address');
+    function transferFunds(address token, address destination, uint amount) external override onlySighFinanceConfigurator returns (bool) {
+        require(token != address(0),'Not a valid token address');
         require(destination != address(0),'Not a valid  destination address');
         require(amount > 0,'Amount needs to be greater than 0');
 
@@ -293,27 +289,27 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
 // ####### EXTERNAL VIEW  ########
 // ###############################
 
-    function getBorrowFeePercentage() external view returns (uint256) {
+    function getBorrowFeePercentage() external view override returns (uint256) {
         return totalBorrowFeePercent;
     }
 
-    function getDepositFeePercentage() external view returns (uint256) {
+    function getDepositFeePercentage() external view override returns (uint256) {
         return totalDepositFeePercent;
     }
 
-    function getFlashLoanFeePercentage() external view returns (uint256) {
+    function getFlashLoanFeePercentage() external view override returns (uint256) {
         return totalFlashLoanFeePercent;
     }
 
-    function getFuelAvailable(uint boosterID) external view returns (uint256) {
-        return boostersTotalFuelRemaining[boosterID];
+    function getFuelAvailable(uint boosterID) external view override returns (uint256) {
+        return boosterFuelInfo[boosterID].totalFuelRemaining;
     }
 
-    function getFuelUsed(uint boosterID) external view returns (uint256) {
-        return boostersTotalFuelUsed[boosterID];
+    function getFuelUsed(uint boosterID) external view override returns (uint256) {
+        return  boosterFuelInfo[boosterID].totalFuelUsed;
     }
 
-    function getOptionDetails(string category, uint optionNo) external view returns (uint fee, uint multiplier) {
+    function getOptionDetails(string memory category, uint optionNo) external view override returns (uint fee, uint multiplier) {
         return (fuelTopUpOptions[category][optionNo].fee, fuelTopUpOptions[category][optionNo].multiplier);
     }
 

@@ -207,7 +207,6 @@ import {DataTypes} from '../types/DataTypes.sol';
     /**
     * @dev Gets the configuration flags of the instrument
     * @param self The instrument configuration
-    * @return The state flags representing active, frozen, borrowing enabled, stableRateBorrowing enabled
     **/
     function getFlags(DataTypes.InstrumentConfigurationMap storage self)  internal  view  returns (bool isActive,bool isFrozen,bool isBorrowingEnabled ,bool isStableBorrowingEnabled) {
         uint256 dataLocal = self.data;
@@ -220,7 +219,6 @@ import {DataTypes} from '../types/DataTypes.sol';
     /**
     * @dev Gets the configuration parameters of the instrument reserve
     * @param self The instrument configuration
-    * @return The state params representing ltv, liquidation threshold, liquidation bonus, the instrument decimals
     **/
     function getParams(DataTypes.InstrumentConfigurationMap storage self)  internal view  returns ( uint256 ltv,uint256 liquidation_threshold, uint256 liquidation_bonus , uint256 decimals, uint256 reserveFactor) {
       uint256 dataLocal = self.data;
@@ -234,7 +232,6 @@ import {DataTypes} from '../types/DataTypes.sol';
     /**
     * @dev Gets the configuration paramters of the instrument from a memory object
     * @param self The instrument configuration
-    * @return The state params representing ltv, liquidation threshold, liquidation bonus, the instrument decimals
     **/
     function getParamsMemory(DataTypes.InstrumentConfigurationMap memory self)  internal pure returns ( uint256 ltv,uint256 liquidation_threshold, uint256 liquidation_bonus , uint256 decimals, uint256 reserveFactor) {
       ltv = self.data & ~LTV_MASK;
@@ -247,7 +244,6 @@ import {DataTypes} from '../types/DataTypes.sol';
     /**
     * @dev Gets the configuration flags of the instrument from a memory object
     * @param self The instrument configuration
-    * @return The state flags representing active, frozen, borrowing enabled, stableRateBorrowing enabled
     **/
     function getFlagsMemory(DataTypes.InstrumentConfigurationMap memory self) internal pure returns (bool isActive,bool isFrozen,bool isBorrowingEnabled ,bool isStableBorrowingEnabled) {
         isActive = (self.data & ~ACTIVE_MASK) != 0;

@@ -26,7 +26,7 @@ interface IFeeProvider  {
 // ###### PROXY RELATED ##########
 // ###############################
 
-    function refreshConfiguration() external;
+    function refreshConfiguration() external returns (bool);
 
 // ###############################################################################################
 // ###### EXTERNAL FUNCTIONS TO CALCULATE THE FEE (Can only be called by LendingPool) ############
@@ -56,8 +56,8 @@ interface IFeeProvider  {
     function updateTotalFlashLoanFeePercent(uint totalFlashLoanFeePercent_ ) external returns (bool) ;
     function updatePlatformFeePercent(uint _platformFeePercent) external returns (bool);
 
-    function UpdateABoosterCategoryFuelAmount(string categoryName, uint initialFuel ) external returns (bool);
-    function updateATopUpOption(string category, uint optionNo, uint _fee, uint _multiplier) external returns (bool) ;
+    function UpdateABoosterCategoryFuelAmount(string calldata categoryName, uint initialFuel ) external returns (bool);
+    function updateATopUpOption(string calldata category, uint optionNo, uint _fee, uint _multiplier) external returns (bool) ;
 
     function updateTokenAccepted(address _token) external  returns (bool) ;
     function transferFunds(address token, address destination, uint amount) external returns (bool) ;
@@ -72,6 +72,6 @@ interface IFeeProvider  {
 
     function getFuelAvailable(uint boosterID) external view returns (uint256) ;
     function getFuelUsed(uint boosterID) external view returns (uint256) ;
-    function getOptionDetails(string category, uint optionNo) external view returns (uint fee, uint multiplier) ;
+    function getOptionDetails(string calldata category, uint optionNo) external view returns (uint fee, uint multiplier) ;
 
 }

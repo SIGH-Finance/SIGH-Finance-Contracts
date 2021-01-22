@@ -101,6 +101,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     function updateBoosterURI(uint256 boosterId, string memory boosterURI )  public override onlyOwner returns (bool) {
         require(_exists(boosterId), "SIGH BOOSTERS: URI set of nonexistent token");
         _setBoosterURI(boosterId,boosterURI);
+        return true;
      }
 
     function updateDiscountMultiplier(string memory _type, uint256 _platformFeeDiscount_,uint256 _sighPayDiscount_)  public onlyOwner returns (bool) {
@@ -109,7 +110,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         require(_sighPayDiscount_ > 0,"SIGH BOOSTERS: SIGH Pay Fee Discount cannot be 0");
         boosterCategories[_type]._platformFeeDiscount = _platformFeeDiscount_;
         boosterCategories[_type]._sighPayDiscount = _sighPayDiscount_;
-
+        return true;
      }
 
     // ###########################################
@@ -199,6 +200,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     function isApprovedForAll(address owner, address operator) public view override(IERC721,ISIGHBoosters) returns (bool) {
         _operatorApprovals[owner][operator];
+        return true;
     }
 
     function safeTransferFrom(address from, address to, uint256 boosterId)  public virtual override(IERC721,ISIGHBoosters) {

@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.7.0;
 
-import {SafeMath} from '../../../dependencies/openzeppelin/contracts/SafeMath.sol';
 import {WadRayMath} from './WadRayMath.sol';
+import {SafeMath} from "../../../dependencies/openzeppelin/math/SafeMath.sol";
 
 library MathUtils {
     using SafeMath for uint256;

@@ -23,6 +23,7 @@ library DataTypes {
     address interestRateStrategyAddress;        //address of the interest rate strategy
 
     uint8 id;                                   //the id of the instrument. Represents the position in the list of the active instruments
+    uint8 decimals;
   }
 
   struct InstrumentConfigurationMap {

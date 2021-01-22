@@ -20,11 +20,11 @@ contract LendingRateOracle is ILendingRateOracle {
         globalAddressesProvider = IGlobalAddressesProvider(_globalAddressesProvider);
     }
 
-    function getMarketBorrowRate(address _asset) external view returns(uint256) {
+    function getMarketBorrowRate(address _asset) external override view returns(uint256) {
         return borrowRates[_asset];
     }
 
-    function setMarketBorrowRate(address _asset, uint256 _rate) onlyLendingPoolManager external {
+    function setMarketBorrowRate(address _asset, uint256 _rate) onlyLendingPoolManager override external {
         borrowRates[_asset] = _rate;
     }
 

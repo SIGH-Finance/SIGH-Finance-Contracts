@@ -1,0 +1,45 @@
+{
+	"compiler": {
+		"version": "0.7.4+commit.3f05b770"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/dependencies/BoostersDependencies/BoostersStringUtils.sol": "BoostersStringUtils"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/dependencies/BoostersDependencies/BoostersStringUtils.sol": {
+			"keccak256": "0x133f8c5d64860ab1f10637ff8617d739e83e4f1c14cc2804db8f7aa715358b5a",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://b326f1a01e36c3412e8b8c1020b51e5c6123590bab905a301bf6bf1f26237616",
+				"dweb:/ipfs/QmcoUfeCbCsXNy3yAbYn9MWewtAa8f2YmAHr74Z8PKu4Kv"
+			]
+		}
+	},
+	"version": 1
+}

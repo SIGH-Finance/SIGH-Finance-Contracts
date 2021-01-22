@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.7.0;
 
 import "./CarefulMath.sol";
@@ -9,7 +10,7 @@ import "./CarefulMath.sol";
  *         Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
  *         `Exp({mantissa: 5100000000000000000})`.
  */
-contract Exponential is CarefulMath {
+contract  Exponential is CarefulMath {
     uint constant expScale = 1e18;
     uint constant doubleScale = 1e36;
     uint constant halfExpScale = expScale/2;
