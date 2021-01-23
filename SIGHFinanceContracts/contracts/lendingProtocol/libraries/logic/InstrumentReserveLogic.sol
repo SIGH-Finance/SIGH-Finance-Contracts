@@ -116,10 +116,9 @@ library InstrumentReserveLogic {
     * @param iTokenAddress The address of the overlying atoken contract
     * @param interestRateStrategyAddress The address of the interest rate strategy contract
     **/
-    function init( DataTypes.InstrumentData storage instrument, uint8 decimals , address iTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress) external {
+    function init( DataTypes.InstrumentData storage instrument, address iTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress) external {
         require(instrument.iTokenAddress == address(0), "The underlying instrument is already supported by SIGH Finance's lending protocol");
 
-        instrument.decimals = decimals;
         instrument.liquidityIndex = uint128(WadRayMath.ray());
         instrument.variableBorrowIndex = uint128(WadRayMath.ray());
         instrument.iTokenAddress = iTokenAddress;

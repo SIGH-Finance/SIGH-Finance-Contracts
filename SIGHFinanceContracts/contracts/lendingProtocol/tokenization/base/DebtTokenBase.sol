@@ -5,6 +5,7 @@ import {IncentivizedERC20} from '../IncentivizedERC20.sol';
 import {ILendingPool} from "../../../../interfaces/lendingProtocol/ILendingPool.sol";
 import {VersionedInitializable} from "../../../dependencies/upgradability/VersionedInitializable.sol";
 import {ICreditDelegationToken} from "../../../../interfaces/lendingProtocol/ICreditDelegationToken.sol";
+import {ISIGHHarvester} from "../../../../interfaces/lendingProtocol/ISIGHHarvester.sol";
 
 /**
  * @title DebtTokenBase
@@ -16,6 +17,7 @@ abstract contract DebtTokenBase is IncentivizedERC20, VersionedInitializable, IC
 
   address public immutable UNDERLYING_ASSET_ADDRESS;
   ILendingPool public immutable POOL;
+  ISIGHHarvester public immutable sighHarvester;
 
   mapping(address => mapping(address => uint256)) internal _borrowAllowances;
 

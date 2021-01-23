@@ -85,13 +85,13 @@ contract SIGHHarvester is ISIGHHarvester, VersionedInitializable {
 
     uint256 public constant CONFIGURATOR_REVISION = 0x1;
 
-    function getRevision() internal pure returns (uint256) {
+    function getRevision() internal pure override returns (uint256) {
         return CONFIGURATOR_REVISION;
     }
 
     function initialize(address _globalAddressesProvider, address _underlyingAsset, address _iTokenAddress, address _stableDebtTokenAddress, address _variableDebtTokenTokenAddress) public initializer {
         globalAddressesProvider = IGlobalAddressesProvider(_globalAddressesProvider);
-        sighVolatilityHarvesterContract = ISighVolatilityHarvester(globalAddressesProvider.getSIGHVolatilityHarvester());
+        sighVolatilityHarvesterContract = ISIGHVolatilityHarvester(globalAddressesProvider.getSIGHVolatilityHarvester());
         require(sighVolatilityHarvesterContract != address(0));
 
         underlyingInstrumentAddress = _underlyingAsset;
@@ -105,11 +105,11 @@ contract SIGHHarvester is ISIGHHarvester, VersionedInitializable {
 // ####### FUNCTIONS WHICH ACCURE SIGH ######
 // ##########################################
 
-    function accureSIGHForLiquidityStream(address user) external onlyITokenContract {
+    function accureSIGHForLiquidityStream(address user) external override onlyITokenContract {
         accureSIGHForLiquidityStreamInternal(user);
     }
 
-    function accureSIGHForBorrowingStream(address user) external onlyDebtTokens {
+    function accureSIGHForBorrowingStream(address user) external override onlyDebtTokens {
         accureSIGHForBorrowingStreamInternal(user);
     }
 
@@ -170,13 +170,13 @@ contract SIGHHarvester is ISIGHHarvester, VersionedInitializable {
 // ###########################################################################
 // ###########################################################################
 
-    function claimSIGH(address[] users) onlyOverlyingTokens external {
+    function claimSIGH(address[] memory users) onlyOverlyingTokens override external {
         for (uint i;i < users.length; i++) {
             claimSighInternal(users[i]);
         }
     }
 
-    function claimMySIGH(address user) onlyOverlyingTokens external {
+    function claimMySIGH(address user) onlyOverlyingTokens override external {
         claimSighInternal(user);
     }
 
@@ -207,7 +207,7 @@ contract SIGHHarvester is ISIGHHarvester, VersionedInitializable {
 // ###########################################################################
 // ###########################################################################
 
-    function getSighAccured(address account) external view returns (uint) {
+    function getSighAccured(address account) external view override returns (uint) {
         return AccuredSighBalance[account];
     }
 

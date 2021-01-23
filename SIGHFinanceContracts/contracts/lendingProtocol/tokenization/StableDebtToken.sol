@@ -248,7 +248,7 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
 //  ######### FUNCTIONS RELATED TO SIGH HARVESTING #########
 //  ########################################################
 
-  function claimSIGH(address[] users) public override {
+  function claimSIGH(address[] memory users) public override {
     return sighHarvester.claimSIGH(users);
   }
 
@@ -256,7 +256,7 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
     return sighHarvester.claimMySIGH(msg.sender);
   }
 
-  function getSighAccured(address user)  external view returns (uint)  {
+  function getSighAccured(address user)  external view override returns (uint)  {
     return sighHarvester.getSighAccured(user);
   }
 

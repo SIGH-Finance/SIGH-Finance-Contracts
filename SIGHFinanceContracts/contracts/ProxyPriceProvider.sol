@@ -29,7 +29,7 @@ contract ChainlinkProxyPriceProvider is IPriceOracleGetter {
 // ##### CONSTRUCTOR #####
 // #######################
 
-    constructor( address globalAddressesProvider_ ) public {
+    constructor( address globalAddressesProvider_ ) {
         globalAddressesProvider = IGlobalAddressesProvider(globalAddressesProvider_);
     }
 

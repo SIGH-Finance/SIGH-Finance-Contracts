@@ -78,7 +78,7 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   /**
    * @return The average balance of the token
    **/
-  function averageBalanceOf(address account) public view virtual override returns (uint256) {
+  function averageBalanceOf(address account) public view returns (uint256) {
     return _averageBalances[account];
   }
 

@@ -72,6 +72,11 @@ interface ISIGHBoosters {
 
     function totalBoostersAvailable(string memory _category) external view returns (uint256);
 
+    function getBoosterCategory(uint256 boosterId) external view returns ( string memory boosterType );
+
+    function getDiscountRatiosForBooster(uint256 boosterId) external view returns ( uint platformFeeDiscount, uint sighPayDiscount );
+
+    function isValidBooster(uint256 boosterId) external view returns (bool);
 //     function getAllBoosterTypesSupported() external view returns (string[] memory) ;
 
 }

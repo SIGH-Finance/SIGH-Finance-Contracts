@@ -518,7 +518,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         availableBorrowsUSD = GenericLogic.calculateAvailableBorrowsUSD( totalCollateralUSD, totalDebtUSD, ltv );
     }
 
-    function getInstrumentConfigurationData(address asset) external view returns ( DataTypes.InstrumentConfigurationMap memory ) {
+    function getInstrumentConfiguration(address asset) external override view returns ( DataTypes.InstrumentConfigurationMap memory ) {
         return _instruments[asset].configuration;
     }
 
@@ -614,15 +614,15 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     * @param iTokenAddress The address of the iToken that will be assigned to the reserve
     * @param stableDebtAddress The address of the StableDebtToken that will be assigned to the reserve
     * @param iTokenAddress The address of the VariableDebtToken that will be assigned to the reserve
-    * @param _sighStreamAddress The address of the SIGH Streaming Contract
+    * @param _SIGHHarvesterProxyAddress The address of the SIGH Streaming Contract
     * @param interestRateStrategyAddress The address of the interest rate strategy contract
     **/
-    function initInstrument(address asset,address iTokenAddress, address stableDebtAddress, address variableDebtAddress, address _SIGHHarvesterProxyAddress, address interestRateStrategyAddress) external override onlyLendingPoolConfigurator {
+    function initInstrument(address asset,address iTokenAddress, address stableDebtAddress, address variableDebtAddress, address _SIGHHarvesterProxyAddress, address interestRateStrategyAddress, uint8 underlyingAssetDecimals) external override onlyLendingPoolConfigurator {
         require(Address.isContract(asset), "Instrument address is not a contract");
-        _instruments[asset].init( decimals, iTokenAddress, stableDebtAddress, variableDebtAddress, interestRateStrategyAddress );
+        _instruments[asset].init( iTokenAddress, stableDebtAddress, variableDebtAddress, interestRateStrategyAddress );
         _addInstrumentToList(asset);
 
-        require( sighVolatiltiyHarvester.addInstrument( asset, iTokenAddress,stableDebtAddress, variableDebtAddress, _SIGHHarvesterProxyAddress, decimals ), "Instrument failed to be properly added to the list of Instruments supported by SIGH Finance" ); // ADDED BY SIGH FINANCE
+        require( sighVolatiltiyHarvester.addInstrument( asset, iTokenAddress,stableDebtAddress, variableDebtAddress, _SIGHHarvesterProxyAddress, underlyingAssetDecimals ), "Instrument failed to be properly added to the list of Instruments supported by SIGH Finance" ); // ADDED BY SIGH FINANCE
         require( IIToken(iTokenAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), "Sigh Harvester Address failed to be properly initialized on IIToken" );
         require( IVariableDebtToken(variableDebtAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), "Sigh Harvester Address failed to be properly initialized on Variable Debt Token");
         require( IStableDebtToken(stableDebtAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), "Sigh Harvester Address failed to be properly initialized  on Stable Debt Token " );

@@ -28,6 +28,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
   uint256 public constant IToken_REVISION = 0x1;
   address public immutable UNDERLYING_ASSET_ADDRESS;
   ILendingPool public immutable POOL;
+  ISIGHHarvester public immutable sighHarvester;
 
 
   mapping(address => uint256) public _nonces;   // next valid nonce to submit with permit()
@@ -240,7 +241,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
 //  ######### FUNCTIONS RELATED TO SIGH HARVESTING #########
 //  ########################################################
 
-  function claimSIGH(address[] users) public override {
+  function claimSIGH(address[] memory users) public override {
     return sighHarvester.claimSIGH(users);
   }
 
@@ -248,7 +249,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
     return sighHarvester.claimMySIGH(msg.sender);
   }
 
-  function getSighAccured(address user)  external view returns (uint)  {
+  function getSighAccured(address user)  external override view returns (uint)  {
     return sighHarvester.getSighAccured(user);
   }
 

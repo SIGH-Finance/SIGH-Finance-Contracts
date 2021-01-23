@@ -53,7 +53,7 @@ contract DefaultInstrumenteInterestRateStrategy is IInstrumentInterestRateStrate
   // Slope of the stable interest curve when utilization rate > OPTIMAL_UTILIZATION_RATE. Expressed in ray
   uint256 internal immutable _stableRateSlope2;
 
-  constructor(IGlobalAddressesProvider provider, uint256 optimalUtilizationRate, uint256 baseVariableBorrowRate, uint256 variableRateSlope1, uint256 variableRateSlope2, uint256 stableRateSlope1, uint256 stableRateSlope2) public {
+  constructor(IGlobalAddressesProvider provider, uint256 optimalUtilizationRate, uint256 baseVariableBorrowRate, uint256 variableRateSlope1, uint256 variableRateSlope2, uint256 stableRateSlope1, uint256 stableRateSlope2) {
     OPTIMAL_UTILIZATION_RATE = optimalUtilizationRate;
     EXCESS_UTILIZATION_RATE = WadRayMath.ray().sub(optimalUtilizationRate);
     addressesProvider = provider;

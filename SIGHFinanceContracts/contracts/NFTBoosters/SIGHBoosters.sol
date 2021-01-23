@@ -278,18 +278,18 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     
 
     // get Booster Type
-    function getBoosterCategory(uint256 boosterId) public view returns ( string memory boosterType ) {
+    function getBoosterCategory(uint256 boosterId) public view override returns ( string memory boosterType ) {
          ( , boosterType ) =  boostersData.get(boosterId);
     }
 
     // get Booster Discount Multiplier
-    function getDiscountRatiosForBooster(uint256 boosterId) external view returns ( uint platformFeeDiscount, uint sighPayDiscount ) {
+    function getDiscountRatiosForBooster(uint256 boosterId) external view override returns ( uint platformFeeDiscount, uint sighPayDiscount ) {
         require(_exists(boosterId), "SIGH BOOSTERS: Booster doesn't exist");
         platformFeeDiscount =  boosterCategories[getBoosterCategory(boosterId)]._platformFeeDiscount;
         sighPayDiscount =  boosterCategories[getBoosterCategory(boosterId)]._sighPayDiscount;
     }
 
-    function isValidBooster(uint256 boosterId) external view returns (bool) {
+    function isValidBooster(uint256 boosterId) external override view returns (bool) {
         return _exists(boosterId);
     }
     

@@ -3,13 +3,13 @@ pragma solidity 0.7.0;
 
 import {VersionedInitializable} from "../dependencies/upgradability/VersionedInitializable.sol";
 import {InitializableAdminUpgradeabilityProxy} from "../dependencies/upgradability/InitializableAdminUpgradeabilityProxy.sol";
-import {ERC20} from "../dependencies/openzeppelin/token/ERC20/ERC20.sol";
 
 import {IGlobalAddressesProvider} from  "../../interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol";
 import {ILendingPool} from "../../interfaces/lendingProtocol/ILendingPool.sol";
 import {DataTypes} from "./libraries/types/DataTypes.sol";
-import {InitializableImmutableAdminUpgradeabilityProxy} from "./libraries/upgradability/InitializableImmutableAdminUpgradeabilityProxy.sol";
-
+import  {IERC20Detailed} from "../dependencies/openzeppelin/token/ERC20/IERC20Detailed.sol";
+import {ITokenConfiguration} from "../../interfaces/lendingProtocol/ITokenConfiguration.sol";
+import { PercentageMath} from "./libraries/math/PercentageMath.sol";
 
 /**
 * @title LendingPoolConfigurator contract
@@ -22,25 +22,20 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 
     // using SafeMath for uint256;
     IGlobalAddressesProvider public globalAddressesProvider;
+    ILendingPool public pool;
 
-    mapping (address => address) private sighStreamProxies;
+    mapping (address => address) private sighHarvesterProxies;
 // ######################
 // ####### EVENTS #######
 // ######################
 
-    /**
-    * @dev emitted when a instrument is initialized.
-    * @param _instrument the address of the instrument
-    * @param _iToken the address of the overlying iToken contract
-    * @param _interestRateStrategyAddress the address of the interest rate strategy for the instrument
-    **/
-    event InstrumentInitialized( address indexed _instrument, address indexed _iToken, address _interestRateStrategyAddress, address sighStreamAddress, address sighStreamImplAddress );
-    event InstrumentRemoved( address indexed _instrument);      // emitted when a instrument is removed.
 
-    event BorrowingOnInstrumentSwitched(address indexed _instrument, bool switch_ );
-    event StableRateOnInstrumentSwitched(address indexed _instrument, bool isEnabled);          // emitted when stable rate borrowing is switched on a instrument
-    event InstrumentActivationSwitched(address indexed _instrument, bool switch_ );
-    event InstrumentFreezeSwitched(address indexed _instrument, bool isFreezed);                      // emitted when a instrument is freezed
+    event InstrumentInitialized(address asset,address iTokenProxyAddress,address stableDebtTokenProxyAddress,address variableDebtTokenProxyAddress,address SIGHHarvesterProxyAddress,address interestRateStrategyAddress,address underlyingAssetDecimals);
+
+    event sighHarvesterImplUpdated(address asset, address newSighHarvesterImpl );
+    event VariableDebtTokenUpgraded(address asset, address variableDebtProxyAddress, address variableDebtImplementation);
+    event StableDebtTokenUpgraded(address asset, address stableDebtTokenProxyAddress, address stableDebtTokenImplementation);
+    event ITokenUpgraded(address asset, address iTokenProxyAddress, address iTokenImplementation);
 
     /**
     * @dev emitted when a instrument is enabled as collateral.
@@ -52,12 +47,16 @@ contract LendingPoolConfigurator is VersionedInitializable  {
     event InstrumentEnabledAsCollateral(  address indexed _instrument,  uint256 _ltv,  uint256 _liquidationThreshold,  uint256 _liquidationBonus );
     event InstrumentDisabledAsCollateral(address indexed _instrument);         // emitted when a instrument is disabled as collateral
 
-
-    event InstrumentCollateralParametersUpdated(address _instrument,uint256 _ltv,  uint256 _liquidationThreshold,  uint256 _liquidationBonus );
-    event InstrumentInterestRateStrategyChanged(address _instrument, address _strategy);      // emitted when a _instrument interest strategy contract is updated
     event InstrumentDecimalsUpdated(address _instrument,uint256 decimals);
+    event InstrumentCollateralParametersUpdated(address _instrument,uint256 _ltv,  uint256 _liquidationThreshold,  uint256 _liquidationBonus );
 
-    event sighStreamImplUpdated(address instrumentAddress,address newSighStreamImpl );
+    event BorrowingOnInstrumentSwitched(address indexed _instrument, bool switch_ );
+    event StableRateOnInstrumentSwitched(address indexed _instrument, bool isEnabled);          // emitted when stable rate borrowing is switched on a instrument
+    event InstrumentActivationSwitched(address indexed _instrument, bool switch_ );
+    event InstrumentFreezeSwitched(address indexed _instrument, bool isFreezed);                      // emitted when a instrument is freezed
+
+    event ReserveFactorChanged(address _instrument, uint _reserveFactor);      // emitted when a _instrument interest strategy contract is updated
+    event InstrumentInterestRateStrategyChanged(address _instrument, address _strategy);      // emitted when a _instrument interest strategy contract is updated
     event ProxyCreated(address instrument, address  sighStreamProxyAddress);
 
 // #############################
@@ -72,6 +71,7 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 
     function initialize(IGlobalAddressesProvider _globalAddressesProvider) public initializer {
         globalAddressesProvider = _globalAddressesProvider;
+        pool = ILendingPool(globalAddressesProvider.getLendingPool());
     }
 
 // ########################
@@ -93,10 +93,11 @@ contract LendingPoolConfigurator is VersionedInitializable  {
    * @param iTokenImpl  The address of the iToken contract implementation
    * @param stableDebtTokenImpl The address of the stable debt token contract
    * @param variableDebtTokenImpl The address of the variable debt token contract
+   * @param sighHarvesterAddressImpl The address of the SIGH Harvester contract
    * @param underlyingAssetDecimals The decimals of the reserve underlying asset
    * @param interestRateStrategyAddress The address of the interest rate strategy contract for this reserve
    **/
-  function initInstrument(address iTokenImpl, address stableDebtTokenImpl, address variableDebtTokenImpl, address sighHarvesterAddressImpl, uint8 underlyingAssetDecimals, address interestRateStrategyAddress) public onlyPoolAdmin {
+  function initInstrument(address iTokenImpl, address stableDebtTokenImpl, address variableDebtTokenImpl, address sighHarvesterAddressImpl, uint8 underlyingAssetDecimals, address interestRateStrategyAddress) public onlyLendingPoolManager {
     address asset = ITokenConfiguration(iTokenImpl).UNDERLYING_ASSET_ADDRESS();
 
     require(address(pool) == ITokenConfiguration(iTokenImpl).POOL(), "INVALID ITOKEN POOL ADDRESS");
@@ -110,9 +111,9 @@ contract LendingPoolConfigurator is VersionedInitializable  {
     address variableDebtTokenProxyAddress = _initTokenWithProxy(variableDebtTokenImpl, underlyingAssetDecimals);    // Create a proxy contract for variable Debt Token
     address SIGHHarvesterProxyAddress = setSIGHHarvesterImplInternal(address(globalAddressesProvider),sighHarvesterAddressImpl, asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress );    // creates a Proxy Contract for the SIGH Harvester
 
-    pool.initInstrument(asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress, SIGHHarvesterProxyAddress, interestRateStrategyAddress);
+    pool.initInstrument(asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress, SIGHHarvesterProxyAddress, interestRateStrategyAddress, underlyingAssetDecimals);
 
-    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getConfiguration(asset);
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
     currentConfig.setDecimals(underlyingAssetDecimals);
     currentConfig.setActive(true);
     currentConfig.setFrozen(false);
@@ -120,223 +121,274 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 
     emit InstrumentInitialized(asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress, SIGHHarvesterProxyAddress, interestRateStrategyAddress, underlyingAssetDecimals);
   }
+    
+  /**
+   * @dev Updates the iToken implementation for the instrument
+   * @param asset The address of the underlying asset of the reserve to be updated
+   * @param implementation The address of the new iToken implementation
+   **/
+  function updateIToken(address asset, address implementation) external onlyLendingPoolManager {
+    DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
+    _upgradeTokenImplementation(asset, instrumentData.iTokenAddress, implementation);
+    emit ITokenUpgraded(asset, instrumentData.iTokenAddress, implementation);
+  }
 
+  /**
+   * @dev Updates the stable debt token implementation for the instrument
+   * @param asset The address of the underlying asset of the reserve to be updated
+   * @param implementation The address of the new stable debt token implementation
+   **/
+  function updateStableDebtToken(address asset, address implementation) external onlyLendingPoolManager {
+    DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
+    _upgradeTokenImplementation(asset, instrumentData.stableDebtTokenAddress, implementation);
+    emit StableDebtTokenUpgraded(asset, instrumentData.stableDebtTokenAddress, implementation);
+  }
+
+  /**
+   * @dev Updates the variable debt token implementation for the instrument
+   * @param asset The address of the underlying asset of the reserve to be updated
+   * @param implementation The address of the new variable debt token implementation
+   **/
+  function updateVariableDebtToken(address asset, address implementation) external onlyLendingPoolManager {
+    DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
+    _upgradeTokenImplementation(asset, instrumentData.variableDebtTokenAddress, implementation);
+    emit VariableDebtTokenUpgraded(asset, instrumentData.variableDebtTokenAddress, implementation);
+  }    
+    
     /**
-    * @dev initializes an instrument
-    * @param _instrument the address of the instrument to be initialized
-    * @param _interestRateStrategyAddress the address of the interest rate strategy contract for this instrument
-    **/
-    function initInstrument( address _instrument, address iTokenInstance,  address _interestRateStrategyAddress, address sighStreamImplAddress) external onlyLendingPoolManager {
-        ERC20 asset = ERC20(_instrument);
-
-        // string memory iTokenName = string(abi.encodePacked(" Yield Farming Instrument - ", asset.name()));
-        // string memory iTokenSymbol = string(abi.encodePacked("I-", asset.symbol()));
-        uint8 decimals = uint8(asset.decimals());
-
-        // Deploying IToken And Sigh Stream Contracts
-        // IToken iTokenInstance = new IToken( address(globalAddressesProvider), _instrument, decimals, iTokenName, iTokenSymbol ); // DEPLOYS A NEW ITOKEN CONTRACT
-        // SighStream sighStreamInstance = new SighStream();
-
-        // creates a Proxy for the SIGH Stream Contract
-        setSIGHHarvesterImplInternal(sighStreamImplAddress, _instrument, iTokenInstance );
-
-        address sighStreamProxy = sighStreamProxies[_instrument];
-
-        ILendingPool _lendingPool = ILendingPool(globalAddressesProvider.getLendingPool());
-        _lendingPool.initInstrument( _instrument, iTokenInstance, decimals, _interestRateStrategyAddress, sighStreamProxy );
-
-        emit InstrumentInitialized( _instrument, iTokenInstance, _interestRateStrategyAddress,  sighStreamProxy, sighStreamImplAddress  );
+     * @dev Updates the SIGH Harvester implementation for the instrument
+     * @param asset The address of the underlying asset of the reserve to be updated
+     * @param newSighHarvesterImpl The address of the SIGH Harvester implementation
+     **/
+    function updateSIGHHarvesterForInstrument(  address newSighHarvesterImpl, address asset) external onlyLendingPoolManager {
+        DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
+        updateSIGHHarvesterImplInternal(address(globalAddressesProvider), asset, instrumentData.iTokenAddress, instrumentData.stableDebtTokenAddress, instrumentData.variableDebtTokenAddress );
+        emit sighHarvesterImplUpdated(asset, newSighHarvesterImpl );
     }
 
 // ###################################################################################################
-// ####### FUNCTIONS WHICH INTERACT WITH LENDINGPOOL CONTRACT ####################################
-// ####### --> removeInstrument() : REMOVE INSTRUMENT    #####################################
-// ####### --> instrumentActivationSwitch()      :      INSTRUMENT ACTIVATION SWITCH ################################
-// ####### --> instrumentBorrowingSwitch()   :   BORROWING SWITCH  #################################
-// ####### --> instrumentStableBorrowRateSwitch()    :     STABLE BORROW RATE SWITCH  ################
-// ####### --> enableInstrumentAsCollateral()    :   COLLATERAL RELATED  ##############################
-// ####### --> disableInstrumentAsCollateral()   :   COLLATERAL RELATED  ##############################
-// ####### --> instrumentFreezeSwitch()     :      FREEZE INSTRUMENT SWITCH #######################################
-// ####### --> setInstrumentCollateralParameters()    :   SETTING COLLATERAL VARIABLES : [LTV, Liquidation Threshold, Liquidation Bonus]  ###########################
-// ####### --> setInstrumentDecimals()               :   SETTING VARIABLES  ###########################
-// ####### --> setInstrumentInterestRateStrategyAddress()     : SETTING INTEREST RATE STRATEGY  #######
-// ####### --> refreshLendingPool_lendingPoolConfiguration()   :   REFRESH THE ADDRESS OF CORE  ###############
+// ####### FUNCTIONS TO UPDATE THE LENDING PROTOCOL STATE ####################################
 // ###################################################################################################
 
-    // function removeInstrument( address _instrument ) external onlyLendingPoolManager {
-    //     ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-    //     require(core.removeInstrument( _instrument ),"Failed to remove instrument" );
-    //     emit InstrumentRemoved( _instrument );
-    // }
+  /**
+   * @dev Enables borrowing on an instrument reserve
+   * @param asset The address of the underlying asset
+   * @param stableBorrowRateEnabled True if stable borrow rate needs to be enabled by default on this reserve
+   **/
+  function enableBorrowingOnInstrument(address asset, bool stableBorrowRateEnabled) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setBorrowingEnabled(true);
+    currentConfig.setStableRateBorrowingEnabled(stableBorrowRateEnabled);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit BorrowingOnInstrumentSwitched(asset, true);
+    emit StableRateOnInstrumentSwitched(asset, stableBorrowRateEnabled);
+  }
 
-//    /**
-//    * @dev activates/deactivates a _instrument
-//    * @param _instrument the address of the _instrument
-//    * @param switch_  true / false to activate / deactivate
-//    **/
-//    function instrumentActivationSwitch(address _instrument, bool switch_) external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//        core.InstrumentActivationSwitch(_instrument, switch_);
-//        emit InstrumentActivationSwitched(_instrument, switch_);
-//    }
+  /**
+   * @dev Disables borrowing on an instrument reserve
+   * @param asset The address of the underlying asset
+   **/
+  function disableBorrowingOnInstrument(address asset) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setBorrowingEnabled(false);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit BorrowingOnInstrumentSwitched(asset, false);
+  }
+
+  /**
+   * @dev Configures the instrument collateralization parameters
+   * all the values are expressed in percentages with two decimals of precision. A valid value is 10000, which means 100.00%
+   * @param asset The address of the underlying asset of the reserve
+   * @param ltv The loan to value of the asset when used as collateral
+   * @param liquidationThreshold The threshold at which loans using this asset as collateral will be considered undercollateralized
+   * @param liquidationBonus The bonus liquidators receive to liquidate this asset. The values is always above 100%. A value of 105%
+   * means the liquidator will receive a 5% bonus
+   **/
+  function configureInstrumentAsCollateral(address asset, uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+
+    //validation of the parameters: the LTV can only be lower or equal than the liquidation threshold
+    require(ltv <= liquidationThreshold, "INVALID CONFIGURATION");
+
+    if (liquidationThreshold != 0) {
+      //liquidation bonus must be bigger than 100.00%, otherwise the liquidator would receive less collateral than needed to cover the debt
+      require(liquidationBonus > PercentageMath.PERCENTAGE_FACTOR, "INVALID CONFIGURATION");
+      //if threshold * bonus is less than PERCENTAGE_FACTOR, it's guaranteed that at the moment
+      //a loan is taken there is enough collateral available to cover the liquidation bonus
+      require(liquidationThreshold.percentMul(liquidationBonus) <= PercentageMath.PERCENTAGE_FACTOR, "INVALID CONFIGURATION");
+    }
+    else {
+      require(liquidationBonus == 0, "INVALID CONFIGURATION");
+      //if the liquidation threshold is being set to 0,the Instrument is being disabled as collateral. To do so, we need to ensure no liquidity is deposited
+      _checkNoLiquidity(asset);
+    }
+
+    currentConfig.setLtv(ltv);
+    currentConfig.setLiquidationThreshold(liquidationThreshold);
+    currentConfig.setLiquidationBonus(liquidationBonus);
+    pool.setConfiguration(asset, currentConfig.data);
+
+    emit InstrumentCollateralParametersUpdated(asset, ltv, liquidationThreshold, liquidationBonus);
+  }
+
+  /**
+   * @dev Enable stable rate borrowing on a Instrument
+   * @param asset The address of the underlying asset of the reserve
+   **/
+  function enableInstrumentStableRate(address asset) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setStableRateBorrowingEnabled(true);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit StableRateOnInstrumentSwitched(asset, true);
+  }
+
+  /**
+   * @dev Disable stable rate borrowing on a reserve
+   * @param asset The address of the underlying asset of the reserve
+   **/
+  function disableInstrumentStableRate(address asset) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setStableRateBorrowingEnabled(false);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit StableRateOnInstrumentSwitched(asset, false);
+  }
+
+  /**
+   * @dev Activates a Instrument
+   * @param asset The address of the underlying asset of the reserve
+   **/
+  function activateInstrument(address asset) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setActive(true);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit InstrumentActivationSwitched(asset, true);
+  }
+
+  /**
+   * @dev Deactivates a Instrument
+   * @param asset The address of the underlying asset of the reserve
+   **/
+  function deactivateInstrument(address asset) external onlyLendingPoolManager {
+    _checkNoLiquidity(asset);
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setActive(false);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit InstrumentActivationSwitched(asset, false);
+  }
+
+  /**
+   * @dev Freezes a Instrument. A frozen reserve doesn't allow any new deposit, borrow or rate swap
+   *  but allows repayments, liquidations, rate rebalances and withdrawals
+   * @param asset The address of the underlying asset of the reserve
+   **/
+  function freezeInstrument(address asset) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setFrozen(true);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit InstrumentFreezeSwitched(asset, true);
+  }
+
+  /**
+   * @dev Unfreezes a Instrument
+   * @param asset The address of the underlying asset of the Instrument
+   **/
+  function unfreezeInstrument(address asset) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setFrozen(false);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit InstrumentFreezeSwitched(asset, false);
+  }
+    
+  /**
+   * @dev Updates the reserve factor of a Instrument
+   * @param asset The address of the underlying asset of the reserve
+   * @param reserveFactor The new reserve factor of the Instrument
+   **/
+  function setReserveFactor(address asset, uint256 reserveFactor) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setReserveFactor(reserveFactor);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit ReserveFactorChanged(asset, reserveFactor);
+  }
+
+  /**
+   * @dev Sets the interest rate strategy of a Instrument
+   * @param asset The address of the underlying asset of the reserve
+   * @param rateStrategyAddress The new address of the interest strategy contract
+   **/
+  function setInstrumentInterestRateStrategyAddress(address asset, address rateStrategyAddress) external onlyLendingPoolManager {
+    pool.setInstrumentInterestRateStrategyAddress(asset, rateStrategyAddress);
+    emit InstrumentInterestRateStrategyChanged(asset, rateStrategyAddress);
+  }
+
+  /**
+   * @dev pauses or unpauses all the actions of the protocol, including aToken transfers
+   * @param val true if protocol needs to be paused, false otherwise
+   **/
+  function setPoolPause(bool val) external onlyLendingPoolManager {
+    pool.setPause(val);
+  }
+
+
+
+//   // refreshes the lending pool configuration to update the cached address
+    function refreshLendingPoolConfiguration() external onlyLendingPoolManager {
+        ILendingPool lendingPool = ILendingPool(globalAddressesProvider.getLendingPool());
+        lendingPool.refreshConfig();
+    }
 //
-//    /**
-//    * @dev enables borrowing on a instrument
-//    * @param _instrument the address of the instrument
-//    * @param borrowRateSwitch true if stable borrow rate needs to be enabled & false if it needs to be disabled
-//    **/
-//    function instrumentBorrowingSwitch(address _instrument, bool borrowRateSwitch) external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//            core.borrowingOnInstrumentSwitch(_instrument, borrowRateSwitch );
-//            emit BorrowingOnInstrumentSwitched(_instrument, borrowRateSwitch);
-//    }
-//
-//    /**
-//    * @dev switch stable rate borrowing on a instrument
-//    * @param _instrument the address of the instrument
-//    * @param switchStableBorrowRate true / false to enable / disable
-//    **/
-//    function instrumentStableBorrowRateSwitch(address _instrument,bool switchStableBorrowRate) external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//        core.instrumentStableBorrowRateSwitch(_instrument, switchStableBorrowRate);
-//        emit StableRateOnInstrumentSwitched(_instrument, switchStableBorrowRate);
-//    }
-//
-//    /**
-//    * @dev enables a instrument to be used as collateral
-//    * @param _instrument the address of the instrument
-//    * @param _baseLTVasCollateral the loan to value of the asset when used as collateral
-//    * @param _liquidationThreshold the threshold at which loans using this asset as collateral will be considered undercollateralized
-//    * @param _liquidationBonus the bonus liquidators receive to liquidate this asset
-//    **/
-//    function enableInstrumentAsCollateral( address _instrument, uint256 _baseLTVasCollateral, uint256 _liquidationThreshold, uint256 _liquidationBonus ) external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//        core.enableInstrumentAsCollateral( _instrument, _baseLTVasCollateral, _liquidationThreshold, _liquidationBonus );
-//        emit InstrumentEnabledAsCollateral( _instrument, _baseLTVasCollateral, _liquidationThreshold, _liquidationBonus );
-//    }
-//
-//    /**
-//    * @dev disables a instrument as collateral
-//    * @param _instrument the address of the instrument
-//    **/
-//    function disableInstrumentAsCollateral(address _instrument) external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//        core.disableInstrumentAsCollateral(_instrument);
-//        emit InstrumentDisabledAsCollateral(_instrument);
-//    }
-//
-//    /**
-//    * @dev freezes an _instrument. A freezed _instrument doesn't accept any new deposit, borrow or rate swap, but can accept repayments, liquidations, rate rebalances and redeems
-//    * @param _instrument the address of the _instrument
-//    **/
-//    function instrumentFreezeSwitch(address _instrument, bool switch_) external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//        core.InstrumentFreezeSwitch(_instrument, switch_);
-//        emit InstrumentFreezeSwitched(_instrument,switch_);
-//    }
-//
-//
-//    /**
-//    * @dev emitted when a _instrument loan to value is updated
-//    * @param _instrument the address of the _instrument
-//    * @param _ltv the new value for the loan to value
-//    **/
-//    function setInstrumentCollateralParameters(address _instrument, uint256 _ltv, uint256 _threshold, uint256 _bonus) external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//        core.updateInstrumentCollateralParameters(_instrument, _ltv, _threshold, _bonus);
-//        emit InstrumentCollateralParametersUpdated(_instrument, _ltv, _threshold, _bonus);
-//    }
-//
-//
-//    /**
-//    * @dev sets the interest rate strategy of a _instrument
-//    * @param _instrument the address of the _instrument
-//    * @param _rateStrategyAddress the new address of the interest strategy contract
-//    **/
-//    function setInstrumentInterestRateStrategyAddress(address _instrument, address _rateStrategyAddress) external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//        core.setInstrumentInterestRateStrategyAddress(_instrument, _rateStrategyAddress);
-//        emit InstrumentInterestRateStrategyChanged(_instrument, _rateStrategyAddress);
-//    }
-//
-//    function setInstrumentDecimals(address _instrument, uint decimals) external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//        core.setInstrumentDecimals(_instrument, decimals);
-//        emit InstrumentDecimalsUpdated(_instrument, decimals);
-//    }
-//
-//
-//    // refreshes the lending pool core configuration to update the cached address
-//    function refreshLendingPoolCoreConfiguration() external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//        core.refreshConfiguration();
-//    }
-//
-////   // refreshes the lending pool configuration to update the cached address
-//    function refreshLendingPoolConfiguration() external onlyLendingPoolManager {
-//        ILendingPool lendingPool = ILendingPool(globalAddressesProvider.getLendingPool());
-//        lendingPool.refreshConfig();
-//    }
-//
-////   // Changes SIGH Stream Contract For an Instrument
-//    function updateSIGHStreamForInstrument(  address newSighStreamImpl, address instrumentAddress, address iTokenAddress) external onlyLendingPoolManager {
-//        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
-//        require(core.getInstrumentITokenAddress(instrumentAddress) == iTokenAddress,"Wrong instrument - IToken addresses provided");
-//        updateSIGHHarvesterImplInternal(newSighStreamImpl,instrumentAddress,iTokenAddress);
-//        emit sighStreamImplUpdated(instrumentAddress,newSighStreamImpl );
-//    }
-//
-//    function getSighStreamAddress(address instrumentAddress) external view returns (address sighStreamProxyAddress) {
-//        return sighStreamProxies[instrumentAddress];
-//    }
+
+    function getSighHarvesterAddress(address instrumentAddress) external view returns (address sighHarvesterProxyAddress) {
+        return sighHarvesterProxies[instrumentAddress];
+    }
 
 // #############################################
 // ######  FUNCTION TO UPGRADE THE PROXY #######
 // #############################################
 
-    function setSIGHHarvesterImplInternal( address globalAddressProvider, address sighHarvesterAddressImpl, address asset, address iTokenProxyAddress, address stableDebtTokenProxyAddress, address variableDebtTokenProxyAddress ) internal {
-
-        bytes memory params = abi.encodeWithSignature("initialize(address,address,address,address,address)", globalAddressProvider, asset, iTokenAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress );            // initialize function is called in the new implementation contract
+    // Create a new Proxy contract for the SIGH harvester contract
+    function setSIGHHarvesterImplInternal( address globalAddressProvider, address sighHarvesterAddressImpl, address asset, address iTokenProxyAddress, address stableDebtTokenProxyAddress, address variableDebtTokenProxyAddress ) internal returns (address) {
+        bytes memory params = abi.encodeWithSignature("initialize(address,address,address,address,address)", globalAddressProvider, asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress );            // initialize function is called in the new implementation contract
         InitializableAdminUpgradeabilityProxy proxy = new InitializableAdminUpgradeabilityProxy();
         proxy.initialize(sighHarvesterAddressImpl, address(this), params);
-        sighStreamProxies[asset] = address(proxy);
+        sighHarvesterProxies[asset] = address(proxy);
         emit ProxyCreated(asset, address(proxy));
+        return address(proxy);
     }
 
-    function updateSIGHHarvesterImplInternal(address _sighStreamAddress, address instrumentAddress, address iTokenAddress ) internal {
-        // Proxy Contract Address
-        address payable proxyAddress = address(uint160(sighStreamProxies[instrumentAddress] ));
+    // Update the implementation for the SIGH harvester contract
+    function updateSIGHHarvesterImplInternal( address globalAddressProvider, address sighHarvesterAddressImpl, address asset, address iTokenProxyAddress, address stableDebtTokenProxyAddress, address variableDebtTokenProxyAddress ) internal {
+        address payable proxyAddress = address( uint160(sighHarvesterProxies[asset] ));
         InitializableAdminUpgradeabilityProxy proxy = InitializableAdminUpgradeabilityProxy(proxyAddress);
-        bytes memory params = abi.encodeWithSignature("initialize(address,address,address)", address(globalAddressesProvider),instrumentAddress,iTokenAddress );            // initialize function is called in the new implementation contract
-        proxy.upgradeToAndCall(_sighStreamAddress, params);
+        bytes memory params = abi.encodeWithSignature("initialize(address,address,address,address,address)", globalAddressProvider, asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress );           // initialize function is called in the new implementation contract
+        proxy.upgradeToAndCall(sighHarvesterAddressImpl, params);
+    }
+
+
+    // Create a new Proxy contract for the iToken / stable debt token / variable debt token
+    function _initTokenWithProxy(address implementation, uint8 decimals) internal returns (address) {
+        InitializableAdminUpgradeabilityProxy proxy = new InitializableAdminUpgradeabilityProxy();
+        bytes memory params = abi.encodeWithSignature( 'initialize(uint8,string,string)', decimals, IERC20Detailed(implementation).name(), IERC20Detailed(implementation).symbol() );
+        proxy.initialize(implementation, params);
+        return address(proxy);
+    }
+
+    // Update the implementation for the Proxy contract for the iToken / stable debt token / variable debt token
+    function _upgradeTokenImplementation(address asset, address proxyAddress, address implementation) internal {
+        InitializableAdminUpgradeabilityProxy proxy = InitializableAdminUpgradeabilityProxy(payable(proxyAddress));
+        DataTypes.InstrumentConfigurationMap memory configuration = pool.getInstrumentConfiguration(asset);
+        (, , , uint256 decimals, ) = configuration.getParamsMemory();
+        bytes memory params = abi.encodeWithSignature('initialize(uint8,string,string)', uint8(decimals), IERC20Detailed(implementation).name(), IERC20Detailed(implementation).symbol());
+        proxy.upgradeToAndCall(implementation, params);
     }
 
 
 
-
-
-
-  function _initTokenWithProxy(address implementation, uint8 decimals) internal returns (address) {
-    InitializableImmutableAdminUpgradeabilityProxy proxy = new InitializableImmutableAdminUpgradeabilityProxy(address(this));
-    bytes memory params = abi.encodeWithSignature( 'initialize(uint8,string,string)', decimals, IERC20Detailed(implementation).name(), IERC20Detailed(implementation).symbol() );
-    proxy.initialize(implementation, params);
-    return address(proxy);
-  }
-
-  function _upgradeTokenImplementation(address asset, address proxyAddress, address implementation) internal {
-    InitializableImmutableAdminUpgradeabilityProxy proxy = InitializableImmutableAdminUpgradeabilityProxy(payable(proxyAddress));
-    DataTypes.InstrumentConfigurationMap memory configuration = pool.getConfiguration(asset);
-
-    (, , , uint256 decimals, ) = configuration.getParamsMemory();
-    bytes memory params = abi.encodeWithSignature('initialize(uint8,string,string)', uint8(decimals), IERC20Detailed(implementation).name(), IERC20Detailed(implementation).symbol());
-    proxy.upgradeToAndCall(implementation, params);
-  }
-
-  function _checkNoLiquidity(address asset) internal view {
-    DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
-    uint256 availableLiquidity = IERC20Detailed(asset).balanceOf(instrumentData.iTokenAddress);
-    require(availableLiquidity == 0 && instrumentData.currentLiquidityRate == 0, "Instrument LIQUIDITY NOT 0");
-  }
+    function _checkNoLiquidity(address asset) internal view {
+      DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
+      uint256 availableLiquidity = IERC20Detailed(asset).balanceOf(instrumentData.iTokenAddress);
+      require(availableLiquidity == 0 && instrumentData.currentLiquidityRate == 0, "Instrument LIQUIDITY NOT 0");
+    }
 
 
 
