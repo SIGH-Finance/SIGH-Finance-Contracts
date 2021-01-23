@@ -4,6 +4,7 @@ pragma solidity 0.7.0;
 import {WadRayMath} from '../libraries/math/WadRayMath.sol';
 import {DebtTokenBase} from './base/DebtTokenBase.sol';
 import {IVariableDebtToken} from "../../../interfaces/lendingProtocol/IVariableDebtToken.sol";
+import {ISIGHHarvester} from "../../../interfaces/lendingProtocol/ISIGHHarvester.sol";
 
 /**
  * @title VariableDebtToken
@@ -26,19 +27,9 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
     return DEBT_TOKEN_REVISION;
   }
 
-  /**
-   * @dev Calculates the accumulated debt balance of the user
-   * @return The debt balance of the user
-   **/
-  function balanceOf(address user) public view virtual override returns (uint256) {
-    uint256 scaledBalance = super.balanceOf(user);
-
-    if (scaledBalance == 0) {
-      return 0;
-    }
-
-    return scaledBalance.rayMul(POOL.getReserveNormalizedVariableDebt(UNDERLYING_ASSET_ADDRESS));
-  }
+  //  ####################################################
+//  ######### FUNCTIONS CALLED BY LENDING POOL #########
+//  ####################################################
 
   /**
    * @dev Mints debt token to the `onBehalfOf` address
@@ -59,6 +50,7 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, "INVALID MINT AMOUNT");
 
+    sighHarvester.accureSIGHForBorrowingStream(user);
     _mint(onBehalfOf, amountScaled);
 
     emit Transfer(address(0), onBehalfOf, amount);
@@ -78,10 +70,29 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, "INVALID BURN AMOUNT");
 
+    sighHarvester.accureSIGHForBorrowingStream(user);
     _burn(user, amountScaled);
 
     emit Transfer(user, address(0), amount);
     emit Burn(user, amount, index);
+  }
+
+//  ##################################
+//  ######### VIEW FUNCTIONS #########
+//  ##################################
+
+  /**
+   * @dev Calculates the accumulated debt balance of the user
+   * @return The debt balance of the user
+   **/
+  function balanceOf(address user) public view virtual override returns (uint256) {
+    uint256 scaledBalance = super.balanceOf(user);
+
+    if (scaledBalance == 0) {
+      return 0;
+    }
+
+    return scaledBalance.rayMul(POOL.getReserveNormalizedVariableDebt(UNDERLYING_ASSET_ADDRESS));
   }
 
   /**
@@ -117,4 +128,22 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
   function getScaledUserBalanceAndSupply(address user) external view override returns (uint256, uint256){
     return (super.balanceOf(user), super.totalSupply());
   }
+
+//  ########################################################
+//  ######### FUNCTIONS RELATED TO SIGH HARVESTING #########
+//  ########################################################
+
+  function claimSIGH(address[] users) public override {
+    return sighHarvester.claimSIGH(users);
+  }
+
+  function claimMySIGH() public override {
+    return sighHarvester.claimMySIGH(msg.sender);
+  }
+
+  function getSighAccured(address user)  external view returns (uint)  {
+    return sighHarvester.getSighAccured(user);
+  }
+
+
 }

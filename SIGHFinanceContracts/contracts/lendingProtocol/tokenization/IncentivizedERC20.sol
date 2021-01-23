@@ -5,6 +5,7 @@ import {Context} from "../../dependencies/openzeppelin/GSN/Context.sol";
 import {IERC20} from "../../dependencies/openzeppelin/token/ERC20/IERC20.sol";
 import {SafeMath} from "../../dependencies/openzeppelin/math/SafeMath.sol";
 import {IERC20Detailed} from "../../dependencies/openzeppelin/token/ERC20/IERC20Detailed.sol";
+import {ISIGHHarvester} from "../../../interfaces/lendingProtocol/ISIGHHarvester.sol";
 
 /**
  * @title ERC20
@@ -15,6 +16,7 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   using SafeMath for uint256;
 
   mapping(address => uint256) internal _balances;
+  mapping(address => uint256) internal _averageBalances;
   mapping(address => mapping(address => uint256)) private _allowances;
 
   uint256 internal _totalSupply;
@@ -72,6 +74,14 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   function balanceOf(address account) public view virtual override returns (uint256) {
     return _balances[account];
   }
+
+  /**
+   * @return The average balance of the token
+   **/
+  function averageBalanceOf(address account) public view virtual override returns (uint256) {
+    return _averageBalances[account];
+  }
+
 
   /**
    * @dev Executes a transfer of tokens from _msgSender() to recipient
@@ -149,8 +159,11 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
 
     uint256 oldSenderBalance = _balances[sender];
     _balances[sender] = oldSenderBalance.sub(amount, 'ERC20: transfer amount exceeds balance');
+    _averageBalances[sender] = _averageBalances[sender] == 0 ? amount : _averageBalances[sender].mul(9).sub(amount).div(10);         // Average Balance Updated
+
     uint256 oldRecipientBalance = _balances[recipient];
     _balances[recipient] = _balances[recipient].add(amount);
+    _averageBalances[recipient] = _averageBalances[recipient] == 0 ? amount : _averageBalances[recipient].mul(9).add(amount).div(10);   // Average Balance Updated
   }
 
   function _mint(address account, uint256 amount) internal virtual {
@@ -165,6 +178,8 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
 
     uint256 oldAccountBalance = _balances[account];
     _balances[account] = oldAccountBalance.add(amount);
+    _averageBalances[account] = _averageBalances[account] == 0 ? amount : _averageBalances[account].mul(9).add(amount).div(10);   // Average Balance Updated
+
   }
 
   function _burn(address account, uint256 amount) internal virtual {
@@ -179,6 +194,8 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
 
     uint256 oldAccountBalance = _balances[account];
     _balances[account] = oldAccountBalance.sub(amount, 'ERC20: burn amount exceeds balance');
+    _averageBalances[account] = _averageBalances[account] == 0 ? amount : _averageBalances[account].mul(9).sub(amount).div(10);   // Average Balance Updated
+
   }
 
   function _approve(address owner, address spender, uint256 amount) internal virtual {
@@ -201,11 +218,12 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
     _decimals = newDecimals;
   }
 
-  function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {}
+  function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {
+  }
 
   // Calculates the average total supply over last 100 transactions
   function calculateAverageTotalSupply(uint newTotalSupply) internal {
-    return averageTotalSupply.mul(99).add(newTotalSupply).div(100);
+    return averageTotalSupply == 0 ? newTotalSupply : averageTotalSupply.mul(99).add(newTotalSupply).div(100);
   }
 
 }

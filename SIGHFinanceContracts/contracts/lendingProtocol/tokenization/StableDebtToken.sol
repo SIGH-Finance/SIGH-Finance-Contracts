@@ -5,6 +5,7 @@ import {DebtTokenBase} from './base/DebtTokenBase.sol';
 import {MathUtils} from '../libraries/math/MathUtils.sol';
 import {WadRayMath} from '../libraries/math/WadRayMath.sol';
 import {IStableDebtToken} from "../../../interfaces/lendingProtocol/IStableDebtToken.sol";
+import {ISIGHHarvester} from "../../../interfaces/lendingProtocol/ISIGHHarvester.sol";
 
 /**
  * @title StableDebtToken
@@ -32,44 +33,10 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
     return DEBT_TOKEN_REVISION;
   }
 
-  /**
-   * @dev Returns the average stable rate across all the stable rate debt
-   * @return the average stable rate
-   **/
-  function getAverageStableRate() external view virtual override returns (uint256) {
-    return _avgStableRate;
-  }
+//  ####################################################
+//  ######### FUNCTIONS CALLED BY LENDING POOL #########
+//  ####################################################
 
-  /**
-   * @dev Returns the timestamp of the last user action
-   * @return The last update timestamp
-   **/
-  function getUserLastUpdated(address user) external view virtual override returns (uint40) {
-    return _timestamps[user];
-  }
-
-  /**
-   * @dev Returns the stable rate of the user
-   * @param user The address of the user
-   * @return The stable rate of user
-   **/
-  function getUserStableRate(address user) external view virtual override returns (uint256) {
-    return _usersStableRate[user];
-  }
-
-  /**
-   * @dev Calculates the current user debt balance
-   * @return The accumulated debt of the user
-   **/
-  function balanceOf(address account) public view virtual override returns (uint256) {
-    uint256 accountBalance = super.balanceOf(account);
-    uint256 stableRate = _usersStableRate[account];
-    if (accountBalance == 0) {
-      return 0;
-    }
-    uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(stableRate, _timestamps[account]);
-    return accountBalance.rayMul(cumulatedInterest);
-  }
 
   struct MintLocalVars {
     uint256 previousSupply;
@@ -116,6 +83,7 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
     // Calculates the updated average stable rate
     vars.currentAvgStableRate = _avgStableRate = vars.currentAvgStableRate.rayMul(vars.previousSupply.wadToRay()).add(rate.rayMul(vars.amountInRay)).rayDiv(vars.nextSupply.wadToRay());
 
+    sighHarvester.accureSIGHForBorrowingStream(user);
     _mint(onBehalfOf, amount.add(balanceIncrease), vars.previousSupply);
 
     emit Transfer(address(0), onBehalfOf, amount);
@@ -164,19 +132,19 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
       _timestamps[user] = 0;
     }
     else {
-      //solium-disable-next-line
       _timestamps[user] = uint40(block.timestamp);
     }
-    //solium-disable-next-line
     _totalSupplyTimestamp = uint40(block.timestamp);
 
     if (balanceIncrease > amount) {
       uint256 amountToMint = balanceIncrease.sub(amount);
+      sighHarvester.accureSIGHForBorrowingStream(user);
       _mint(user, amountToMint, previousSupply);
       emit Mint(user, user, amountToMint, currentBalance, balanceIncrease, userStableRate, newAvgStableRate, nextSupply);
     }
     else {
       uint256 amountToBurn = amount.sub(balanceIncrease);
+      sighHarvester.accureSIGHForBorrowingStream(user);
       _burn(user, amountToBurn, previousSupply);
       emit Burn(user, amountToBurn, currentBalance, balanceIncrease, newAvgStableRate, nextSupply);
     }
@@ -184,23 +152,10 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
     emit Transfer(user, address(0), amount);
   }
 
-  /**
-   * @dev Calculates the increase in balance since the last user interaction
-   * @param user The address of the user for which the interest is being accumulated
-   * @return The previous principal balance, the new principal balance and the balance increase
-   **/
-  function _calculateBalanceIncrease(address user) internal view returns (uint256, uint256, uint256)  {
-    uint256 previousPrincipalBalance = super.balanceOf(user);
 
-    if (previousPrincipalBalance == 0) {
-      return (0, 0, 0);
-    }
-
-    // Calculation of the accrued interest since the last accumulation
-    uint256 balanceIncrease = balanceOf(user).sub(previousPrincipalBalance);
-
-    return (previousPrincipalBalance, previousPrincipalBalance.add(balanceIncrease), balanceIncrease);
-  }
+//  ##################################
+//  ######### VIEW FUNCTIONS #########
+//  ##################################
 
   /**
    * @dev Returns the principal and total supply, the average borrow rate and the last supply update timestamp
@@ -239,6 +194,83 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
    **/
   function principalBalanceOf(address user) external view virtual override returns (uint256) {
     return super.balanceOf(user);
+  }
+
+  /**
+   * @dev Returns the average stable rate across all the stable rate debt
+   * @return the average stable rate
+   **/
+  function getAverageStableRate() external view virtual override returns (uint256) {
+    return _avgStableRate;
+  }
+
+  /**
+   * @dev Returns the timestamp of the last user action
+   * @return The last update timestamp
+   **/
+  function getUserLastUpdated(address user) external view virtual override returns (uint40) {
+    return _timestamps[user];
+  }
+
+  /**
+   * @dev Returns the stable rate of the user
+   * @param user The address of the user
+   * @return The stable rate of user
+   **/
+  function getUserStableRate(address user) external view virtual override returns (uint256) {
+    return _usersStableRate[user];
+  }
+
+  /**
+   * @dev Calculates the current user debt balance
+   * @return The accumulated debt of the user
+   **/
+  function balanceOf(address account) public view virtual override returns (uint256) {
+    uint256 accountBalance = super.balanceOf(account);
+    uint256 stableRate = _usersStableRate[account];
+    if (accountBalance == 0) {
+      return 0;
+    }
+    uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(stableRate, _timestamps[account]);
+    return accountBalance.rayMul(cumulatedInterest);
+  }
+
+//  ########################################################
+//  ######### FUNCTIONS RELATED TO SIGH HARVESTING #########
+//  ########################################################
+
+  function claimSIGH(address[] users) public override {
+    return sighHarvester.claimSIGH(users);
+  }
+
+  function claimMySIGH() public override {
+    return sighHarvester.claimMySIGH(msg.sender);
+  }
+
+  function getSighAccured(address user)  external view returns (uint)  {
+    return sighHarvester.getSighAccured(user);
+  }
+
+//  ######################################
+//  ######### INTERNAL FUNCTIONS #########
+//  ######################################
+
+  /**
+   * @dev Calculates the increase in balance since the last user interaction
+   * @param user The address of the user for which the interest is being accumulated
+   * @return The previous principal balance, the new principal balance and the balance increase
+   **/
+  function _calculateBalanceIncrease(address user) internal view returns (uint256, uint256, uint256)  {
+    uint256 previousPrincipalBalance = super.balanceOf(user);
+
+    if (previousPrincipalBalance == 0) {
+      return (0, 0, 0);
+    }
+
+    // Calculation of the accrued interest since the last accumulation
+    uint256 balanceIncrease = balanceOf(user).sub(previousPrincipalBalance);
+
+    return (previousPrincipalBalance, previousPrincipalBalance.add(balanceIncrease), balanceIncrease);
   }
 
   /**

@@ -8,6 +8,7 @@ import {SafeERC20} from "../../dependencies/openzeppelin/token/ERC20/SafeERC20.s
 import {ILendingPool} from "../../../interfaces/lendingProtocol/ILendingPool.sol";
 import {IIToken} from "../../../interfaces/lendingProtocol/IIToken.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
+import {ISIGHHarvester} from "../../../interfaces/lendingProtocol/ISIGHHarvester.sol";
 
 /**
  * @title ERC20 IToken (built upon Aave's AToken)
@@ -87,6 +88,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
   function burn(address user, address receiverOfUnderlying, uint256 amount, uint256 index) external override onlyLendingPool {
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, "INVALID BURN AMOUNT");
+    sighHarvester.accureSIGHForLiquidityStream(user);
     _burn(user, amountScaled);
 
     IERC20(UNDERLYING_ASSET_ADDRESS).safeTransfer(receiverOfUnderlying, amount);
@@ -108,6 +110,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
 
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0,"INVALID MINT AMOUNT");
+    sighHarvester.accureSIGHForLiquidityStream(user);
     _mint(user, amountScaled);
 
     emit Transfer(address(0), user, amount);
@@ -146,6 +149,8 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
    **/
   function transferOnLiquidation(address from, address to, uint256 value) external override onlyLendingPool {
     // Being a normal transfer, the Transfer() and BalanceTransfer() are emitted, so no need to emit a specific event here
+    sighHarvester.accureSIGHForLiquidityStream(from);
+    sighHarvester.accureSIGHForLiquidityStream(to);
     _transfer(from, to, value, false);
     emit Transfer(from, to, value);
   }
@@ -219,6 +224,21 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
     return super.totalSupply();
   }
 
+//  ########################################################
+//  ######### FUNCTIONS RELATED TO SIGH HARVESTING #########
+//  ########################################################
+
+  function claimSIGH(address[] users) public override {
+    return sighHarvester.claimSIGH(users);
+  }
+
+  function claimMySIGH() public override {
+    return sighHarvester.claimMySIGH(msg.sender);
+  }
+
+  function getSighAccured(address user)  external view returns (uint)  {
+    return sighHarvester.getSighAccured(user);
+  }
 
 //  ##################################################
 //  ######### IMPLEMENTS THE PERMIT FUNCTION #########
