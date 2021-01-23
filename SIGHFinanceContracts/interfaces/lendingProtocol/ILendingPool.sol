@@ -135,7 +135,7 @@ interface ILendingPool {
 
 
 
-
+  function refreshConfig() external;
 
   /**
    * @dev Deposits an `amount` of underlying asset, receiving in return overlying iTokens.

@@ -94,7 +94,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     addressesProvider = provider;
   }
 
-  function refreshConfig() external _onlyLendingPoolConfigurator {
+  function refreshConfig() external override _onlyLendingPoolConfigurator {
     refreshConfigInternal() ;
     require(address(sighVolatiltiyHarvester) != address(0),'SIGH Volatiltiy Harvester Address not valid');
   }

@@ -10,6 +10,9 @@ import {DataTypes} from "./libraries/types/DataTypes.sol";
 import  {IERC20Detailed} from "../dependencies/openzeppelin/token/ERC20/IERC20Detailed.sol";
 import {ITokenConfiguration} from "../../interfaces/lendingProtocol/ITokenConfiguration.sol";
 import { PercentageMath} from "./libraries/math/PercentageMath.sol";
+import { SafeMath} from "../dependencies/openzeppelin/math/SafeMath.sol";
+import { InstrumentConfiguration} from "./libraries/configuration/InstrumentConfiguration.sol";
+import { DataTypes} from "./libraries/types/DataTypes.sol";
 
 /**
 * @title LendingPoolConfigurator contract
@@ -20,7 +23,10 @@ import { PercentageMath} from "./libraries/math/PercentageMath.sol";
 
 contract LendingPoolConfigurator is VersionedInitializable  {
 
-    // using SafeMath for uint256;
+    using SafeMath for uint256;
+    using PercentageMath for uint256;
+    using InstrumentConfiguration for DataTypes.InstrumentConfigurationMap;
+
     IGlobalAddressesProvider public globalAddressesProvider;
     ILendingPool public pool;
 
@@ -30,7 +36,7 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 // ######################
 
 
-    event InstrumentInitialized(address asset,address iTokenProxyAddress,address stableDebtTokenProxyAddress,address variableDebtTokenProxyAddress,address SIGHHarvesterProxyAddress,address interestRateStrategyAddress,address underlyingAssetDecimals);
+    event InstrumentInitialized(address asset,address iTokenProxyAddress,address stableDebtTokenProxyAddress,address variableDebtTokenProxyAddress,address SIGHHarvesterProxyAddress,address interestRateStrategyAddress,uint8 underlyingAssetDecimals);
 
     event sighHarvesterImplUpdated(address asset, address newSighHarvesterImpl );
     event VariableDebtTokenUpgraded(address asset, address variableDebtProxyAddress, address variableDebtImplementation);
@@ -162,7 +168,7 @@ contract LendingPoolConfigurator is VersionedInitializable  {
      **/
     function updateSIGHHarvesterForInstrument(  address newSighHarvesterImpl, address asset) external onlyLendingPoolManager {
         DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
-        updateSIGHHarvesterImplInternal(address(globalAddressesProvider), asset, instrumentData.iTokenAddress, instrumentData.stableDebtTokenAddress, instrumentData.variableDebtTokenAddress );
+        updateSIGHHarvesterImplInternal(address(globalAddressesProvider), newSighHarvesterImpl, asset, instrumentData.iTokenAddress, instrumentData.stableDebtTokenAddress, instrumentData.variableDebtTokenAddress );
         emit sighHarvesterImplUpdated(asset, newSighHarvesterImpl );
     }
 
@@ -333,8 +339,7 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 
 //   // refreshes the lending pool configuration to update the cached address
     function refreshLendingPoolConfiguration() external onlyLendingPoolManager {
-        ILendingPool lendingPool = ILendingPool(globalAddressesProvider.getLendingPool());
-        lendingPool.refreshConfig();
+        pool.refreshConfig();
     }
 //
 
@@ -386,7 +391,7 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 
     function _checkNoLiquidity(address asset) internal view {
       DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
-      uint256 availableLiquidity = IERC20Detailed(asset).balanceOf(instrumentData.iTokenAddress);
+      uint256 availableLiquidity = ITokenConfiguration(asset).balanceOf(instrumentData.iTokenAddress);
       require(availableLiquidity == 0 && instrumentData.currentLiquidityRate == 0, "Instrument LIQUIDITY NOT 0");
     }
 
