@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.7.0;
 
-import {IERC20Detailed} from '../../dependencies/openzeppelin/contracts/IERC20Detailed.sol';
-import {IAaveIncentivesController} from '../../interfaces/IAaveIncentivesController.sol';
-import {Context} from "../dependencies/openzeppelin/GSN/Context.sol";
-import {IERC20} from "../dependencies/openzeppelin/token/ERC20/IERC20.sol";
-import {SafeMath} from "../dependencies/openzeppelin/math/SafeMath.sol";
+import {Context} from "../../dependencies/openzeppelin/GSN/Context.sol";
+import {IERC20} from "../../dependencies/openzeppelin/token/ERC20/IERC20.sol";
+import {SafeMath} from "../../dependencies/openzeppelin/math/SafeMath.sol";
+import {IERC20Detailed} from "../../dependencies/openzeppelin/token/ERC20/IERC20Detailed.sol";
 
 /**
  * @title ERC20
@@ -15,21 +14,20 @@ import {SafeMath} from "../dependencies/openzeppelin/math/SafeMath.sol";
 contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   using SafeMath for uint256;
 
-  IAaveIncentivesController internal immutable _incentivesController;
-
   mapping(address => uint256) internal _balances;
-
   mapping(address => mapping(address => uint256)) private _allowances;
+
   uint256 internal _totalSupply;
+  uint256 internal averageTotalSupply;
+
   string private _name;
   string private _symbol;
   uint8 private _decimals;
 
-  constructor(string memory name, string memory symbol, uint8 decimals, address incentivesController) public {
+  constructor(string memory name, string memory symbol, uint8 decimals) public {
     _name = name;
     _symbol = symbol;
     _decimals = decimals;
-    _incentivesController = IAaveIncentivesController(incentivesController);
   }
 
   /**
@@ -59,6 +57,14 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   function totalSupply() public view virtual override returns (uint256) {
     return _totalSupply;
   }
+
+  /**
+   * @return The averaged total supply of the token, requried by the SIGH Volatility harvester
+   **/
+  function averageTotalSupply() public view returns (uint256) {
+    return averageTotalSupply;
+  }
+
 
   /**
    * @return The balance of the token
@@ -145,14 +151,6 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
     _balances[sender] = oldSenderBalance.sub(amount, 'ERC20: transfer amount exceeds balance');
     uint256 oldRecipientBalance = _balances[recipient];
     _balances[recipient] = _balances[recipient].add(amount);
-
-    if (address(_incentivesController) != address(0)) {
-      uint256 currentTotalSupply = _totalSupply;
-      _incentivesController.handleAction(sender, currentTotalSupply, oldSenderBalance);
-      if (sender != recipient) {
-        _incentivesController.handleAction(recipient, currentTotalSupply, oldRecipientBalance);
-      }
-    }
   }
 
   function _mint(address account, uint256 amount) internal virtual {
@@ -163,12 +161,10 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
     uint256 oldTotalSupply = _totalSupply;
     _totalSupply = oldTotalSupply.add(amount);
 
+    averageTotalSupply = calculateAverageTotalSupply(_totalSupply);   //average total supply updated
+
     uint256 oldAccountBalance = _balances[account];
     _balances[account] = oldAccountBalance.add(amount);
-
-    if (address(_incentivesController) != address(0)) {
-      _incentivesController.handleAction(account, oldTotalSupply, oldAccountBalance);
-    }
   }
 
   function _burn(address account, uint256 amount) internal virtual {
@@ -179,12 +175,10 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
     uint256 oldTotalSupply = _totalSupply;
     _totalSupply = oldTotalSupply.sub(amount);
 
+    averageTotalSupply = calculateAverageTotalSupply(_totalSupply);  //average total supply updated
+
     uint256 oldAccountBalance = _balances[account];
     _balances[account] = oldAccountBalance.sub(amount, 'ERC20: burn amount exceeds balance');
-
-    if (address(_incentivesController) != address(0)) {
-      _incentivesController.handleAction(account, oldTotalSupply, oldAccountBalance);
-    }
   }
 
   function _approve(address owner, address spender, uint256 amount) internal virtual {
@@ -208,4 +202,10 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   }
 
   function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {}
+
+  // Calculates the average total supply over last 100 transactions
+  function calculateAverageTotalSupply(uint newTotalSupply) internal {
+    return averageTotalSupply.mul(99).add(newTotalSupply).div(100);
+  }
+
 }

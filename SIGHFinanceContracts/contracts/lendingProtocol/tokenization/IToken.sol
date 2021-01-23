@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.7.0;
 
-import {VersionedInitializable} from "../dependencies/upgradability/VersionedInitializable.sol";
-import {IERC20} from "../dependencies/openzeppelin/token/ERC20/IERC20.sol";
-import {SafeERC20} from "../dependencies/openzeppelin/token/ERC20/SafeERC20.sol";
-
-import {ILendingPool} from "../../interfaces/lendingProtocol/ILendingPool.sol";
-import {IIToken} from "../../interfaces/lendingProtocol/IIToken.sol";
-import {WadRayMath} from "./libraries/math/WadRayMath.sol";
 import {IncentivizedERC20} from './IncentivizedERC20.sol';
+import {VersionedInitializable} from "../../dependencies/upgradability/VersionedInitializable.sol";
+import {IERC20} from "../../dependencies/openzeppelin/token/ERC20/IERC20.sol";
+import {SafeERC20} from "../../dependencies/openzeppelin/token/ERC20/SafeERC20.sol";
+import {ILendingPool} from "../../../interfaces/lendingProtocol/ILendingPool.sol";
+import {IIToken} from "../../../interfaces/lendingProtocol/IIToken.sol";
+import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 
 /**
  * @title ERC20 IToken (built upon Aave's AToken)
@@ -48,7 +47,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
 //  ###############################
 
 
-  constructor(ILendingPool pool, address underlyingAssetAddress, string memory tokenName, string memory tokenSymbol, address incentivesController) public IncentivizedERC20(tokenName, tokenSymbol, 18, incentivesController) {
+  constructor(ILendingPool pool, address underlyingAssetAddress, string memory tokenName, string memory tokenSymbol) public IncentivizedERC20(tokenName, tokenSymbol, 18) {
     POOL = pool;
     UNDERLYING_ASSET_ADDRESS = underlyingAssetAddress;
   }
