@@ -77,6 +77,16 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
     emit Burn(user, amount, index);
   }
 
+    /**
+   * @dev Sets the SIGH Harvester Proxy Contract Address
+   * @param _SIGHHarvesterAddress The SIGH Harvester Proxy Contract Address
+   * @return The amount transferred
+   **/
+  function setSIGHHarvesterAddress(address _SIGHHarvesterAddress) external override onlyLendingPool returns (bool) {
+    sighHarvester = ISIGHHarvester(_SIGHHarvesterAddress);
+    return true;
+  }
+
 //  ##################################
 //  ######### VIEW FUNCTIONS #########
 //  ##################################

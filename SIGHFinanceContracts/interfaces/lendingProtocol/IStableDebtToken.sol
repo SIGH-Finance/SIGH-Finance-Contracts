@@ -102,4 +102,9 @@ interface IStableDebtToken {
    * @return The debt balance of the user since the last burn/mint action
    **/
   function principalBalanceOf(address user) external view returns (uint256);
+
+  function claimSIGH(address[] users) external;
+  function claimMySIGH() external;
+  function getSighAccured(address user)  external view returns (uint);
+
 }

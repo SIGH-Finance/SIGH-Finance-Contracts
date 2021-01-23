@@ -89,14 +89,16 @@ contract SIGHHarvester is ISIGHHarvester, VersionedInitializable {
         return CONFIGURATOR_REVISION;
     }
 
-    function initialize(IGlobalAddressesProvider _globalAddressesProvider, address _underlyingAsset, address _iTokenAddress, address _stableDebtTokenAddress, address _variableDebtTokenTokenAddress) public initializer {
-        globalAddressesProvider = _globalAddressesProvider;
-        sighVolatilityHarvesterContract = ISighVolatilityHarvester(globalAddressesProvider.getSIGHMechanismHandler());
+    function initialize(address _globalAddressesProvider, address _underlyingAsset, address _iTokenAddress, address _stableDebtTokenAddress, address _variableDebtTokenTokenAddress) public initializer {
+        globalAddressesProvider = IGlobalAddressesProvider(_globalAddressesProvider);
+        sighVolatilityHarvesterContract = ISighVolatilityHarvester(globalAddressesProvider.getSIGHVolatilityHarvester());
+        require(sighVolatilityHarvesterContract != address(0));
+
+        underlyingInstrumentAddress = _underlyingAsset;
         iToken = IIToken(_iTokenAddress) ;
         stableDebtToken = IStableDebtToken(_stableDebtTokenAddress) ;
         variableDebtToken = IVariableDebtToken(_variableDebtTokenTokenAddress) ;
 
-        underlyingInstrumentAddress = _underlyingAsset;
     }
 
 // ##########################################

@@ -83,4 +83,10 @@ interface IIToken is IERC20, IScaledBalanceToken {
    * @return The amount transferred
    **/
   function transferUnderlyingTo(address user, uint256 amount) external returns (uint256);
+
+  function claimSIGH(address[] users) external;
+  function claimMySIGH() external;
+  function getSighAccured(address user)  external view returns (uint);
+
+
 }

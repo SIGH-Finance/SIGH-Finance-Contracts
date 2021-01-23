@@ -7,6 +7,8 @@ import {ERC20} from "../dependencies/openzeppelin/token/ERC20/ERC20.sol";
 
 import {IGlobalAddressesProvider} from  "../../interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol";
 import {ILendingPool} from "../../interfaces/lendingProtocol/ILendingPool.sol";
+import {DataTypes} from "./libraries/types/DataTypes.sol";
+import {InitializableImmutableAdminUpgradeabilityProxy} from "./libraries/upgradability/InitializableImmutableAdminUpgradeabilityProxy.sol";
 
 
 /**
@@ -86,6 +88,38 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 // ################################################################################################
 // ####### INITIALIZE A NEW INSTRUMENT (Deploys a new IToken Contract for the INSTRUMENT) #########
 // ################################################################################################
+  /**
+   * @dev Initializes an instrument reserve
+   * @param iTokenImpl  The address of the iToken contract implementation
+   * @param stableDebtTokenImpl The address of the stable debt token contract
+   * @param variableDebtTokenImpl The address of the variable debt token contract
+   * @param underlyingAssetDecimals The decimals of the reserve underlying asset
+   * @param interestRateStrategyAddress The address of the interest rate strategy contract for this reserve
+   **/
+  function initInstrument(address iTokenImpl, address stableDebtTokenImpl, address variableDebtTokenImpl, address sighHarvesterAddressImpl, uint8 underlyingAssetDecimals, address interestRateStrategyAddress) public onlyPoolAdmin {
+    address asset = ITokenConfiguration(iTokenImpl).UNDERLYING_ASSET_ADDRESS();
+
+    require(address(pool) == ITokenConfiguration(iTokenImpl).POOL(), "INVALID ITOKEN POOL ADDRESS");
+    require(address(pool) == ITokenConfiguration(stableDebtTokenImpl).POOL(), "INVALID STABLE DEBT TOKEN POOL ADDRESS");
+    require(address(pool) == ITokenConfiguration(variableDebtTokenImpl).POOL(), "INVALID VARIABLE DEBT TOKEN POOL ADDRESS");
+    require(asset == ITokenConfiguration(stableDebtTokenImpl).UNDERLYING_ASSET_ADDRESS(), "INVALID STABLE DEBT TOKEN UNDERLYING ADDRESS");
+    require(asset == ITokenConfiguration(variableDebtTokenImpl).UNDERLYING_ASSET_ADDRESS(), "INVALID VARIABLE DEBT TOKEN UNDERLYING ADDRESS");
+
+    address iTokenProxyAddress = _initTokenWithProxy(iTokenImpl, underlyingAssetDecimals);                          // Create a proxy contract for IToken
+    address stableDebtTokenProxyAddress = _initTokenWithProxy(stableDebtTokenImpl, underlyingAssetDecimals);        // Create a proxy contract for stable Debt Token
+    address variableDebtTokenProxyAddress = _initTokenWithProxy(variableDebtTokenImpl, underlyingAssetDecimals);    // Create a proxy contract for variable Debt Token
+    address SIGHHarvesterProxyAddress = setSIGHHarvesterImplInternal(address(globalAddressesProvider),sighHarvesterAddressImpl, asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress );    // creates a Proxy Contract for the SIGH Harvester
+
+    pool.initInstrument(asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress, SIGHHarvesterProxyAddress, interestRateStrategyAddress);
+
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getConfiguration(asset);
+    currentConfig.setDecimals(underlyingAssetDecimals);
+    currentConfig.setActive(true);
+    currentConfig.setFrozen(false);
+    pool.setConfiguration(asset, currentConfig.data);
+
+    emit InstrumentInitialized(asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress, SIGHHarvesterProxyAddress, interestRateStrategyAddress, underlyingAssetDecimals);
+  }
 
     /**
     * @dev initializes an instrument
@@ -104,7 +138,7 @@ contract LendingPoolConfigurator is VersionedInitializable  {
         // SighStream sighStreamInstance = new SighStream();
 
         // creates a Proxy for the SIGH Stream Contract
-        setSighStreamImplInternal(sighStreamImplAddress, _instrument, iTokenInstance );
+        setSIGHHarvesterImplInternal(sighStreamImplAddress, _instrument, iTokenInstance );
 
         address sighStreamProxy = sighStreamProxies[_instrument];
 
@@ -248,7 +282,7 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 //    function updateSIGHStreamForInstrument(  address newSighStreamImpl, address instrumentAddress, address iTokenAddress) external onlyLendingPoolManager {
 //        ILendingPool core = ILendingPool(globalAddressesProvider.getLendingPool());
 //        require(core.getInstrumentITokenAddress(instrumentAddress) == iTokenAddress,"Wrong instrument - IToken addresses provided");
-//        updateSighStreamImplInternal(newSighStreamImpl,instrumentAddress,iTokenAddress);
+//        updateSIGHHarvesterImplInternal(newSighStreamImpl,instrumentAddress,iTokenAddress);
 //        emit sighStreamImplUpdated(instrumentAddress,newSighStreamImpl );
 //    }
 //
@@ -260,22 +294,53 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 // ######  FUNCTION TO UPGRADE THE PROXY #######
 // #############################################
 
-    function setSighStreamImplInternal( address _sighStreamAddress, address instrumentAddress, address iTokenAddress ) internal {
+    function setSIGHHarvesterImplInternal( address globalAddressProvider, address sighHarvesterAddressImpl, address asset, address iTokenProxyAddress, address stableDebtTokenProxyAddress, address variableDebtTokenProxyAddress ) internal {
 
-        bytes memory params = abi.encodeWithSignature("initialize(address,address,address)", address(globalAddressesProvider),instrumentAddress,iTokenAddress );            // initialize function is called in the new implementation contract
+        bytes memory params = abi.encodeWithSignature("initialize(address,address,address,address,address)", globalAddressProvider, asset, iTokenAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress );            // initialize function is called in the new implementation contract
         InitializableAdminUpgradeabilityProxy proxy = new InitializableAdminUpgradeabilityProxy();
-        proxy.initialize(_sighStreamAddress, address(this), params);
-        sighStreamProxies[instrumentAddress] = address(proxy);
-        emit ProxyCreated(instrumentAddress, address(proxy));
+        proxy.initialize(sighHarvesterAddressImpl, address(this), params);
+        sighStreamProxies[asset] = address(proxy);
+        emit ProxyCreated(asset, address(proxy));
     }
 
-    function updateSighStreamImplInternal(address _sighStreamAddress, address instrumentAddress, address iTokenAddress ) internal {
+    function updateSIGHHarvesterImplInternal(address _sighStreamAddress, address instrumentAddress, address iTokenAddress ) internal {
         // Proxy Contract Address
         address payable proxyAddress = address(uint160(sighStreamProxies[instrumentAddress] ));
         InitializableAdminUpgradeabilityProxy proxy = InitializableAdminUpgradeabilityProxy(proxyAddress);
         bytes memory params = abi.encodeWithSignature("initialize(address,address,address)", address(globalAddressesProvider),instrumentAddress,iTokenAddress );            // initialize function is called in the new implementation contract
         proxy.upgradeToAndCall(_sighStreamAddress, params);
     }
+
+
+
+
+
+
+  function _initTokenWithProxy(address implementation, uint8 decimals) internal returns (address) {
+    InitializableImmutableAdminUpgradeabilityProxy proxy = new InitializableImmutableAdminUpgradeabilityProxy(address(this));
+    bytes memory params = abi.encodeWithSignature( 'initialize(uint8,string,string)', decimals, IERC20Detailed(implementation).name(), IERC20Detailed(implementation).symbol() );
+    proxy.initialize(implementation, params);
+    return address(proxy);
+  }
+
+  function _upgradeTokenImplementation(address asset, address proxyAddress, address implementation) internal {
+    InitializableImmutableAdminUpgradeabilityProxy proxy = InitializableImmutableAdminUpgradeabilityProxy(payable(proxyAddress));
+    DataTypes.InstrumentConfigurationMap memory configuration = pool.getConfiguration(asset);
+
+    (, , , uint256 decimals, ) = configuration.getParamsMemory();
+    bytes memory params = abi.encodeWithSignature('initialize(uint8,string,string)', uint8(decimals), IERC20Detailed(implementation).name(), IERC20Detailed(implementation).symbol());
+    proxy.upgradeToAndCall(implementation, params);
+  }
+
+  function _checkNoLiquidity(address asset) internal view {
+    DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
+    uint256 availableLiquidity = IERC20Detailed(asset).balanceOf(instrumentData.iTokenAddress);
+    require(availableLiquidity == 0 && instrumentData.currentLiquidityRate == 0, "Instrument LIQUIDITY NOT 0");
+  }
+
+
+
+
 
 
 }

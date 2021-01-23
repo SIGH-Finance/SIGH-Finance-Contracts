@@ -617,15 +617,15 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     * @param _sighStreamAddress The address of the SIGH Streaming Contract
     * @param interestRateStrategyAddress The address of the interest rate strategy contract
     **/
-    function initInstrument(address asset, uint8 decimals, address iTokenAddress, address stableDebtAddress, address variableDebtAddress, address _sighStreamAddress, address interestRateStrategyAddress) external override onlyLendingPoolConfigurator {
+    function initInstrument(address asset,address iTokenAddress, address stableDebtAddress, address variableDebtAddress, address _SIGHHarvesterProxyAddress, address interestRateStrategyAddress) external override onlyLendingPoolConfigurator {
         require(Address.isContract(asset), "Instrument address is not a contract");
-       _instruments[asset].init( decimals, iTokenAddress, stableDebtAddress, variableDebtAddress, interestRateStrategyAddress );
+        _instruments[asset].init( decimals, iTokenAddress, stableDebtAddress, variableDebtAddress, interestRateStrategyAddress );
         _addInstrumentToList(asset);
 
-        require( sighVolatiltiyHarvester.addInstrument( asset, iTokenAddress,stableDebtAddress, variableDebtAddress, _sighStreamAddress, decimals ), "Instrument failed to be properly added to the list of Instruments supported by SIGH Finance" ); // ADDED BY SIGH FINANCE
-        require( IIToken(iTokenAddress).setSighStreamAddress( _sighStreamAddress ), "Sigh Stream Address failed to be properly initialized on IIToken" );
-        require( IVariableDebtToken(variableDebtAddress).setSighStreamAddress( _sighStreamAddress ), "Sigh Stream Address failed to be properly initialized on Variable Debt Token");
-        require( IStableDebtToken(stableDebtAddress).setSighStreamAddress( _sighStreamAddress ), "Sigh Stream Address failed to be properly initialized  on Stable Debt Token " );
+        require( sighVolatiltiyHarvester.addInstrument( asset, iTokenAddress,stableDebtAddress, variableDebtAddress, _SIGHHarvesterProxyAddress, decimals ), "Instrument failed to be properly added to the list of Instruments supported by SIGH Finance" ); // ADDED BY SIGH FINANCE
+        require( IIToken(iTokenAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), "Sigh Harvester Address failed to be properly initialized on IIToken" );
+        require( IVariableDebtToken(variableDebtAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), "Sigh Harvester Address failed to be properly initialized on Variable Debt Token");
+        require( IStableDebtToken(stableDebtAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), "Sigh Harvester Address failed to be properly initialized  on Stable Debt Token " );
     }
 
     /**
