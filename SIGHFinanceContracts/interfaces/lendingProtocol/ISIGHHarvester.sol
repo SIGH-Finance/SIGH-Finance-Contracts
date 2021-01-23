@@ -10,4 +10,11 @@ interface ISIGHHarvester {
     function claimMySIGH(address user) external;
 
     function getSighAccured(address account) external view returns (uint);
+
+  function updatePlatformFee(address user, uint platformFeeIncrease, uint platformFeeDecrease) external  ;
+  function updateReserveFee(address user, uint reserveFeeIncrease, uint reserveFeeDecrease) external  ;
+
+  function getPlatformFee(address user) external view returns (uint) ;
+  function getReserveFee(address user)  external view returns (uint) ;
+
 }

@@ -244,22 +244,6 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
     return accountBalance.rayMul(cumulatedInterest);
   }
 
-//  ########################################################
-//  ######### FUNCTIONS RELATED TO SIGH HARVESTING #########
-//  ########################################################
-
-  function claimSIGH(address[] memory users) public override {
-    return sighHarvester.claimSIGH(users);
-  }
-
-  function claimMySIGH() public override {
-    return sighHarvester.claimMySIGH(msg.sender);
-  }
-
-  function getSighAccured(address user)  external view override returns (uint)  {
-    return sighHarvester.getSighAccured(user);
-  }
-
 //  ######################################
 //  ######### INTERNAL FUNCTIONS #########
 //  ######################################

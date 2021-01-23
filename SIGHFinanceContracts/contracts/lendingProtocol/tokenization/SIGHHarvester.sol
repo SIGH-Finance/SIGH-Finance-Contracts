@@ -43,16 +43,11 @@ contract SIGHHarvester is ISIGHHarvester, VersionedInitializable {
     // EACH USER HAS 2 $SIGH STREAMS :-
     // 1. $SIGH STREAM BASED ON VOLATILITY OF THE LIQUIDITY PROVIDED
     // 1. $SIGH STREAM BASED ON VOLATILITY OF THE BORROWED AMOUNT
-    // ---> Each $SIGH Stream can be Re-directed to another Account
-    // ---> Authority to re-direct each $SIGH Stream can be given to another Account
-    // ---> $SIGH Accured by a particular user = 
-    // -----> if (Liquidity $SIGH not redirected ) => $SIGH Accured += Liquidity $SIGH Stream
-    // -----> if (Borrow balance based $SIGH not redirected ) => $SIGH Accured += Borrowing $SIGH Stream
-    // ----->  => $SIGH Accured += SUM(Liquidity $SIGH Streams re-directed to this account), this SUM is calculated by accuring $SIGH over the cummulated re-directed balance
-    // ----->  => $SIGH Accured += SUM(Borrowing $SIGH Streams re-directed to this account), this SUM is calculated by accuring $SIGH over the cummulated re-directed balance
 
     uint public sigh_Transfer_Threshold = 1e19;                         // SIGH Transferred when accured >= 1 SIGH 
     mapping (address => uint256) private AccuredSighBalance;           // SIGH Collected 
+    mapping (address => uint256) private platformFee;                 // BorrowPlatformFee
+    mapping (address => uint256) private reserveFee;                 // BorrowPlatformFee
 
     struct user_SIGH_State {
         uint256 liquidityStreamIndex;                     // SupplierIndex
@@ -200,6 +195,27 @@ contract SIGHHarvester is ISIGHHarvester, VersionedInitializable {
             AccuredSighBalance[user] = sighVolatilityHarvesterContract.transferSighTotheUser( underlyingInstrumentAddress, user, AccuredSighBalance[user] ); // Pending Amount Not Transferred is returned
         }
     }
+
+// #############################################################
+// #############  FUNCTIONS RELATED TO FEE    ##################
+// #############################################################
+
+  function updatePlatformFee(address user, uint platformFeeIncrease, uint platformFeeDecrease) external onlyDebtTokens override {
+      platformFee[user] = platformFee[user].add(platformFeeIncrease).sub(platformFeeDecrease);
+    mapping (address => uint256) private reserveFee;                 // BorrowPlatformFee
+  }
+
+  function updateReserveFee(address user, uint reserveFeeIncrease, uint reserveFeeDecrease) external onlyDebtTokens override {
+      reserveFee[user] = reserveFee[user].add(reserveFeeIncrease).sub(reserveFeeDecrease);
+  }
+
+  function getPlatformFee(address user) external view override returns (uint) {
+    return platformFee[user];
+  }
+
+  function getReserveFee(address user)  external view override returns (uint) {
+    return reserveFee[user];
+  }
 
 // ###########################################################################
 // ###########################################################################

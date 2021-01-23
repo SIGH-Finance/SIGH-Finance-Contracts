@@ -6,6 +6,7 @@ import {ILendingPool} from "../../../../interfaces/lendingProtocol/ILendingPool.
 import {VersionedInitializable} from "../../../dependencies/upgradability/VersionedInitializable.sol";
 import {ICreditDelegationToken} from "../../../../interfaces/lendingProtocol/ICreditDelegationToken.sol";
 import {ISIGHHarvester} from "../../../../interfaces/lendingProtocol/ISIGHHarvester.sol";
+import {ISIGHHarvestDebtToken} from "../../../../interfaces/lendingProtocol/ISIGHHarvestDebtToken.sol";
 
 /**
  * @title DebtTokenBase
@@ -13,7 +14,7 @@ import {ISIGHHarvester} from "../../../../interfaces/lendingProtocol/ISIGHHarves
  * @author Aave
  */
 
-abstract contract DebtTokenBase is IncentivizedERC20, VersionedInitializable, ICreditDelegationToken {
+abstract contract DebtTokenBase is ISIGHHarvestDebtToken, IncentivizedERC20, VersionedInitializable, ICreditDelegationToken {
 
   address public immutable UNDERLYING_ASSET_ADDRESS;
   ILendingPool public immutable POOL;
@@ -111,6 +112,52 @@ abstract contract DebtTokenBase is IncentivizedERC20, VersionedInitializable, IC
     spender;
     subtractedValue;
     revert('ALLOWANCE_NOT_SUPPORTED');
+  }
+
+//  ########################################################
+//  ######### FUNCTIONS RELATED TO SIGH HARVESTING #########
+//  ########################################################
+
+    /**
+   * @dev Sets the SIGH Harvester Proxy Contract Address
+   * @param _SIGHHarvesterAddress The SIGH Harvester Proxy Contract Address
+   * @return The amount transferred
+   **/
+  function setSIGHHarvesterAddress(address _SIGHHarvesterAddress) external override onlyLendingPool returns (bool) {
+    sighHarvester = ISIGHHarvester(_SIGHHarvesterAddress);
+    return true;
+  }
+
+  function claimSIGH(address[] memory users) public override {
+    return sighHarvester.claimSIGH(users);
+  }
+
+  function claimMySIGH() public override {
+    return sighHarvester.claimMySIGH(msg.sender);
+  }
+
+  function getSighAccured(address user)  external view override returns (uint)  {
+    return sighHarvester.getSighAccured(user);
+  }
+
+//  ############################################
+//  ######### FUNCTIONS RELATED TO FEE #########
+//  ############################################
+
+  function updatePlatformFee(address user, uint platformFeeIncrease, uint platformFeeDecrease) external onlyLendingPool override {
+    sighHarvester.updatePlatformFee(user,platformFeeIncrease,platformFeeDecrease);
+  }
+
+  function updateReserveFee(address user, uint reserveFeeIncrease, uint reserveFeeDecrease) external onlyLendingPool override {
+    sighHarvester.updateReserveFee(user,reserveFeeIncrease,reserveFeeDecrease);
+  }
+
+  function getPlatformFee(address user) external view override returns (uint) {
+    return sighHarvester.getPlatformFee(user);
+  }
+
+  function getReserveFee(address user)  external view override returns (uint) {
+    return sighHarvester.getReserveFee(user);
   }
 
 }

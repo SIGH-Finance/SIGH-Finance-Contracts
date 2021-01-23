@@ -77,15 +77,6 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
     emit Burn(user, amount, index);
   }
 
-    /**
-   * @dev Sets the SIGH Harvester Proxy Contract Address
-   * @param _SIGHHarvesterAddress The SIGH Harvester Proxy Contract Address
-   * @return The amount transferred
-   **/
-  function setSIGHHarvesterAddress(address _SIGHHarvesterAddress) external override onlyLendingPool returns (bool) {
-    sighHarvester = ISIGHHarvester(_SIGHHarvesterAddress);
-    return true;
-  }
 
 //  ##################################
 //  ######### VIEW FUNCTIONS #########
@@ -137,22 +128,6 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
    **/
   function getScaledUserBalanceAndSupply(address user) external view override returns (uint256, uint256){
     return (super.balanceOf(user), super.totalSupply());
-  }
-
-//  ########################################################
-//  ######### FUNCTIONS RELATED TO SIGH HARVESTING #########
-//  ########################################################
-
-  function claimSIGH(address[] memory users) public override {
-    return sighHarvester.claimSIGH(users);
-  }
-
-  function claimMySIGH() public override {
-    return sighHarvester.claimMySIGH(msg.sender);
-  }
-
-  function getSighAccured(address user)  external view override returns (uint)  {
-    return sighHarvester.getSighAccured(user);
   }
 
 

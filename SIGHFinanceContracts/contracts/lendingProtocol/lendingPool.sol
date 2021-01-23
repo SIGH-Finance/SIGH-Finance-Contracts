@@ -13,6 +13,7 @@ import {IFlashLoanReceiver} from "./flashLoan/interfaces/IFlashLoanReceiver.sol"
 import {ILendingPool} from "../../interfaces/lendingProtocol/ILendingPool.sol";
 import {IGlobalAddressesProvider} from "../../interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol";
 
+import {ISIGHHarvestDebtToken} from '../../interfaces/lendingProtocol/ISIGHHarvestDebtToken.sol';
 import {IIToken} from '../../interfaces/lendingProtocol/IIToken.sol';
 import {IVariableDebtToken} from "../../interfaces/lendingProtocol/IVariableDebtToken.sol";
 import {IStableDebtToken} from '../../interfaces/lendingProtocol/IStableDebtToken.sol';
@@ -96,11 +97,11 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
   function refreshConfig() external override _onlyLendingPoolConfigurator {
     refreshConfigInternal() ;
-    require(address(sighVolatiltiyHarvester) != address(0),'SIGH Volatiltiy Harvester Address not valid');
+    require(address(sighVolatilityHarvester) != address(0),'SIGH Volatiltiy Harvester Address not valid');
   }
 
   function refreshConfigInternal() internal {
-    sighVolatiltiyHarvester = ISIGHVolatilityHarvester(addressesProvider.getSIGHVolatilityHarvester()) ;
+    sighVolatilityHarvester = ISIGHVolatilityHarvester(addressesProvider.getSIGHVolatilityHarvester()) ;
     feeProvider = IFeeProvider(addressesProvider.getFeeProvider());
   }
 
@@ -132,7 +133,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
             IERC20(_instrument).safeTransferFrom( msg.sender, _SIGHPayAggregator, reserveFee );
         }
 
-        sighVolatiltiyHarvester.updateSIGHSupplyIndex(_instrument);  // Update SIGH Supply Index                  // Update SIGH Liquidity Index for Instrument
+        sighVolatilityHarvester.updateSIGHSupplyIndex(_instrument);  // Update SIGH Supply Index                  // Update SIGH Liquidity Index for Instrument
         instrument.updateState(_SIGHPayAggregator);
         instrument.updateInterestRates(_instrument, iToken, _amount.sub(totalFee), 0);
 
@@ -176,7 +177,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
         instrument.updateState();
         instrument.updateInterestRates(_instrument, iToken, 0, amountToWithdraw);
-        sighVolatiltiyHarvester.updateSIGHSupplyIndex(_instrument);                    // Update SIGH Liquidity Index for Instrument
+        sighVolatilityHarvester.updateSIGHSupplyIndex(_instrument);                    // Update SIGH Liquidity Index for Instrument
 
         if (amountToWithdraw == userBalance) {
             _usersConfig[msg.sender].setUsingAsCollateral(instrument.id, false);
@@ -239,13 +240,13 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
         // getting platfrom Fee based on if it is a Stable rate loan or variable rate loan
         uint256 platformFee = interestRateMode == DataTypes.InterestRateMode.STABLE ?
-                                                IStableDebtToken(instrument.stableDebtTokenAddress).getPlatformFee(onBehalfOf) :
-                                                IVariableDebtToken(instrument.variableDebtTokenAddress).getPlatformFee(onBehalfOf);
+                                                ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).getPlatformFee(onBehalfOf) :
+                                                ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).getPlatformFee(onBehalfOf);
 
         // getting reserve Fee based on if it is a Stable rate loan or variable rate loan
         uint256 reserveFee = interestRateMode == DataTypes.InterestRateMode.STABLE ?
-                                                IStableDebtToken(instrument.stableDebtTokenAddress).getReserveFee(onBehalfOf) :
-                                                IVariableDebtToken(instrument.variableDebtTokenAddress).getReserveFee(onBehalfOf);
+                                                ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).getReserveFee(onBehalfOf) :
+                                                ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).getReserveFee(onBehalfOf);
 
         paybackAmount = paybackAmount.add(platformFee).add(reserveFee);    // Max payback that needs to be made
 
@@ -258,6 +259,9 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
             platformFeePay =  paybackAmount >= platformFee ? platformFee : paybackAmount;
             IERC20(asset).safeTransferFrom( msg.sender, addressesProvider.getSIGHFinanceFeeCollector(), platformFeePay );   // Platform Fee transferred
             paybackAmount = paybackAmount.sub(platformFeePay);  // Update payback amount
+            interestRateMode == DataTypes.InterestRateMode.STABLE ?
+                                                ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(onBehalfOf,0,platformFeePay) :
+                                                ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).updatePlatformFee(onBehalfOf,0,platformFeePay);
         }
 
         // PAY RESERVE FEE
@@ -265,27 +269,20 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
             reserveFeePay =  paybackAmount > reserveFee ? reserveFee : paybackAmount;
             IERC20(asset).safeTransferFrom( msg.sender, addressesProvider.getSIGHPayAggregator(), reserveFeePay );       // Reserve Fee transferred
             paybackAmount = paybackAmount.sub(reserveFeePay);  // Update payback amount
+            interestRateMode == DataTypes.InterestRateMode.STABLE ?
+                                                ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(onBehalfOf,0,reserveFeePay) :
+                                                ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).updateReserveFee(onBehalfOf,0,reserveFeePay);
+
         }
 
         instrument.updateState();
+        sighVolatilityHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
 
         if (paybackAmount > 0) {
             if (interestRateMode == DataTypes.InterestRateMode.STABLE) {
-                if ( platformFeePay > 0) {          // Update PLATFORM FEE
-                    IStableDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(onBehalfOf, 0 ,platformFeePay);
-                }
-                if (reserveFee > 0) {                // Update RESERVE FEE
-                    IStableDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(onBehalfOf, 0 ,reserveFeePay);
-                }
                 IStableDebtToken(instrument.stableDebtTokenAddress).burn(onBehalfOf, paybackAmount);
             }
             else {
-                if ( platformFeePay > 0) {          // Update PLATFORM FEE
-                    IVariableDebtToken(instrument.variableDebtTokenAddress).updatePlatformFee(onBehalfOf, 0 ,platformFeePay);
-                }
-                if (reserveFee > 0) {                // Update RESERVE FEE
-                    IVariableDebtToken(instrument.variableDebtTokenAddress).updateReserveFee(onBehalfOf, 0 ,reserveFeePay);
-                }
                 IVariableDebtToken(instrument.variableDebtTokenAddress).burn( onBehalfOf, paybackAmount, instrument.variableBorrowIndex );
             }
         }
@@ -297,17 +294,16 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
         address iToken = instrument.iTokenAddress;
         instrument.updateInterestRates(asset, iToken, paybackAmount, 0);
-        sighVolatiltiyHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
 
         if (stableDebt.add(variableDebt).sub(paybackAmount) == 0) {
-        _usersConfig[onBehalfOf].setBorrowing(instrument.id, false);
+            _usersConfig[onBehalfOf].setBorrowing(instrument.id, false);
         }
 
         IERC20(asset).safeTransferFrom(msg.sender, iToken, paybackAmount);
 
         emit Repay(asset, onBehalfOf, msg.sender, platformFeePay, reserveFeePay, paybackAmount);
 
-        return paybackAmount;
+        return paybackAmount.add(platformFeePay).add(reserveFeePay);
   }
 
 // ####################################################################
@@ -329,6 +325,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     ValidationLogic.validateSwapRateMode( instrument, _usersConfig[msg.sender], stableDebt, variableDebt, interestRateMode);
 
     instrument.updateState();
+    sighVolatilityHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
 
     if (interestRateMode == DataTypes.InterestRateMode.STABLE) {
       IStableDebtToken(instrument.stableDebtTokenAddress).burn(msg.sender, stableDebt);
@@ -340,7 +337,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     }
 
     instrument.updateInterestRates(asset, instrument.iTokenAddress, 0, 0);
-    sighVolatiltiyHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
+    sighVolatilityHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
 
     emit Swap(asset, msg.sender, rateMode);
   }
@@ -365,12 +362,13 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
     ValidationLogic.validateRebalanceStableBorrowRate(instrument,asset,stableDebtToken,variableDebtToken,iTokenAddress);
     instrument.updateState();
+    sighVolatilityHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
 
     IStableDebtToken(address(stableDebtToken)).burn(user, stableDebt);
     IStableDebtToken(address(stableDebtToken)).mint(user,user,stableDebt, instrument.currentStableBorrowRate);
 
     instrument.updateInterestRates(asset, iTokenAddress, 0, 0);
-    sighVolatiltiyHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
+    sighVolatilityHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
 
     emit RebalanceStableBorrowRate(asset, user);
   }
@@ -478,7 +476,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
        _instruments[vars.currentAsset].updateState();
        _instruments[vars.currentAsset].cumulateToLiquidityIndex( IERC20(vars.currentiTokenAddress).totalSupply(), vars.currentPremium );
        _instruments[vars.currentAsset].updateInterestRates(  vars.currentAsset, vars.currentiTokenAddress, vars.currentAmountPlusPremium, 0 );
-        sighVolatiltiyHarvester.updateSIGHBorrowIndex(vars.currentAsset);                    // Update SIGH Borrow Index for Instrument
+        sighVolatilityHarvester.updateSIGHBorrowIndex(vars.currentAsset);                    // Update SIGH Borrow Index for Instrument
 
         IERC20(vars.currentAsset).safeTransferFrom( receiverAddress, vars.currentiTokenAddress, vars.currentAmountPlusPremium);
       }
@@ -558,9 +556,9 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         return address(addressesProvider);
     }
 
-   // Returns the cached sighVolatiltiyHarvester Address
+   // Returns the cached sighVolatilityHarvester Address
     function getSIGHVolatilityHarvester() external view override returns (address) {
-        return address(sighVolatiltiyHarvester);
+        return address(sighVolatilityHarvester);
     }
 
 // ####################################################################
@@ -581,7 +579,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         require(msg.sender ==_instruments[asset].iTokenAddress, "Only the associated IToken can call this function");
 
         ValidationLogic.validateTransfer( from, _instruments, _usersConfig[from], _instrumentsList, _instrumentsCount, addressesProvider.getPriceOracle() );
-        sighVolatiltiyHarvester.updateSIGHSupplyIndex(asset);                    // Update SIGH Supply Index for Instrument
+        sighVolatilityHarvester.updateSIGHSupplyIndex(asset);                    // Update SIGH Supply Index for Instrument
 
         uint256 instrumentId =_instruments[asset].id;
 
@@ -622,7 +620,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         _instruments[asset].init( iTokenAddress, stableDebtAddress, variableDebtAddress, interestRateStrategyAddress );
         _addInstrumentToList(asset);
 
-        require( sighVolatiltiyHarvester.addInstrument( asset, iTokenAddress,stableDebtAddress, variableDebtAddress, _SIGHHarvesterProxyAddress, underlyingAssetDecimals ), "Instrument failed to be properly added to the list of Instruments supported by SIGH Finance" ); // ADDED BY SIGH FINANCE
+        require( sighVolatilityHarvester.addInstrument( asset, iTokenAddress,stableDebtAddress, variableDebtAddress, _SIGHHarvesterProxyAddress, underlyingAssetDecimals ), "Instrument failed to be properly added to the list of Instruments supported by SIGH Finance" ); // ADDED BY SIGH FINANCE
         require( IIToken(iTokenAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), "Sigh Harvester Address failed to be properly initialized on IIToken" );
         require( IVariableDebtToken(variableDebtAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), "Sigh Harvester Address failed to be properly initialized on Variable Debt Token");
         require( IStableDebtToken(stableDebtAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), "Sigh Harvester Address failed to be properly initialized  on Stable Debt Token " );
