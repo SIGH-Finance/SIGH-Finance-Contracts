@@ -61,7 +61,7 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   /**
    * @return The averaged total supply of the token, requried by the SIGH Volatility harvester
    **/
-  function averageTotalSupply() public view returns (uint256) {
+  function getAverageTotalSupply() public view returns (uint256) {
     return averageTotalSupply;
   }
 

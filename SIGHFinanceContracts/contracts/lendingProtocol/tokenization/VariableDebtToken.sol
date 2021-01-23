@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.7.0;
 
-import {IVariableDebtToken} from '../../interfaces/IVariableDebtToken.sol';
 import {WadRayMath} from '../libraries/math/WadRayMath.sol';
 import {DebtTokenBase} from './base/DebtTokenBase.sol';
 import {IVariableDebtToken} from "../../../interfaces/lendingProtocol/IVariableDebtToken.sol";
