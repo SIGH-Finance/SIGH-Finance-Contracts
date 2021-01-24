@@ -202,7 +202,6 @@ contract SIGHHarvester is ISIGHHarvester, VersionedInitializable {
 
   function updatePlatformFee(address user, uint platformFeeIncrease, uint platformFeeDecrease) external onlyDebtTokens override {
       platformFee[user] = platformFee[user].add(platformFeeIncrease).sub(platformFeeDecrease);
-    mapping (address => uint256) private reserveFee;                 // BorrowPlatformFee
   }
 
   function updateReserveFee(address user, uint reserveFeeIncrease, uint reserveFeeDecrease) external onlyDebtTokens override {

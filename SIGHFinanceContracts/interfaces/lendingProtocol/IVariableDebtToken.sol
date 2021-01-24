@@ -55,9 +55,4 @@ interface IVariableDebtToken is IScaledBalanceToken {
    **/
   function burn(address user, uint256 amount, uint256 index) external;
 
-  function claimSIGH(address[] calldata users) external;
-  function claimMySIGH() external;
-  function getSighAccured(address user)  external view returns (uint);
-
-  function setSIGHHarvesterAddress(address _SIGHHarvesterAddress) external returns (bool);
 }

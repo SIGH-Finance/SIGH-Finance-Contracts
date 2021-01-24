@@ -23,6 +23,7 @@ import {IIToken} from "../../interfaces/lendingProtocol/IIToken.sol";
 import {IStableDebtToken} from "../../interfaces/lendingProtocol/IStableDebtToken.sol";
 import {IVariableDebtToken} from "../../interfaces/lendingProtocol/IVariableDebtToken.sol";
 import {ILendingPoolLiquidationManager} from "../../interfaces/lendingProtocol/ILendingPoolLiquidationManager.sol";
+import {ISIGHHarvestDebtToken} from '../../interfaces/lendingProtocol/ISIGHHarvestDebtToken.sol';
 
 
 /**
@@ -41,6 +42,10 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
 
   uint256 internal constant LIQUIDATION_CLOSE_FACTOR_PERCENT = 5000;
 
+  event PlatformFeeLiquidated(address user,address collateralAsset,address debtAsset,uint userPlatformFee,uint maxLiquidatablePlatformFee,uint platformFeeLiquidated,uint maxCollateralToLiquidateForPlatformFee );
+  event ReserveFeeLiquidated(address user,address collateralAsset,address debtAsset,uint userReserveFee,uint maxLiquidatableReserveFee,uint reserveFeeLiquidated,uint maxCollateralToLiquidateForReserveFee );
+
+    
   struct LiquidationCallLocalVars {
     uint256 userCollateralBalance;
     uint256 userStableDebt;
@@ -53,12 +58,22 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
     uint256 maxCollateralToLiquidate;
     uint256 debtAmountNeeded;
     uint256 healthFactor;
-    uint256 liquidatorPreviousATokenBalance;
-    IIToken collateralAtoken;
+    uint256 liquidatorPreviousITokenBalance;
+    IIToken collateralItoken;
     bool isCollateralEnabled;
     DataTypes.InterestRateMode borrowRateMode;
     uint256 errorCode;
     string errorMsg;
+      
+    uint userPlatformFee;
+    uint userReserveFee;
+    uint maxLiquidatablePlatformFee;
+    uint maxLiquidatableReserveFee;
+
+    uint maxCollateralToLiquidateForPlatformFee;
+    uint maxCollateralToLiquidateForReserveFee;
+    uint platformFeeLiquidated;
+    uint reserveFeeLiquidated;
   }
 
     uint256 public constant LIQUIDATION_MANAGER_REVISION = 0x1;             // NEEDED AS PART OF UPGRADABLE CONTRACTS FUNCTIONALITY ( VersionedInitializable )
@@ -74,7 +89,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
 // #############################################################################################################################################
 
     /**
-    * @dev users can invoke this function to liquidate an undercollateralized position. (Also defined in the LendingPool Contract, which delegates the Call here)
+    * @dev users can invoke this function to liquidate an undercollateralized position.
     * @param collateralAsset the address of the collateral to liquidated
     * @param debtAsset the address of the principal instrument
     * @param user the address of the borrower
@@ -97,8 +112,8 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
             return (vars.errorCode, vars.errorMsg);
         }
 
-        vars.collateralAtoken = IIToken(collateralInstrument.iTokenAddress);
-        vars.userCollateralBalance = vars.collateralAtoken.balanceOf(user);
+        vars.collateralItoken = IIToken(collateralInstrument.iTokenAddress);
+        vars.userCollateralBalance = vars.collateralItoken.balanceOf(user);
 
         vars.maxLiquidatableDebt = vars.userStableDebt.add(vars.userVariableDebt).percentMul(  LIQUIDATION_CLOSE_FACTOR_PERCENT );
         vars.actualDebtToLiquidate = debtToCover > vars.maxLiquidatableDebt ? vars.maxLiquidatableDebt : debtToCover;
@@ -107,21 +122,22 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
 
     // ###########################
 
-        // FEE RELATED
-        (vars.userStableDebtPlatformFee, vars.userVariableDebtPlatformFee) = Helpers.getUserCurrentPlatformFee(user, debtInstrument);
-        (vars.userStableDebtReserveFee, vars.userVariableDebtReserveFee) = Helpers.getUserReserveFee(user, debtInstrument);
+        // PLATFORM FEE
+        vars.userPlatformFee = ISIGHHarvestDebtToken(debtInstrument.stableDebtTokenAddress).getPlatformFee(user);
+        vars.maxLiquidatablePlatformFee = vars.userPlatformFee.percentMul(LIQUIDATION_CLOSE_FACTOR_PERCENT);
 
-        // FEE RELATED
-        vars.maxLiquidatablePlatformFee = vars.userStableDebtPlatformFee.add(vars.userVariableDebtPlatformFee).percentMul(LIQUIDATION_CLOSE_FACTOR_PERCENT);
-        vars.maxLiquidatableReserveFee = vars.userStableDebtReserveFee.add(vars.userVariableDebtReserveFee).percentMul(LIQUIDATION_CLOSE_FACTOR_PERCENT);
+        // RESERVE FEE
+        vars.userReserveFee = ISIGHHarvestDebtToken(debtInstrument.stableDebtTokenAddress).getReserveFee(user);
+        vars.maxLiquidatableReserveFee = vars.userReserveFee.percentMul(LIQUIDATION_CLOSE_FACTOR_PERCENT);
+
 
         // Platform FEE RELATED
-        if (vars.maxLiquidatablePlatformFee > 0) {
+        if (vars.maxLiquidatablePlatformFee > 0 &&  vars.userCollateralBalance >= vars.maxCollateralToLiquidate  ) {
             (  vars.maxCollateralToLiquidateForPlatformFee,  vars.platformFeeLiquidated) = _calculateAvailableCollateralToLiquidate( collateralInstrument, debtInstrument, collateralAsset, debtAsset, vars.maxLiquidatablePlatformFee, vars.userCollateralBalance.sub(vars.maxCollateralToLiquidate) );
         }
 
         // Reserve FEE RELATED
-        if (vars.maxLiquidatableReserveFee > 0) {
+        if (vars.maxLiquidatableReserveFee > 0  && vars.userCollateralBalance >= vars.maxCollateralToLiquidate.add(vars.maxCollateralToLiquidateForPlatformFee) ) {
             (  vars.maxCollateralToLiquidateForReserveFee,  vars.reserveFeeLiquidated) = _calculateAvailableCollateralToLiquidate( collateralInstrument, debtInstrument, collateralAsset, debtAsset, vars.maxLiquidatableReserveFee, vars.userCollateralBalance.sub(vars.maxCollateralToLiquidate).sub(vars.maxCollateralToLiquidateForPlatformFee) );
         }
 
@@ -132,15 +148,16 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
             vars.actualDebtToLiquidate = vars.debtAmountNeeded;
         }
 
-        // If the liquidator reclaims the underlying asset, we make sure there is enough available liquidity in the collateral reserve
+        // If the liquidator reclaims the underlying asset, we make sure there is enough available liquidity in the collateral instrument reserve
         if (!receiveIToken) {
-            uint256 currentAvailableCollateral = IERC20(collateralAsset).balanceOf(address(vars.collateralAtoken));
+            uint256 currentAvailableCollateral = IERC20(collateralAsset).balanceOf(address(vars.collateralItoken));
             if (currentAvailableCollateral < vars.maxCollateralToLiquidate) {
-                return (  uint256(Errors.CollateralManagerErrors.NOT_ENOUGH_LIQUIDITY),  Errors.LPCM_NOT_ENOUGH_LIQUIDITY_TO_LIQUIDATE );
+                return (  uint256(Errors.CollateralManagerErrors.NOT_ENOUGH_LIQUIDITY),"NOT ENOUGH LIQUIDITY TO LIQUIDATE");
             }
         }
 
-        debtInstrument.updateState();
+        address sighPayAggregator = addressesProvider.getSIGHPAYAggregator();
+        debtInstrument.updateState(sighPayAggregator);
 
         if (vars.userVariableDebt >= vars.actualDebtToLiquidate) {
             IVariableDebtToken(debtInstrument.variableDebtTokenAddress).burn( user, vars.actualDebtToLiquidate, debtInstrument.variableBorrowIndex );
@@ -155,21 +172,21 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
         debtInstrument.updateInterestRates( debtAsset, debtInstrument.iTokenAddress, vars.actualDebtToLiquidate, 0 );
 
         if (receiveIToken) {
-            vars.liquidatorPreviousATokenBalance = IERC20(vars.collateralAtoken).balanceOf(msg.sender);
-            vars.collateralAtoken.transferOnLiquidation(user, msg.sender, vars.maxCollateralToLiquidate);
+            vars.liquidatorPreviousITokenBalance = IERC20(vars.collateralItoken).balanceOf(msg.sender);
+            vars.collateralItoken.transferOnLiquidation(user, msg.sender, vars.maxCollateralToLiquidate);
 
-            if (vars.liquidatorPreviousATokenBalance == 0) {
+            if (vars.liquidatorPreviousITokenBalance == 0) {
                 DataTypes.UserConfigurationMap storage liquidatorConfig = _usersConfig[msg.sender];
                 liquidatorConfig.setUsingAsCollateral(collateralInstrument.id, true);
                 emit InstrumentUsedAsCollateralEnabled(collateralAsset, msg.sender);
             }
         }
         else {
-            collateralInstrument.updateState();
-            collateralInstrument.updateInterestRates( collateralAsset, address(vars.collateralAtoken), 0, vars.maxCollateralToLiquidate);
+            collateralInstrument.updateState(sighPayAggregator);
+            collateralInstrument.updateInterestRates( collateralAsset, address(vars.collateralItoken), 0, vars.maxCollateralToLiquidate);
 
             // Burn the equivalent amount of aToken, sending the underlying to the liquidator
-            vars.collateralAtoken.burn(user,msg.sender, vars.maxCollateralToLiquidate, collateralInstrument.liquidityIndex);
+            vars.collateralItoken.burn(user, msg.sender, vars.maxCollateralToLiquidate, collateralInstrument.liquidityIndex);
         }
 
         // If the collateral being liquidated is equal to the user balance, we set the currency as not being used as collateral anymore
@@ -178,12 +195,31 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
             emit InstrumentUsedAsCollateralDisabled(collateralAsset, user);
         }
 
-        // Transfers the debt asset being repaid to the aToken, where the liquidity is kept
+        // Transfers the debt asset being repaid to the iToken, where the liquidity is kept
         IERC20(debtAsset).safeTransferFrom( msg.sender, debtInstrument.iTokenAddress, vars.actualDebtToLiquidate);
+
+        // Transfer liquidated Platform fee (collateral) to the SIGH Finance Fee Collector address
+        if (vars.platformFeeLiquidated) {
+            collateralInstrument.updateState(sighPayAggregator);
+            collateralInstrument.updateInterestRates( collateralAsset, address(vars.collateralItoken), 0, vars.maxCollateralToLiquidateForPlatformFee);
+            vars.collateralItoken.burn(user, addressesProvider.getSIGHFinanceFeeCollector() , vars.maxCollateralToLiquidateForPlatformFee, collateralInstrument.liquidityIndex);
+            ISIGHHarvestDebtToken(debtInstrument.stableDebtTokenAddress).updatePlatformFee(user,0,vars.platformFeeLiquidated);
+            emit PlatformFeeLiquidated(user, collateralAsset, debtAsset, vars.userPlatformFee, vars.maxLiquidatablePlatformFee, vars.platformFeeLiquidated, vars.maxCollateralToLiquidateForPlatformFee );
+        }
+
+        // Transfer liquidated Reserve fee (collateral) to the SIGH Finance Pay aggregator address
+        if (vars.reserveFeeLiquidated) {
+            collateralInstrument.updateState(sighPayAggregator);
+            collateralInstrument.updateInterestRates( collateralAsset, address(vars.collateralItoken), 0, vars.maxCollateralToLiquidateForReserveFee);
+            vars.collateralItoken.burn(user, sighPayAggregator , vars.maxCollateralToLiquidateForReserveFee, collateralInstrument.liquidityIndex);
+            ISIGHHarvestDebtToken(debtInstrument.stableDebtTokenAddress).updateReserveFee(user,0,vars.reserveFeeLiquidated);
+            emit ReserveFeeLiquidated(user, collateralAsset, debtAsset, vars.userReserveFee, vars.maxLiquidatableReserveFee, vars.reserveFeeLiquidated, vars.maxCollateralToLiquidateForReserveFee );
+        }
+
 
         emit LiquidationCall(collateralAsset, debtAsset, user, vars.actualDebtToLiquidate, vars.maxCollateralToLiquidate, msg.sender, receiveIToken);
 
-        return (uint256(Errors.CollateralManagerErrors.NO_ERROR), Errors.LPCM_NO_ERRORS);
+        return (uint256(Errors.CollateralManagerErrors.NO_ERROR), "NO ERRORS");
     }
 
 

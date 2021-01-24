@@ -102,6 +102,9 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
   function refreshConfigInternal() internal {
     sighVolatilityHarvester = ISIGHVolatilityHarvester(addressesProvider.getSIGHVolatilityHarvester()) ;
+    sighPayAggregator = addressesProvider.getSIGHPAYAggregator() ;
+    platformFeeCollector = addressesProvider.getSIGHFinanceFeeCollector();
+
     feeProvider = IFeeProvider(addressesProvider.getFeeProvider());
   }
 
@@ -122,19 +125,18 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         ValidationLogic.validateDeposit(instrument, _amount);  // checks if the instrument is active and not frozen                     // Makes the deposit checks
 
         address iToken = instrument.iTokenAddress;
-        address _SIGHPayAggregator = addressesProvider.getSIGHPayAggregator();
 
         // Split Deposit fee in Reserve Fee and Platform Fee. Calculations based on the discount (if any) provided by the boosterId
         (uint256 totalFee, uint256 platformFee, uint256 reserveFee) = feeProvider.calculateDepositFee(msg.sender,_instrument, _amount, boosterId);
-        if (platformFee > 0 && addressesProvider.getSIGHFinanceFeeCollector()  != address(0) ) {
-            IERC20(_instrument).safeTransferFrom( msg.sender, addressesProvider.getSIGHFinanceFeeCollector(), platformFee );
+        if (platformFee > 0 && platformFeeCollector != address(0) ) {
+            IERC20(_instrument).safeTransferFrom( msg.sender, platformFeeCollector, platformFee );
         }
-        if (reserveFee > 0 && _SIGHPayAggregator  != address(0) ) {
-            IERC20(_instrument).safeTransferFrom( msg.sender, _SIGHPayAggregator, reserveFee );
+        if (reserveFee > 0 && sighPayAggregator  != address(0) ) {
+            IERC20(_instrument).safeTransferFrom( msg.sender, sighPayAggregator, reserveFee );
         }
 
         sighVolatilityHarvester.updateSIGHSupplyIndex(_instrument);  // Update SIGH Supply Index                  // Update SIGH Liquidity Index for Instrument
-        instrument.updateState(_SIGHPayAggregator);
+        instrument.updateState(sighPayAggregator);
         instrument.updateInterestRates(_instrument, iToken, _amount.sub(totalFee), 0);
 
         IERC20(_instrument).safeTransferFrom(msg.sender, iToken, _amount.sub(totalFee)); // Transfer the Deposit amount
@@ -175,7 +177,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
         ValidationLogic.validateWithdraw( _instrument, amountToWithdraw, userBalance,_instruments, _usersConfig[msg.sender],_instrumentsList,_instrumentsCount, addressesProvider.getPriceOracle() );
 
-        instrument.updateState();
+        instrument.updateState(sighPayAggregator);
         instrument.updateInterestRates(_instrument, iToken, 0, amountToWithdraw);
         sighVolatilityHarvester.updateSIGHSupplyIndex(_instrument);                    // Update SIGH Liquidity Index for Instrument
 
@@ -257,7 +259,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         // PAY PLATFORM FEE
         if ( platformFee > 0) {
             platformFeePay =  paybackAmount >= platformFee ? platformFee : paybackAmount;
-            IERC20(asset).safeTransferFrom( msg.sender, addressesProvider.getSIGHFinanceFeeCollector(), platformFeePay );   // Platform Fee transferred
+            IERC20(asset).safeTransferFrom( msg.sender, platformFeeCollector, platformFeePay );   // Platform Fee transferred
             paybackAmount = paybackAmount.sub(platformFeePay);  // Update payback amount
             interestRateMode == DataTypes.InterestRateMode.STABLE ?
                                                 ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(onBehalfOf,0,platformFeePay) :
@@ -267,7 +269,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         // PAY RESERVE FEE
         if (reserveFee > 0 && paybackAmount > 0) {
             reserveFeePay =  paybackAmount > reserveFee ? reserveFee : paybackAmount;
-            IERC20(asset).safeTransferFrom( msg.sender, addressesProvider.getSIGHPayAggregator(), reserveFeePay );       // Reserve Fee transferred
+            IERC20(asset).safeTransferFrom( msg.sender, sighPayAggregator, reserveFeePay );       // Reserve Fee transferred
             paybackAmount = paybackAmount.sub(reserveFeePay);  // Update payback amount
             interestRateMode == DataTypes.InterestRateMode.STABLE ?
                                                 ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(onBehalfOf,0,reserveFeePay) :
@@ -275,7 +277,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
         }
 
-        instrument.updateState();
+        instrument.updateState(sighPayAggregator);
         sighVolatilityHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
 
         if (paybackAmount > 0) {
@@ -324,7 +326,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
     ValidationLogic.validateSwapRateMode( instrument, _usersConfig[msg.sender], stableDebt, variableDebt, interestRateMode);
 
-    instrument.updateState();
+    instrument.updateState(sighPayAggregator);
     sighVolatilityHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
 
     if (interestRateMode == DataTypes.InterestRateMode.STABLE) {
@@ -361,7 +363,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     uint256 stableDebt = IERC20(stableDebtToken).balanceOf(user);
 
     ValidationLogic.validateRebalanceStableBorrowRate(instrument,asset,stableDebtToken,variableDebtToken,iTokenAddress);
-    instrument.updateState();
+    instrument.updateState(sighPayAggregator);
     sighVolatilityHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
 
     IStableDebtToken(address(stableDebtToken)).burn(user, stableDebt);
@@ -473,7 +475,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         vars.currentAmountPlusPremium = vars.currentAmount.add(vars.currentPremium);
 
       if (DataTypes.InterestRateMode(modes[vars.i]) == DataTypes.InterestRateMode.NONE) {
-       _instruments[vars.currentAsset].updateState();
+       _instruments[vars.currentAsset].updateState(sighPayAggregator);
        _instruments[vars.currentAsset].cumulateToLiquidityIndex( IERC20(vars.currentiTokenAddress).totalSupply(), vars.currentPremium );
        _instruments[vars.currentAsset].updateInterestRates(  vars.currentAsset, vars.currentiTokenAddress, vars.currentAmountPlusPremium, 0 );
         sighVolatilityHarvester.updateSIGHBorrowIndex(vars.currentAsset);                    // Update SIGH Borrow Index for Instrument
@@ -501,7 +503,6 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 // ######  paused()   ################################################
 // ######  getInstrumentsList()   ####################################
 // ######  getAddressesProvider()   ##################################
-// ######  getSIGHPayAggregator()   ##################################
 // ###################################################################
 
 
@@ -686,7 +687,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         uint256 amountInUSD = IPriceOracleGetter(oracle).getAssetPrice(vars.asset).mul(vars.amount).div(  10**instrument.configuration.getDecimals() );
 
         ValidationLogic.validateBorrow( vars.asset, instrument, vars.onBehalfOf, vars.amount, amountInUSD, vars.interestRateMode, MAX_STABLE_RATE_BORROW_SIZE_PERCENT,_instruments, userConfig,_instrumentsList,_instrumentsCount, oracle );
-        instrument.updateState(addressesProvider.getSIGHPayAggregator());
+        instrument.updateState(sighPayAggregator);
 
         uint256 currentStableRate = 0;
         bool isFirstBorrowing = false;

@@ -275,21 +275,21 @@ library ValidationLogic {
         }
 
         if (userHealthFactor >= GenericLogic.HEALTH_FACTOR_LIQUIDATION_THRESHOLD) {
-            return ( uint256(Errors.CollateralManagerErrors.HEALTH_FACTOR_ABOVE_THRESHOLD), Errors.LPCM_HEALTH_FACTOR_NOT_BELOW_THRESHOLD );
+            return ( uint256(Errors.CollateralManagerErrors.HEALTH_FACTOR_ABOVE_THRESHOLD), "HEALTH FACTOR NOT BELOW THRESHOLD" );
         }
 
         bool isCollateralEnabled = collateralInstrument.configuration.getLiquidationThreshold() > 0 && userConfig.isUsingAsCollateral(collateralInstrument.id);
 
         //if collateral isn't enabled as collateral by user, it cannot be liquidated
         if (!isCollateralEnabled) {
-            return ( uint256(Errors.CollateralManagerErrors.COLLATERAL_CANNOT_BE_LIQUIDATED), Errors.LPCM_COLLATERAL_CANNOT_BE_LIQUIDATED );
+            return ( uint256(Errors.CollateralManagerErrors.COLLATERAL_CANNOT_BE_LIQUIDATED), "COLLATERAL CANNOT BE LIQUIDATED" );
         }
 
         if (userStableDebt == 0 && userVariableDebt == 0) {
-            return ( uint256(Errors.CollateralManagerErrors.CURRRENCY_NOT_BORROWED), Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER );
+            return ( uint256(Errors.CollateralManagerErrors.CURRRENCY_NOT_BORROWED), "SPECIFIED CURRENCY NOT BORROWED BY USER" );
         }
 
-        return (uint256(Errors.CollateralManagerErrors.NO_ERROR), Errors.LPCM_NO_ERRORS);
+        return (uint256(Errors.CollateralManagerErrors.NO_ERROR), "NO ERRORS");
     }
 
     /**

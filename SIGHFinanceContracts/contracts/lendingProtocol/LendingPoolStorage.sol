@@ -17,8 +17,11 @@ contract LendingPoolStorage {
   using UserConfiguration for DataTypes.UserConfigurationMap;
 
   IGlobalAddressesProvider internal addressesProvider;
-  ISIGHVolatilityHarvester internal sighVolatiltiyHarvester;
+  ISIGHVolatilityHarvester internal sighVolatilityHarvester;
   IFeeProvider internal feeProvider;
+
+  address internal sighPayAggregator;
+  address internal platformFeeCollector;
 
   mapping(address => DataTypes.InstrumentData) internal _instruments;
   mapping(address => DataTypes.UserConfigurationMap) internal _usersConfig;
