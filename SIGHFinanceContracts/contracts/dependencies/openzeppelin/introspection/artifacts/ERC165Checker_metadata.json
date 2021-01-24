@@ -1,0 +1,46 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"details": "Library used to query support of an interface declared via {IERC165}. Note that these functions return the actual result of the query: they do not `revert` if an interface is not supported. It is up to the caller to decide what to do in these cases.",
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/dependencies/openzeppelin/introspection/ERC165Checker.sol": "ERC165Checker"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/dependencies/openzeppelin/introspection/ERC165Checker.sol": {
+			"keccak256": "0x6fd4018439998575e4702b0fe3cacbf77984f44f11aa26687214267d1865bd88",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://91c4ec52eb7649aafad19123ae3c7ba2838db20cb7081effca26ef89778d5f09",
+				"dweb:/ipfs/QmWNH2ciUvYD8neCkhWUpaj6mG7oyoYtpDxde1a7Fhv3ha"
+			]
+		}
+	},
+	"version": 1
+}

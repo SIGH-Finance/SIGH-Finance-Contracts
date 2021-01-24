@@ -306,12 +306,6 @@ interface ILendingPool {
 
   function getInstrumentsList() external view returns (address[] memory);
 
-  function getAddressesProvider() external view returns (address);
-
   function setPause(bool val) external;
-
-  function paused() external view returns (bool);
-
-  function getSIGHVolatilityHarvester() external view returns (address);
 
 }

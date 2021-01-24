@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: agpl-3.0
 
-pragma solidity ^0.7.0;
+pragma solidity 0.7.0;
 
 /**
  * @dev Library for managing https://en.wikipedia.org/wiki/Set_(abstract_data_type)[sets] of primitive types.

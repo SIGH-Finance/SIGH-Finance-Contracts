@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.7.4+commit.3f05b770"
+		"version": "0.7.0+commit.9e61f92b"
 	},
 	"language": "Solidity",
 	"output": {
@@ -26,18 +26,18 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": false,
+			"enabled": true,
 			"runs": 200
 		},
 		"remappings": []
 	},
 	"sources": {
 		"localhost/contracts/dependencies/BoostersDependencies/BoostersStringUtils.sol": {
-			"keccak256": "0x133f8c5d64860ab1f10637ff8617d739e83e4f1c14cc2804db8f7aa715358b5a",
+			"keccak256": "0xbdff659494799d177c7d9bab1facacd8a485170338341604c4ab7628c1915daa",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://b326f1a01e36c3412e8b8c1020b51e5c6123590bab905a301bf6bf1f26237616",
-				"dweb:/ipfs/QmcoUfeCbCsXNy3yAbYn9MWewtAa8f2YmAHr74Z8PKu4Kv"
+				"bzz-raw://a1638aae103967cab5fe4aa43178dfcb7756c3800bc33c7be2af399b08dadc8d",
+				"dweb:/ipfs/QmT5Sxx4BbCB3tgEY7957wLDkf3vV2nLJvG2nXwXFPY9nC"
 			]
 		}
 	},

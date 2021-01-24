@@ -7,8 +7,8 @@ import {InstrumentConfiguration} from './libraries/configuration/InstrumentConfi
 import {DataTypes} from './libraries/types/DataTypes.sol';
 
 import {InstrumentReserveLogic} from './libraries/logic/InstrumentReserveLogic.sol';
-import "../../interfaces/lendingProtocol/IFeeProvider.sol";
-import "../../interfaces/SIGHContracts/ISIGHVolatilityHarvester.sol";
+import {IFeeProviderLendingPool} from "../../interfaces/lendingProtocol/IFeeProviderLendingPool.sol";
+import {ISIGHVolatilityHarvesterLendingPool} from "../../interfaces/lendingProtocol/ISIGHVolatilityHarvesterLendingPool.sol";
 
 contract LendingPoolStorage {
 
@@ -17,8 +17,8 @@ contract LendingPoolStorage {
   using UserConfiguration for DataTypes.UserConfigurationMap;
 
   IGlobalAddressesProvider internal addressesProvider;
-  ISIGHVolatilityHarvester internal sighVolatilityHarvester;
-  IFeeProvider internal feeProvider;
+  ISIGHVolatilityHarvesterLendingPool internal sighVolatilityHarvester;
+  IFeeProviderLendingPool internal feeProvider;
 
   address internal sighPayAggregator;
   address internal platformFeeCollector;

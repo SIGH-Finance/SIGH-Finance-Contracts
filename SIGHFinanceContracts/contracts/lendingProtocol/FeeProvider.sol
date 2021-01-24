@@ -142,7 +142,7 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
     }
 
 
-    function calculateFlashLoanFee(address _user, uint256 _amount, uint boosterId) external override onlyLendingPool returns (uint256 flashLoanFee) {
+    function calculateFlashLoanFee(address _user, uint256 _amount, uint boosterId) external view override returns (uint256 flashLoanFee) {
         flashLoanFee = _amount.percentMul(totalFlashLoanFeePercent);       // totalFlashLoanFeePercent = 5 represents 0.05%
 
         if (boosterId == 0) {

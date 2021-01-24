@@ -1,0 +1,56 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"author": "Aave",
+			"kind": "dev",
+			"methods": {},
+			"title": "UserConfiguration library",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"notice": "Implements the bitmap logic to handle the user configuration",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/lendingProtocol/libraries/configuration/UserConfiguration.sol": "UserConfiguration"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/lendingProtocol/libraries/configuration/UserConfiguration.sol": {
+			"keccak256": "0x5349f6f536a3df1403e5e8e1e040e2d744554c1fde77e5880f9946cf24ae9e20",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://1e44776a9511c68c989759fc88ceefbab2bc9f7b7d91b4cee408ef70e014d420",
+				"dweb:/ipfs/QmaW3h7Yu4LBA5Z4wSFr6W2F99Ha6geca4K9xfmx2pVn25"
+			]
+		},
+		"localhost/contracts/lendingProtocol/libraries/types/DataTypes.sol": {
+			"keccak256": "0x49156a840c4dcecea3da7e5949445ba724f374a54df7d2f60e33391f50b99581",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://37b3f5d93949cece243196e40eb06734ccea9e4d3fe4e95bb883d1c4077ba614",
+				"dweb:/ipfs/QmQSkAcgL3iPCdumSRRbq2qmhNQfiTwG9MiexSTcX7PaR2"
+			]
+		}
+	},
+	"version": 1
+}

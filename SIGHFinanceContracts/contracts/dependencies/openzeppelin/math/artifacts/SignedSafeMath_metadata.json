@@ -1,0 +1,47 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"details": "Signed math operations with safety checks that revert on error.",
+			"kind": "dev",
+			"methods": {},
+			"title": "SignedSafeMath",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/dependencies/openzeppelin/math/SignedSafeMath.sol": "SignedSafeMath"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/dependencies/openzeppelin/math/SignedSafeMath.sol": {
+			"keccak256": "0xba085261d44cf28d2583f7c8cdb2f0a6a495ff1a640f86d995ea9d36b42b0046",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://03481543f67d854c94f73b006609ccd0e11a2461837296bf9d27b14b4bde7de6",
+				"dweb:/ipfs/QmVt8ZoWv6jPdtoo5zikqrj7ijDvKoQ4BWYiufctStkXd3"
+			]
+		}
+	},
+	"version": 1
+}

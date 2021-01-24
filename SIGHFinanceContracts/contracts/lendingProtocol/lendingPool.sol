@@ -17,8 +17,8 @@ import {ISIGHHarvestDebtToken} from '../../interfaces/lendingProtocol/ISIGHHarve
 import {IIToken} from '../../interfaces/lendingProtocol/IIToken.sol';
 import {IVariableDebtToken} from "../../interfaces/lendingProtocol/IVariableDebtToken.sol";
 import {IStableDebtToken} from '../../interfaces/lendingProtocol/IStableDebtToken.sol';
-import {IFeeProvider} from "../../interfaces/lendingProtocol/IFeeProvider.sol";
-import {ISIGHVolatilityHarvester} from "../../interfaces/SIGHContracts/ISIGHVolatilityHarvester.sol";
+import {IFeeProviderLendingPool} from "../../interfaces/lendingProtocol/IFeeProviderLendingPool.sol";
+import {ISIGHVolatilityHarvesterLendingPool} from "../../interfaces/lendingProtocol/ISIGHVolatilityHarvesterLendingPool.sol";
 import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
 
 
@@ -98,15 +98,14 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
   function refreshConfig() external override onlyLendingPoolConfigurator {
     refreshConfigInternal() ;
-    require(address(sighVolatilityHarvester) != address(0),'SIGH Volatiltiy Harvester Address not valid');
   }
 
   function refreshConfigInternal() internal {
-    sighVolatilityHarvester = ISIGHVolatilityHarvester(addressesProvider.getSIGHVolatilityHarvester()) ;
+    sighVolatilityHarvester = ISIGHVolatilityHarvesterLendingPool(addressesProvider.getSIGHVolatilityHarvester()) ;
     sighPayAggregator = addressesProvider.getSIGHPAYAggregator() ;
     platformFeeCollector = addressesProvider.getSIGHFinanceFeeCollector();
 
-    feeProvider = IFeeProvider(addressesProvider.getFeeProvider());
+    feeProvider = IFeeProviderLendingPool(addressesProvider.getFeeProvider());
   }
 
 
@@ -214,7 +213,19 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
   function borrow( address asset, uint256 amount, uint256 interestRateMode, uint16 boosterId, address onBehalfOf ) external override whenNotPaused {
         DataTypes.InstrumentData storage instrument =_instruments[asset];
 
-        _executeBorrow( ExecuteBorrowParams( asset, msg.sender, onBehalfOf, amount, interestRateMode, instrument.iTokenAddress, boosterId, true) );
+        _executeBorrow( ExecuteBorrowParams( asset, msg.sender, onBehalfOf, amount, interestRateMode, instrument.iTokenAddress,0,0, boosterId, true) );
+  }
+
+
+  struct RepayVars {
+      DataTypes.InterestRateMode interestRateMode;
+      uint256 platformFee;
+      uint256 platformFeePay;
+      uint256 reserveFee;
+      uint256 reserveFeePay;
+      uint256 stableDebt;
+      uint256 variableDebt;
+      uint256 paybackAmount;
   }
 
 
@@ -231,82 +242,75 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
    **/
     function repay( address asset, uint256 amount, uint256 rateMode, address onBehalfOf ) external override whenNotPaused returns (uint256) {
         DataTypes.InstrumentData storage instrument =_instruments[asset];
+        RepayVars memory vars;
 
-        uint platformFeePay;
-        uint reserveFeePay;
+        (vars.stableDebt, vars.variableDebt) = Helpers.getUserCurrentDebt(onBehalfOf, instrument);
+        vars.interestRateMode = DataTypes.InterestRateMode(rateMode);
 
-        (uint256 stableDebt, uint256 variableDebt) = Helpers.getUserCurrentDebt(onBehalfOf, instrument);
-        DataTypes.InterestRateMode interestRateMode = DataTypes.InterestRateMode(rateMode);
-
-        ValidationLogic.validateRepay(  instrument, amount, interestRateMode, onBehalfOf, stableDebt, variableDebt);
-        uint256 paybackAmount = interestRateMode == DataTypes.InterestRateMode.STABLE ? stableDebt : variableDebt;
+        ValidationLogic.validateRepay(  instrument, amount, vars.interestRateMode, onBehalfOf, vars.stableDebt, vars.variableDebt);
+        vars.paybackAmount = vars.interestRateMode == DataTypes.InterestRateMode.STABLE ? vars.stableDebt : vars.variableDebt;
 
         // getting platfrom Fee based on if it is a Stable rate loan or variable rate loan
-        uint256 platformFee = interestRateMode == DataTypes.InterestRateMode.STABLE ?
+        vars.platformFee = vars.interestRateMode == DataTypes.InterestRateMode.STABLE ?
                                                 ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).getPlatformFee(onBehalfOf) :
                                                 ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).getPlatformFee(onBehalfOf);
 
         // getting reserve Fee based on if it is a Stable rate loan or variable rate loan
-        uint256 reserveFee = interestRateMode == DataTypes.InterestRateMode.STABLE ?
+        vars.reserveFee = vars.interestRateMode == DataTypes.InterestRateMode.STABLE ?
                                                 ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).getReserveFee(onBehalfOf) :
                                                 ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).getReserveFee(onBehalfOf);
 
-        paybackAmount = paybackAmount.add(platformFee).add(reserveFee);    // Max payback that needs to be made
+        vars.paybackAmount = vars.paybackAmount.add(vars.platformFee).add(vars.reserveFee);    // Max payback that needs to be made
 
-        if (amount < paybackAmount) {
-            paybackAmount = amount;
+        if (amount < vars.paybackAmount) {
+            vars.paybackAmount = amount;
         }
 
         // PAY PLATFORM FEE
-        if ( platformFee > 0) {
-            platformFeePay =  paybackAmount >= platformFee ? platformFee : paybackAmount;
-            IERC20(asset).safeTransferFrom( msg.sender, platformFeeCollector, platformFeePay );   // Platform Fee transferred
-            paybackAmount = paybackAmount.sub(platformFeePay);  // Update payback amount
-            interestRateMode == DataTypes.InterestRateMode.STABLE ?
-                                                ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(onBehalfOf,0,platformFeePay) :
-                                                ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).updatePlatformFee(onBehalfOf,0,platformFeePay);
+        if ( vars.platformFee > 0) {
+            vars.platformFeePay =  vars.paybackAmount >= vars.platformFee ? vars.platformFee : vars.paybackAmount;
+            IERC20(asset).safeTransferFrom( msg.sender, platformFeeCollector, vars.platformFeePay );   // Platform Fee transferred
+            vars.paybackAmount = vars.paybackAmount.sub(vars.platformFeePay);  // Update payback amount
+            ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(onBehalfOf,0,vars.platformFeePay);
         }
 
         // PAY RESERVE FEE
-        if (reserveFee > 0 && paybackAmount > 0) {
-            reserveFeePay =  paybackAmount > reserveFee ? reserveFee : paybackAmount;
-            IERC20(asset).safeTransferFrom( msg.sender, sighPayAggregator, reserveFeePay );       // Reserve Fee transferred
-            paybackAmount = paybackAmount.sub(reserveFeePay);  // Update payback amount
-            interestRateMode == DataTypes.InterestRateMode.STABLE ?
-                                                ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(onBehalfOf,0,reserveFeePay) :
-                                                ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).updateReserveFee(onBehalfOf,0,reserveFeePay);
-
+        if (vars.reserveFee > 0 && vars.paybackAmount > 0) {
+            vars.reserveFeePay =  vars.paybackAmount > vars.reserveFee ? vars.reserveFee : vars.paybackAmount;
+            IERC20(asset).safeTransferFrom( msg.sender, sighPayAggregator, vars.reserveFeePay );       // Reserve Fee transferred
+            vars.paybackAmount = vars.paybackAmount.sub(vars.reserveFeePay);  // Update payback amount
+            ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(onBehalfOf,0,vars.reserveFeePay);
         }
 
         instrument.updateState(sighPayAggregator);
         sighVolatilityHarvester.updateSIGHBorrowIndex(asset);                    // Update SIGH Borrow Index for Instrument
 
-        if (paybackAmount > 0) {
-            if (interestRateMode == DataTypes.InterestRateMode.STABLE) {
-                IStableDebtToken(instrument.stableDebtTokenAddress).burn(onBehalfOf, paybackAmount);
+        if (vars.paybackAmount > 0) {
+            if (vars.interestRateMode == DataTypes.InterestRateMode.STABLE) {
+                IStableDebtToken(instrument.stableDebtTokenAddress).burn(onBehalfOf, vars.paybackAmount);
             }
             else {
-                IVariableDebtToken(instrument.variableDebtTokenAddress).burn( onBehalfOf, paybackAmount, instrument.variableBorrowIndex );
+                IVariableDebtToken(instrument.variableDebtTokenAddress).burn( onBehalfOf, vars.paybackAmount, instrument.variableBorrowIndex );
             }
         }
         else {
-            emit Repay(asset, onBehalfOf, msg.sender, platformFeePay, reserveFeePay, paybackAmount);
-            return platformFeePay.add(reserveFeePay);
+            emit Repay(asset, onBehalfOf, msg.sender, vars.platformFeePay, vars.reserveFeePay, vars.paybackAmount);
+            return vars.paybackAmount.add(vars.platformFeePay).add(vars.reserveFeePay);
         }
 
 
         address iToken = instrument.iTokenAddress;
-        instrument.updateInterestRates(asset, iToken, paybackAmount, 0);
+        instrument.updateInterestRates(asset, iToken, vars.paybackAmount, 0);
 
-        if (stableDebt.add(variableDebt).sub(paybackAmount) == 0) {
+        if (vars.stableDebt.add(vars.variableDebt).sub(vars.paybackAmount) == 0) {
             _usersConfig[onBehalfOf].setBorrowing(instrument.id, false);
         }
 
-        IERC20(asset).safeTransferFrom(msg.sender, iToken, paybackAmount);
+        IERC20(asset).safeTransferFrom(msg.sender, iToken, vars.paybackAmount);
 
-        emit Repay(asset, onBehalfOf, msg.sender, platformFeePay, reserveFeePay, paybackAmount);
+        emit Repay(asset, onBehalfOf, msg.sender, vars.platformFeePay, vars.reserveFeePay, vars.paybackAmount);
 
-        return paybackAmount.add(platformFeePay).add(reserveFeePay);
+        return vars.paybackAmount.add(vars.platformFeePay).add(vars.reserveFeePay);
   }
 
 // ####################################################################
@@ -485,7 +489,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
       }
       else {
         // If the user chose to not return the funds, the system checks if there is enough collateral and eventually opens a debt position
-        _executeBorrow( ExecuteBorrowParams( vars.currentAsset, msg.sender, onBehalfOf, vars.currentAmount, modes[vars.i], vars.currentITokenAddress, boosterId, false ) );
+        _executeBorrow( ExecuteBorrowParams( vars.currentAsset, msg.sender, onBehalfOf, vars.currentAmount, modes[vars.i], vars.currentITokenAddress,0,0, boosterId, false ) );
       }
       emit FlashLoan(  receiverAddress, msg.sender, vars.currentAsset, vars.currentAmount, vars.currentPremium, boosterId );
     }
@@ -538,11 +542,6 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         return _instruments[asset].getNormalizedDebt();
     }
 
-   // Returns if the LendingPool is paused
-    function paused() external view override returns (bool) {
-        return _paused;
-    }
-
     // Returns the list of the initialized reserves
     function getInstrumentsList() external view override returns (address[] memory) {
         address[] memory _activeInstruments = new address[](_instrumentsCount);
@@ -553,15 +552,6 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         return _activeInstruments;
     }
 
-    // Returns the cached LendingPoolAddressesProvider connected to this contract
-    function getAddressesProvider() external view override returns (address) {
-        return address(addressesProvider);
-    }
-
-   // Returns the cached sighVolatilityHarvester Address
-    function getSIGHVolatilityHarvester() external view override returns (address) {
-        return address(sighVolatilityHarvester);
-    }
 
 // ####################################################################
 // ######  FUNCTION TO VALIDATE AN IITOKEN TRANSFER  ##################
@@ -677,6 +667,8 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     uint256 interestRateMode;
     address iTokenAddress;
     uint16 boosterId;
+    uint256 platformFee;
+    uint256 reserveFee;
     bool releaseUnderlying;
   }
 
@@ -692,20 +684,21 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
         uint256 currentStableRate = 0;
         bool isFirstBorrowing = false;
-        (uint256 platformFee, uint256 reserveFee) = feeProvider.calculateBorrowFee(vars.onBehalfOf , vars.asset, vars.amount, vars.boosterId);
+        
+        // Fee Related
+        (vars.platformFee, vars.reserveFee) = feeProvider.calculateBorrowFee(vars.onBehalfOf , vars.asset, vars.amount, vars.boosterId);
+        ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(vars.user,vars.platformFee,0);
+        ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(vars.user,vars.reserveFee,0);
 
         if (DataTypes.InterestRateMode(vars.interestRateMode) == DataTypes.InterestRateMode.STABLE) {
             currentStableRate = instrument.currentStableBorrowRate;
             isFirstBorrowing = IStableDebtToken(instrument.stableDebtTokenAddress).mint( vars.user, vars.onBehalfOf, vars.amount, currentStableRate );
-            ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(vars.user,platformFee,0);
-            ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(vars.user,reserveFee,0);
         }
         else {
             isFirstBorrowing = IVariableDebtToken(instrument.variableDebtTokenAddress).mint( vars.user, vars.onBehalfOf, vars.amount, instrument.variableBorrowIndex );
-            ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).updatePlatformFee(vars.user,platformFee,0);
-            ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).updateReserveFee(vars.user,reserveFee,0);
         }
-
+        
+        
         if (isFirstBorrowing) {
             userConfig.setBorrowing(instrument.id, true);
         }
@@ -716,7 +709,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
             IIToken(vars.iTokenAddress).transferUnderlyingTo(vars.user, vars.amount);
         }
 
-        emit Borrow( vars.asset, vars.user, vars.onBehalfOf, vars.amount,platformFee, reserveFee, vars.interestRateMode, DataTypes.InterestRateMode(vars.interestRateMode) == DataTypes.InterestRateMode.STABLE ? currentStableRate : instrument.currentVariableBorrowRate, vars.boosterId );
+        emit Borrow( vars.asset, vars.user, vars.onBehalfOf, vars.amount, vars.platformFee, vars.reserveFee, vars.interestRateMode, DataTypes.InterestRateMode(vars.interestRateMode) == DataTypes.InterestRateMode.STABLE ? currentStableRate : instrument.currentVariableBorrowRate, vars.boosterId );
     }
 
 

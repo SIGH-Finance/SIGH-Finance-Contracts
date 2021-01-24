@@ -1,0 +1,175 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "ADDRESSES_PROVIDER",
+				"outputs": [
+					{
+						"internalType": "contract IGlobalAddressesProvider",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "LENDING_POOL",
+				"outputs": [
+					{
+						"internalType": "contract ILendingPool",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address[]",
+						"name": "assets",
+						"type": "address[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "amounts",
+						"type": "uint256[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "premiums",
+						"type": "uint256[]"
+					},
+					{
+						"internalType": "address",
+						"name": "initiator",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "params",
+						"type": "bytes"
+					}
+				],
+				"name": "executeOperation",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/lendingProtocol/flashLoan/base/FlashLoanReceiverBase.sol": "FlashLoanReceiverBase"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/dependencies/openzeppelin/math/SafeMath.sol": {
+			"keccak256": "0xba96bc371ba999f452985a98717cca1e4c4abb598dc038a9a9c3db08129b1ba4",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://26e50e3f7b6482fb6f598f2e006994a74aa492687daa4b3eee7fd4fb5398ce7f",
+				"dweb:/ipfs/QmZudqoPSkA4USLMFsBBmt19dDPZFS8aaAmL5R7pECXu6t"
+			]
+		},
+		"localhost/contracts/dependencies/openzeppelin/token/ERC20/IERC20.sol": {
+			"keccak256": "0xbd74f587ab9b9711801baf667db1426e4a03fd2d7f15af33e0e0d0394e7cef76",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://2d0913dfbfce90d170df0d496ad7596c0778518e5fa7aba6c32562522546f66b",
+				"dweb:/ipfs/QmR6B8nLj2PJf5e1JWD9Nk7ErkAwkqUwadCnvE82FJr1RU"
+			]
+		},
+		"localhost/contracts/dependencies/openzeppelin/token/ERC20/SafeERC20.sol": {
+			"keccak256": "0xc77dd6233a82c7c6e3dc49da8f3456baa00ecd3ea4dfa9222002a9aebf155dcd",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8e5f78a5b3e707177aa47371e008a54b83dbd28a52055d1746534502b010c21b",
+				"dweb:/ipfs/Qmeqfky5DvkMZZY3RtP6kYhFD5bZrPAMVPbqkwWhoUjZ3u"
+			]
+		},
+		"localhost/contracts/dependencies/openzeppelin/utils/Address.sol": {
+			"keccak256": "0x799dadcc9be20dc638f07336056f790f144b3f647b9f3c89c52af37c1be4794d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://c040ca0e11f4e9441f2307e3e70fac72b96c2394533c07eda42c40db26746e97",
+				"dweb:/ipfs/QmYGoQR56HmoBEpJo5bW7gWUXiejbxvBpeCt8dYsP79XWb"
+			]
+		},
+		"localhost/contracts/lendingProtocol/flashLoan/base/FlashLoanReceiverBase.sol": {
+			"keccak256": "0x9ef751a41419d31215e9245eb6a1ab9f03162680107c78588819d5105fde2e44",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://8d224d6e3c2fc37311385219c07b4ee77e0563cc410f0d80e81014538559faeb",
+				"dweb:/ipfs/Qma7PkRYU3pfHyqKYcB7abjXrN8HcCooJ7CZAfDZKJvaTq"
+			]
+		},
+		"localhost/contracts/lendingProtocol/flashLoan/interfaces/IFlashLoanReceiver.sol": {
+			"keccak256": "0x4921fee6b42012fc97260cb56450eccc0578ed466ad5c3fe82f8db8e5ec9d283",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://d7ff3f93c7eacc44a5f37772328152560782c00dfa69756d91d3e6cfad7cfccb",
+				"dweb:/ipfs/QmbYeVcwzNVywAy598YSJF7VuWURnt7TSm8n2qBVdTzXyp"
+			]
+		},
+		"localhost/contracts/lendingProtocol/libraries/types/DataTypes.sol": {
+			"keccak256": "0x49156a840c4dcecea3da7e5949445ba724f374a54df7d2f60e33391f50b99581",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://37b3f5d93949cece243196e40eb06734ccea9e4d3fe4e95bb883d1c4077ba614",
+				"dweb:/ipfs/QmQSkAcgL3iPCdumSRRbq2qmhNQfiTwG9MiexSTcX7PaR2"
+			]
+		},
+		"localhost/interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol": {
+			"keccak256": "0x21ac1e2d66fadbf678e845f012ce25df0a88f7bcebfc1f28e1dc4a1acf81f718",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://508f54f396633ee44b37c8da0110dcdbdc1b2580a88726db9d41373165a71eb4",
+				"dweb:/ipfs/QmNxrYwiDRQfw3rfiifhyB1tcNPWTd3NNaNUvthBmiAMoT"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/ILendingPool.sol": {
+			"keccak256": "0x34663bb262c9e4d91e8514feb0cf8d13b69202e6916216cab4cb480c4ff0cd8e",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://70ae824a38d670c6b3a3962f5f6ade2aa23b7d5ed19bf93789147aa96cc9d68b",
+				"dweb:/ipfs/Qmb47rJtW2n5wgpxEMccnhuDGoa4gt4Mkn3YbrjEMX7bZm"
+			]
+		}
+	},
+	"version": 1
+}

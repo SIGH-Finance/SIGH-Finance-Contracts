@@ -1,0 +1,139 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "ADDRESSES_PROVIDER",
+				"outputs": [
+					{
+						"internalType": "contract IGlobalAddressesProvider",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "LENDING_POOL",
+				"outputs": [
+					{
+						"internalType": "contract ILendingPool",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address[]",
+						"name": "assets",
+						"type": "address[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "amounts",
+						"type": "uint256[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "premiums",
+						"type": "uint256[]"
+					},
+					{
+						"internalType": "address",
+						"name": "initiator",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "params",
+						"type": "bytes"
+					}
+				],
+				"name": "executeOperation",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"author": "Aave",
+			"details": "implement this interface to develop a flashloan-compatible flashLoanReceiver contract*",
+			"kind": "dev",
+			"methods": {},
+			"title": "IFlashLoanReceiver interface",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"notice": "Interface for the Aave fee IFlashLoanReceiver.",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/lendingProtocol/flashLoan/interfaces/IFlashLoanReceiver.sol": "IFlashLoanReceiver"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/lendingProtocol/flashLoan/interfaces/IFlashLoanReceiver.sol": {
+			"keccak256": "0x4921fee6b42012fc97260cb56450eccc0578ed466ad5c3fe82f8db8e5ec9d283",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://d7ff3f93c7eacc44a5f37772328152560782c00dfa69756d91d3e6cfad7cfccb",
+				"dweb:/ipfs/QmbYeVcwzNVywAy598YSJF7VuWURnt7TSm8n2qBVdTzXyp"
+			]
+		},
+		"localhost/contracts/lendingProtocol/libraries/types/DataTypes.sol": {
+			"keccak256": "0x49156a840c4dcecea3da7e5949445ba724f374a54df7d2f60e33391f50b99581",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://37b3f5d93949cece243196e40eb06734ccea9e4d3fe4e95bb883d1c4077ba614",
+				"dweb:/ipfs/QmQSkAcgL3iPCdumSRRbq2qmhNQfiTwG9MiexSTcX7PaR2"
+			]
+		},
+		"localhost/interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol": {
+			"keccak256": "0x21ac1e2d66fadbf678e845f012ce25df0a88f7bcebfc1f28e1dc4a1acf81f718",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://508f54f396633ee44b37c8da0110dcdbdc1b2580a88726db9d41373165a71eb4",
+				"dweb:/ipfs/QmNxrYwiDRQfw3rfiifhyB1tcNPWTd3NNaNUvthBmiAMoT"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/ILendingPool.sol": {
+			"keccak256": "0x34663bb262c9e4d91e8514feb0cf8d13b69202e6916216cab4cb480c4ff0cd8e",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://70ae824a38d670c6b3a3962f5f6ade2aa23b7d5ed19bf93789147aa96cc9d68b",
+				"dweb:/ipfs/Qmb47rJtW2n5wgpxEMccnhuDGoa4gt4Mkn3YbrjEMX7bZm"
+			]
+		}
+	},
+	"version": 1
+}

@@ -1,0 +1,46 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"details": "These functions deal with verification of Merkle trees (hash trees),",
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/dependencies/openzeppelin/cryptography/MerkleProof.sol": "MerkleProof"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/dependencies/openzeppelin/cryptography/MerkleProof.sol": {
+			"keccak256": "0x4959be2683e7af3439cb94f06aa6c40cb42ca9336747d0c7dce54f07196489bc",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://42e90e957406d8a39871ac106166da3af14e9e5598406fb54e46d1733ea13e75",
+				"dweb:/ipfs/QmYSg59CVXspuJXZBJMb3zbH2ev3vEurHSdUuSCoxa9Meh"
+			]
+		}
+	},
+	"version": 1
+}

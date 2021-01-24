@@ -1,0 +1,141 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "BORROW_ALLOWANCE_NOT_ENOUGH",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "CALLER_NOT_POOL_ADMIN",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "LPCM_COLLATERAL_CANNOT_BE_LIQUIDATED",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "LPCM_HEALTH_FACTOR_NOT_BELOW_THRESHOLD",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "LPCM_NOT_ENOUGH_LIQUIDITY_TO_LIQUIDATE",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "LPCM_NO_ERRORS",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"author": "Aave",
+			"details": "Error messages prefix glossary:  - VL = ValidationLogic  - MATH = Math libraries  - CT = Common errors between tokens (AToken, VariableDebtToken and StableDebtToken)  - AT = AToken  - SDT = StableDebtToken  - VDT = VariableDebtToken  - LP = LendingPool  - LPAPR = LendingPoolAddressesProviderRegistry  - LPC = LendingPoolConfiguration  - RL = ReserveLogic  - LPCM = LendingPoolCollateralManager  - P = Pausable",
+			"kind": "dev",
+			"methods": {},
+			"title": "Errors library",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"notice": "Defines the error messages emitted by the different contracts of the Aave protocol",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/lendingProtocol/libraries/helpers/Errors.sol": "Errors"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/lendingProtocol/libraries/helpers/Errors.sol": {
+			"keccak256": "0xdabbb9a872e3c05eb19408f3b6df3f349cc01b74204cbfa84d6dbd914a3fb3da",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://89617f32829cff4df237e2fde5c15d8e3dcbb9b346a8094059034a5a926c4368",
+				"dweb:/ipfs/QmdAkfros9Dcz8YKoVvFE3BmhsTTeTAuEk3nowHC6sWG2n"
+			]
+		}
+	},
+	"version": 1
+}

@@ -1,0 +1,333 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "contract IGlobalAddressesProvider",
+						"name": "provider",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "optimalUtilizationRate",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "baseVariableBorrowRate",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "variableRateSlope1",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "variableRateSlope2",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "stableRateSlope1",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "stableRateSlope2",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [],
+				"name": "EXCESS_UTILIZATION_RATE",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "OPTIMAL_UTILIZATION_RATE",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "addressesProvider",
+				"outputs": [
+					{
+						"internalType": "contract IGlobalAddressesProvider",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "baseVariableBorrowRate",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "instrument",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "availableLiquidity",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalStableDebt",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalVariableDebt",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "averageStableBorrowRate",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "reserveFactor",
+						"type": "uint256"
+					}
+				],
+				"name": "calculateInterestRates",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getMaxVariableBorrowRate",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "stableRateSlope1",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "stableRateSlope2",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "variableRateSlope1",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "variableRateSlope2",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"author": "Aave*",
+			"details": "The model of interest rate is based on 2 slopes, one before the `OPTIMAL_UTILIZATION_RATE` point of utilization and another from that one to 100% - An instance of this same contract, can't be used across different Aave markets, due to the caching   of the LendingPoolAddressesProvider",
+			"kind": "dev",
+			"methods": {
+				"calculateInterestRates(address,uint256,uint256,uint256,uint256,uint256)": {
+					"details": "Calculates the interest rates depending on the Instrument's state and configurations",
+					"params": {
+						"availableLiquidity": "The liquidity available",
+						"averageStableBorrowRate": "The weighted average of all the stable rate loans",
+						"instrument": "The address of the Instrument",
+						"reserveFactor": "The reserve portion of the interest that goes to the treasury of the market",
+						"totalStableDebt": "The total borrowed from the reserve at stable rate",
+						"totalVariableDebt": "The total borrowed from the reserve at a variable rate"
+					},
+					"returns": {
+						"_0": "The liquidity rate, the stable borrow rate and the variable borrow rate*"
+					}
+				}
+			},
+			"stateVariables": {
+				"EXCESS_UTILIZATION_RATE": {
+					"details": "This constant represents the excess utilization rate above the optimal. It's always equal to 1-optimal utilization rate. Added as a constant here for gas optimizations. Expressed in ray*"
+				},
+				"OPTIMAL_UTILIZATION_RATE": {
+					"details": "this constant represents the utilization rate at which the pool aims to obtain most competitive borrow rates. Expressed in ray*"
+				}
+			},
+			"title": "DefaultInstrumenteInterestRateStrategy contract",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"notice": "Implements the calculation of the interest rates depending on the Instrument state",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/lendingProtocol/DefaultInstrumentInterestRateStrategy.sol": "DefaultInstrumenteInterestRateStrategy"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/dependencies/openzeppelin/math/SafeMath.sol": {
+			"keccak256": "0xba96bc371ba999f452985a98717cca1e4c4abb598dc038a9a9c3db08129b1ba4",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://26e50e3f7b6482fb6f598f2e006994a74aa492687daa4b3eee7fd4fb5398ce7f",
+				"dweb:/ipfs/QmZudqoPSkA4USLMFsBBmt19dDPZFS8aaAmL5R7pECXu6t"
+			]
+		},
+		"localhost/contracts/lendingProtocol/DefaultInstrumentInterestRateStrategy.sol": {
+			"keccak256": "0xe90a415ff660da99b448979ac4a9efb7f4dee9f75c8cce1e1403a78651eebbc3",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://f6687d813edaf246f2d74e8c7b2875944277945041da1035992b29a0da79cc47",
+				"dweb:/ipfs/QmWm2K5Vwndjp9hfy5hSW2xkFNREhSZ6Kx9YBPUiMq8N11"
+			]
+		},
+		"localhost/contracts/lendingProtocol/libraries/math/PercentageMath.sol": {
+			"keccak256": "0xec12b86f57c1f4d5b8ea9b3b3468e1b36eb9a0c24ad08954fd6eb0d0141c2d5e",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://7fefa69c5d59102e283fc513ec62eabf051863a3a328db89988d727edff27e65",
+				"dweb:/ipfs/QmUYSN5kjc69s94bnEM1iwE9Akf9HL4FEFKQxArrA7AH7K"
+			]
+		},
+		"localhost/contracts/lendingProtocol/libraries/math/WadRayMath.sol": {
+			"keccak256": "0x504b929ff88e2fb5b300561d6e7a028c0761213537c6fc78fbcff1eca4e0f7ed",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://fabb2f931112a03593460ae730308803b8c3ced8c174a0a4791fb5c8b5e2fbe9",
+				"dweb:/ipfs/QmXApJYKEdDu7CFcfKpn2Ap9wAraxu62ZvfnDfDm3ejfHN"
+			]
+		},
+		"localhost/interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol": {
+			"keccak256": "0x21ac1e2d66fadbf678e845f012ce25df0a88f7bcebfc1f28e1dc4a1acf81f718",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://508f54f396633ee44b37c8da0110dcdbdc1b2580a88726db9d41373165a71eb4",
+				"dweb:/ipfs/QmNxrYwiDRQfw3rfiifhyB1tcNPWTd3NNaNUvthBmiAMoT"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/IInstrumentInterestRateStrategy.sol": {
+			"keccak256": "0x58553f2eb968f31c8febd913648f241dd95c8b0a6b0e028478a85adccd69400f",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://0bc04dc8ace55224ec3e9f40dae1390e6beb40dfb6ba86e3237359cba672042c",
+				"dweb:/ipfs/QmYY44fSgedCn5d9CQdRnuPSUvanDeGZKgq1DwHjnYzVYB"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/ILendingRateOracle.sol": {
+			"keccak256": "0x11741c98ff436b30be579976647e410ff41627d28cb89ee868e36a97e9542b5d",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://aa571e569a2ac4e0dc6b5febcd7c4ae266757485b7e28585ac395a73fc3cb6e3",
+				"dweb:/ipfs/QmXPaG7KRAUZLk5j3YAfsnUp7o21FPXWxKNGgeVg3NKf9Z"
+			]
+		}
+	},
+	"version": 1
+}

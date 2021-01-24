@@ -1,0 +1,998 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "SIGHFinanceManagerAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "LendingPoolManagerAddress",
+						"type": "address"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "FeeProviderUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "LendingPoolConfiguratorUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "LendingPoolLiquidationManagerUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_lendingPoolManager",
+						"type": "address"
+					}
+				],
+				"name": "LendingPoolManagerUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "LendingPoolUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "LendingRateOracleUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_pendingLendingPoolManager",
+						"type": "address"
+					}
+				],
+				"name": "PendingLendingPoolManagerUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_pendingSighFinanceManager",
+						"type": "address"
+					}
+				],
+				"name": "PendingSIGHFinanceManagerUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "PriceOracleUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "bytes32",
+						"name": "id",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "ProxyCreated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sighAddress",
+						"type": "address"
+					}
+				],
+				"name": "SIGHAddressUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sighFinanceConfigAddress",
+						"type": "address"
+					}
+				],
+				"name": "SIGHFinanceConfiguratorUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "SIGHFinanceFeeCollectorUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_sighFinanceManager",
+						"type": "address"
+					}
+				],
+				"name": "SIGHFinanceManagerUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "SIGHFinanceSIGHPAYAggregatorUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "boosterAddress",
+						"type": "address"
+					}
+				],
+				"name": "SIGHNFTBoosterUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "speedControllerAddress",
+						"type": "address"
+					}
+				],
+				"name": "SIGHSpeedControllerUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "SIGHStakingAddress",
+						"type": "address"
+					}
+				],
+				"name": "SIGHStakingImplUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "SIGHTreasuryImplUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					}
+				],
+				"name": "SIGHVolatilityHarvesterImplUpdated",
+				"type": "event"
+			},
+			{
+				"inputs": [],
+				"name": "acceptLendingPoolManager",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "acceptSIGHFinanceManager",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "_key",
+						"type": "bytes32"
+					}
+				],
+				"name": "getAddress",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getFeeProvider",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getLendingPool",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getLendingPoolConfigurator",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getLendingPoolLiquidationManager",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getLendingPoolManager",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getLendingRateOracle",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getPendingLendingPoolManager",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getPendingSIGHFinanceManager",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getPriceOracle",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSIGHAddress",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSIGHFinanceConfigurator",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSIGHFinanceFeeCollector",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSIGHFinanceManager",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSIGHNFTBoosters",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSIGHPAYAggregator",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSIGHSpeedController",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSIGHStaking",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSIGHTreasury",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSIGHVolatilityHarvester",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_feeProvider",
+						"type": "address"
+					}
+				],
+				"name": "setFeeProviderImpl",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_configurator",
+						"type": "address"
+					}
+				],
+				"name": "setLendingPoolConfiguratorImpl",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_pool",
+						"type": "address"
+					}
+				],
+				"name": "setLendingPoolImpl",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_manager",
+						"type": "address"
+					}
+				],
+				"name": "setLendingPoolLiquidationManager",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_lendingRateOracle",
+						"type": "address"
+					}
+				],
+				"name": "setLendingRateOracle",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_pendinglendingPoolManager",
+						"type": "address"
+					}
+				],
+				"name": "setPendingLendingPoolManager",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_PendingSIGHFinanceManager",
+						"type": "address"
+					}
+				],
+				"name": "setPendingSIGHFinanceManager",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_priceOracle",
+						"type": "address"
+					}
+				],
+				"name": "setPriceOracle",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "sighAddress",
+						"type": "address"
+					}
+				],
+				"name": "setSIGHAddress",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_configurator",
+						"type": "address"
+					}
+				],
+				"name": "setSIGHFinanceConfiguratorImpl",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_feeCollector",
+						"type": "address"
+					}
+				],
+				"name": "setSIGHFinanceFeeCollector",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_SIGHNFTBooster",
+						"type": "address"
+					}
+				],
+				"name": "setSIGHNFTBoosters",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_SIGHPAYAggregator",
+						"type": "address"
+					}
+				],
+				"name": "setSIGHPAYAggregator",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_SIGHSpeedController",
+						"type": "address"
+					}
+				],
+				"name": "setSIGHSpeedController",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_SIGHStaking",
+						"type": "address"
+					}
+				],
+				"name": "setSIGHStaking",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_SIGHTreasury",
+						"type": "address"
+					}
+				],
+				"name": "setSIGHTreasuryImpl",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_SIGHVolatilityHarvester",
+						"type": "address"
+					}
+				],
+				"name": "setSIGHVolatilityHarvesterImpl",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"author": "_astromartian, built upon the Aave protocol's AddressesProviderContract(v1)*",
+			"kind": "dev",
+			"methods": {
+				"getFeeProvider()": {
+					"details": "returns the address of the FeeProvider proxy",
+					"returns": {
+						"_0": "the address of the Fee provider proxy*"
+					}
+				},
+				"getLendingPool()": {
+					"details": "returns the address of the LendingPool proxy",
+					"returns": {
+						"_0": "the lending pool proxy address*"
+					}
+				},
+				"getLendingPoolConfigurator()": {
+					"details": "returns the address of the LendingPoolConfigurator proxy",
+					"returns": {
+						"_0": "the lending pool configurator proxy address*"
+					}
+				},
+				"getLendingPoolLiquidationManager()": {
+					"details": "returns the address of the LendingPoolLiquidationManager. Since the manager is used through delegateCall within the LendingPool contract, the proxy contract pattern does not work properly hence the addresses are changed directly.",
+					"returns": {
+						"_0": "the address of the Lending pool liquidation manager*"
+					}
+				},
+				"getPriceOracle()": {
+					"details": "the functions below are storing specific addresses that are outside the context of the protocol hence the upgradable proxy pattern is not used*"
+				},
+				"getSIGHFinanceConfigurator()": {
+					"details": "returns the address of the SIGHFinanceConfigurator proxy",
+					"returns": {
+						"_0": "the SIGH Finance configurator proxy address*"
+					}
+				},
+				"getSIGHSpeedController()": {
+					"details": "returns the address of the SIGH_SPEED_CONTROLLER proxy",
+					"returns": {
+						"_0": "the SIGH Speed Controller address*"
+					}
+				},
+				"setFeeProviderImpl(address)": {
+					"details": "updates the implementation of the FeeProvider proxy",
+					"params": {
+						"_feeProvider": "the new lending pool fee provider implementation*"
+					}
+				},
+				"setLendingPoolConfiguratorImpl(address)": {
+					"details": "updates the implementation of the lending pool configurator",
+					"params": {
+						"_configurator": "the new lending pool configurator implementation*"
+					}
+				},
+				"setLendingPoolImpl(address)": {
+					"details": "updates the implementation of the lending pool",
+					"params": {
+						"_pool": "the new lending pool implementation*"
+					}
+				},
+				"setLendingPoolLiquidationManager(address)": {
+					"details": "updates the address of the Lending pool liquidation manager",
+					"params": {
+						"_manager": "the new lending pool liquidation manager address*"
+					}
+				},
+				"setSIGHFinanceConfiguratorImpl(address)": {
+					"details": "updates the implementation of the lending pool configurator",
+					"params": {
+						"_configurator": "the new lending pool configurator implementation*"
+					}
+				},
+				"setSIGHSpeedController(address)": {
+					"details": "sets the address of the SIGH Speed Controller",
+					"params": {
+						"_SIGHSpeedController": "the SIGH Speed Controller implementation*"
+					}
+				},
+				"setSIGHStaking(address)": {
+					"details": "updates the address of the SIGH Distribution Handler Contract (Manages the SIGH Speeds)",
+					"params": {
+						"_SIGHStaking": "the new lending pool liquidation manager address*"
+					}
+				},
+				"setSIGHTreasuryImpl(address)": {
+					"details": "updates the address of the SIGH Treasury Contract",
+					"params": {
+						"_SIGHTreasury": "the new SIGH Treasury Contract address*"
+					}
+				},
+				"setSIGHVolatilityHarvesterImpl(address)": {
+					"details": "updates the address of the SIGH Distribution Handler Contract (Manages the SIGH Speeds)",
+					"params": {
+						"_SIGHVolatilityHarvester": "the new SIGH Distribution Handler (Impl) Address*"
+					}
+				}
+			},
+			"title": "GlobalAddressesProvider contract",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"notice": "Is the main registry of the protocol. All the different components of the protocol are accessible through the addresses provider.",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/GlobalAddressesProvider/GlobalAddressesProvider.sol": "GlobalAddressesProvider"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/GlobalAddressesProvider/AddressStorage.sol": {
+			"keccak256": "0x8c6bcbc9f10b991224db22a78377729910a3a54095253b336466168fe4e2bcda",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://9656e36b483e3940807cf44a681adec2b75fda49a8593e1c4c41388165a613b4",
+				"dweb:/ipfs/Qmb2zio1fxdrsuNoCDPL36cAXNuHaF2g71LzKp2cCT9nQ4"
+			]
+		},
+		"localhost/contracts/GlobalAddressesProvider/GlobalAddressesProvider.sol": {
+			"keccak256": "0x59bcdf95ff19f4630dbe5fc4a4c84a1439f45dfacf943aefc1eab8a8e27ffb57",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://fdd5fc66e8fcc95196a655b095eb6f29438a08f3a124c2fa96714f367011f124",
+				"dweb:/ipfs/QmVfkEHUJYFfSQy17UrV7gosjHhihqX3VX6FbWvBGAsrtQ"
+			]
+		},
+		"localhost/contracts/dependencies/openzeppelin/utils/Address.sol": {
+			"keccak256": "0x799dadcc9be20dc638f07336056f790f144b3f647b9f3c89c52af37c1be4794d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://c040ca0e11f4e9441f2307e3e70fac72b96c2394533c07eda42c40db26746e97",
+				"dweb:/ipfs/QmYGoQR56HmoBEpJo5bW7gWUXiejbxvBpeCt8dYsP79XWb"
+			]
+		},
+		"localhost/contracts/dependencies/upgradability/BaseAdminUpgradeabilityProxy.sol": {
+			"keccak256": "0xe104f39ad1a115c9a8d60a01634311ceafa9101ce6112be18a62b5e2c7f2b408",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://07e287f524c1092f29f6e0a3e115f5fb200fea4f2a3b11bdd69bc442b9f1f313",
+				"dweb:/ipfs/QmQGZKnnE8WSdEXzLtDywRU9BP8Q2WPuLEnXsrXu9GfL6F"
+			]
+		},
+		"localhost/contracts/dependencies/upgradability/BaseUpgradeabilityProxy.sol": {
+			"keccak256": "0x7a060aaa3a2ec27809c2fe3be2ef9f62cb7048e8e6ddebf3b4936cdaac746602",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8927cf748d2825b1c6e38d3efcc809d7705a34c7728b8c48369e1a6c70236b62",
+				"dweb:/ipfs/QmQ1JhS2mv4T3oi2w1zm6Br9Pd2hZHbsRy3SV4atQMDNLJ"
+			]
+		},
+		"localhost/contracts/dependencies/upgradability/InitializableAdminUpgradeabilityProxy.sol": {
+			"keccak256": "0x92f8e7f15a5fab2dae5b24714bdd2633b26f72439b7f3dd8667ba73096483fc4",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://179c746c0229da28870ea0110398ad9dc036f1b84cbe56187c21f006ff38f074",
+				"dweb:/ipfs/QmaskQDGKLUQ1EuHzpgveWbgiRGaf84LZFaBkzfwR62Jyd"
+			]
+		},
+		"localhost/contracts/dependencies/upgradability/InitializableUpgradeabilityProxy.sol": {
+			"keccak256": "0x88809e808e719498d3beda8698efca29a592c881bb0ee41701ea7297f2a08b06",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1ea15e8dc5b5701f45e421ebedf04b873bef5c299dcb41fe95f8c9e8027de343",
+				"dweb:/ipfs/QmXxZby8429zU6XQNc7dL7GZvUerqG2t7Ta5T6bx3V75bJ"
+			]
+		},
+		"localhost/contracts/dependencies/upgradability/Proxy.sol": {
+			"keccak256": "0xef34510c466e359b7bb14a70760e25b819be03a4dd10c6267c7e5171c1ad9b86",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a401181a140b32def891a79f75bfbadefbe7c14a84d0d5f240ac4a935ca0e6cb",
+				"dweb:/ipfs/QmWQU8oeY5SHMYot1fs7g29FwrRqx7o5oQn8NqCjZZWZJR"
+			]
+		},
+		"localhost/contracts/dependencies/upgradability/UpgradeabilityProxy.sol": {
+			"keccak256": "0x26e681c23e1d71251739becfc52feeed3146f2738dd2912cf5c45683b6da8b97",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1afa681322b876bf2ac360fb5585951934b70347bb4a2d96aac9c33262fa9866",
+				"dweb:/ipfs/QmWadxHx5cTB9QaJDYLWpeXpaDpriiwqjzaoGWoHiJQB31"
+			]
+		},
+		"localhost/interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol": {
+			"keccak256": "0x21ac1e2d66fadbf678e845f012ce25df0a88f7bcebfc1f28e1dc4a1acf81f718",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://508f54f396633ee44b37c8da0110dcdbdc1b2580a88726db9d41373165a71eb4",
+				"dweb:/ipfs/QmNxrYwiDRQfw3rfiifhyB1tcNPWTd3NNaNUvthBmiAMoT"
+			]
+		}
+	},
+	"version": 1
+}

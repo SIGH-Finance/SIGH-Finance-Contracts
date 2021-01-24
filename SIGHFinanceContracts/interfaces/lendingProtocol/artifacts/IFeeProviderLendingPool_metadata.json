@@ -1,0 +1,161 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "instrument",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "boosterId",
+						"type": "uint256"
+					}
+				],
+				"name": "calculateBorrowFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "platformFee",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "reserveFee",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "instrument",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "boosterId",
+						"type": "uint256"
+					}
+				],
+				"name": "calculateDepositFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "boosterId",
+						"type": "uint256"
+					}
+				],
+				"name": "calculateFlashLoanFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "flashLoanFee",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"author": "SIGH Finance (_astromartian)*",
+			"kind": "dev",
+			"methods": {},
+			"title": "FeeProvider contract Interface",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"notice": "Implements calculation for the fees applied by the protocol based on the Boosters",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/interfaces/lendingProtocol/IFeeProviderLendingPool.sol": "IFeeProviderLendingPool"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 1000
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/interfaces/lendingProtocol/IFeeProviderLendingPool.sol": {
+			"keccak256": "0xc45e917e0104c0dba302a62a3421f67392efc03ab4031fd554adc9d8a5dba448",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://e4c90b7a215af22b61d92dff20bac9741dd509a8293b864976d3776e91b6f644",
+				"dweb:/ipfs/QmYP8RaPzFUNvs8txgDtbxnBEiTyMmV9e5m66d4DKFdQVh"
+			]
+		}
+	},
+	"version": 1
+}

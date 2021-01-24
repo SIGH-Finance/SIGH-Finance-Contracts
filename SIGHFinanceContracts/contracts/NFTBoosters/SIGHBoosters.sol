@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma experimental ABIEncoderV2;
-pragma solidity ^0.7.0;
+pragma solidity 0.7.0;
 
 import "../dependencies/openzeppelin/token/ERC721/IERC721Metadata.sol";
 import "../dependencies/openzeppelin/token/ERC721/IERC721Enumerable.sol";

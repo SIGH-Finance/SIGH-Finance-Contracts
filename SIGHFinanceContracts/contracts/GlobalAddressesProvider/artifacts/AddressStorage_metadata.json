@@ -1,0 +1,65 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "_key",
+						"type": "bytes32"
+					}
+				],
+				"name": "getAddress",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/GlobalAddressesProvider/AddressStorage.sol": "AddressStorage"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/GlobalAddressesProvider/AddressStorage.sol": {
+			"keccak256": "0x8c6bcbc9f10b991224db22a78377729910a3a54095253b336466168fe4e2bcda",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://9656e36b483e3940807cf44a681adec2b75fda49a8593e1c4c41388165a613b4",
+				"dweb:/ipfs/Qmb2zio1fxdrsuNoCDPL36cAXNuHaF2g71LzKp2cCT9nQ4"
+			]
+		}
+	},
+	"version": 1
+}
