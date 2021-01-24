@@ -4,6 +4,7 @@ pragma solidity 0.7.0;
 import {DebtTokenBase} from './base/DebtTokenBase.sol';
 import {MathUtils} from '../libraries/math/MathUtils.sol';
 import {WadRayMath} from '../libraries/math/WadRayMath.sol';
+import {SafeMath} from "../../dependencies/openzeppelin/math/SafeMath.sol";
 import {IStableDebtToken} from "../../../interfaces/lendingProtocol/IStableDebtToken.sol";
 import {ISIGHHarvester} from "../../../interfaces/lendingProtocol/ISIGHHarvester.sol";
 
@@ -15,6 +16,7 @@ import {ISIGHHarvester} from "../../../interfaces/lendingProtocol/ISIGHHarvester
  **/
 contract StableDebtToken is IStableDebtToken, DebtTokenBase {
   using WadRayMath for uint256;
+  using SafeMath for uint256;
 
   uint256 public constant DEBT_TOKEN_REVISION = 0x1;
 
@@ -23,7 +25,7 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
   mapping(address => uint256) internal _usersStableRate;
   uint40 internal _totalSupplyTimestamp;
 
-  constructor(address pool, address underlyingAsset, string memory name, string memory symbol) public DebtTokenBase(pool, underlyingAsset, name, symbol) {}
+  constructor(address pool, address underlyingAsset, string memory name, string memory symbol) DebtTokenBase(pool, underlyingAsset, name, symbol) {}
 
   /**
    * @dev Gets the revision of the stable debt token implementation
@@ -234,6 +236,11 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
     uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(stableRate, _timestamps[account]);
     return accountBalance.rayMul(cumulatedInterest);
   }
+
+  function averageBalanceOf(address account) public override view returns (uint256) {
+    return _averageBalanceOf(account);
+  }
+
 
 //  ######################################
 //  ######### INTERNAL FUNCTIONS #########

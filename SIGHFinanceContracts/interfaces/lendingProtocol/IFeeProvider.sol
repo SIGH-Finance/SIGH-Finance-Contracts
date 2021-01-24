@@ -19,7 +19,7 @@ interface IFeeProvider  {
     event tokenForPaymentUpdated(address prevToken,address tokenAccepted);
     event tokensTransferred(address token, address destination, uint amount,uint newBalance );
 
-    event _boosterTopUp( uint boosterID,string category,uint optionNo,uint amount,uint topUp,uint totalFuelRemaining);
+    event _boosterTopUp( uint boosterID,uint optionNo,uint amount,uint topUp,uint totalFuelRemaining);
 
 
 // ###############################

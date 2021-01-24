@@ -26,7 +26,7 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   string private _symbol;
   uint8 private _decimals;
 
-  constructor(string memory name, string memory symbol, uint8 decimals) public {
+  constructor(string memory name, string memory symbol, uint8 decimals) {
     _name = name;
     _symbol = symbol;
     _decimals = decimals;
@@ -78,8 +78,8 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   /**
    * @return The average balance of the token
    **/
-  function averageBalanceOf(address account) public view returns (uint256) {
-    return _averageBalances[account];
+  function _averageBalanceOf(address account) public view returns (uint256) {
+    _averageBalances[account];
   }
 
 
@@ -222,7 +222,7 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   }
 
   // Calculates the average total supply over last 100 transactions
-  function calculateAverageTotalSupply(uint newTotalSupply) internal {
+  function calculateAverageTotalSupply(uint newTotalSupply) internal returns(uint256) {
     return averageTotalSupply == 0 ? newTotalSupply : averageTotalSupply.mul(99).add(newTotalSupply).div(100);
   }
 

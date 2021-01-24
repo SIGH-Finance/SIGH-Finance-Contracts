@@ -17,7 +17,7 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
 
   uint256 public constant DEBT_TOKEN_REVISION = 0x1;
 
-  constructor(address pool, address underlyingAsset, string memory name, string memory symbol) public DebtTokenBase(pool, underlyingAsset, name, symbol) {}
+  constructor(address pool, address underlyingAsset, string memory name, string memory symbol) DebtTokenBase(pool, underlyingAsset, name, symbol) {}
 
   /**
    * @dev Gets the revision of the stable debt token implementation
@@ -93,7 +93,7 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
       return 0;
     }
 
-    return scaledBalance.rayMul(POOL.getReserveNormalizedVariableDebt(UNDERLYING_ASSET_ADDRESS));
+    return scaledBalance.rayMul(POOL.getInstrumentNormalizedVariableDebt(UNDERLYING_ASSET_ADDRESS));
   }
 
   /**
@@ -109,7 +109,7 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
    * @return The total supply
    **/
   function totalSupply() public view virtual override returns (uint256) {
-    return super.totalSupply().rayMul(POOL.getReserveNormalizedVariableDebt(UNDERLYING_ASSET_ADDRESS));
+    return super.totalSupply().rayMul(POOL.getInstrumentNormalizedVariableDebt(UNDERLYING_ASSET_ADDRESS));
   }
 
   /**
@@ -128,6 +128,10 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
    **/
   function getScaledUserBalanceAndSupply(address user) external view override returns (uint256, uint256){
     return (super.balanceOf(user), super.totalSupply());
+  }
+
+  function averageBalanceOf(address account) public override view returns (uint256) {
+    return _averageBalanceOf(account);
   }
 
 

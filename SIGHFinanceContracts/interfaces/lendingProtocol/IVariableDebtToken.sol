@@ -55,4 +55,6 @@ interface IVariableDebtToken is IScaledBalanceToken {
    **/
   function burn(address user, uint256 amount, uint256 index) external;
 
+  function averageBalanceOf(address account) external view returns (uint256);
+
 }

@@ -103,4 +103,6 @@ interface IStableDebtToken {
    **/
   function principalBalanceOf(address user) external view returns (uint256);
 
+  function averageBalanceOf(address account) external view returns (uint256);
+
 }

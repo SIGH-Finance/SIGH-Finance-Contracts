@@ -9,6 +9,7 @@ import {ILendingPool} from "../../../interfaces/lendingProtocol/ILendingPool.sol
 import {IIToken} from "../../../interfaces/lendingProtocol/IIToken.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {ISIGHHarvester} from "../../../interfaces/lendingProtocol/ISIGHHarvester.sol";
+import {SafeMath} from "../../dependencies/openzeppelin/math/SafeMath.sol";
 
 /**
  * @title ERC20 IToken (built upon Aave's AToken)
@@ -19,6 +20,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
 
   using WadRayMath for uint256;
   using SafeERC20 for IERC20;
+  using SafeMath for uint256;
 
   bytes public constant EIP712_REVISION = bytes('1');
   bytes32 internal constant EIP712_DOMAIN = keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)');
@@ -28,7 +30,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
   uint256 public constant IToken_REVISION = 0x1;
   address public immutable UNDERLYING_ASSET_ADDRESS;
   ILendingPool public immutable POOL;
-  ISIGHHarvester public immutable sighHarvester;
+  ISIGHHarvester public sighHarvester;
 
 
   mapping(address => uint256) public _nonces;   // next valid nonce to submit with permit()
@@ -49,7 +51,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
 //  ###############################
 
 
-  constructor(ILendingPool pool, address underlyingAssetAddress, string memory tokenName, string memory tokenSymbol) public IncentivizedERC20(tokenName, tokenSymbol, 18) {
+  constructor(ILendingPool pool, address underlyingAssetAddress, string memory tokenName, string memory tokenSymbol) IncentivizedERC20(tokenName, tokenSymbol, 18) {
     POOL = pool;
     UNDERLYING_ASSET_ADDRESS = underlyingAssetAddress;
   }
@@ -190,7 +192,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
    * @return The balance of the user
    **/
   function balanceOf(address user) public view override(IncentivizedERC20, IERC20) returns (uint256) {
-    return super.balanceOf(user).rayMul(POOL.getReserveNormalizedIncome(UNDERLYING_ASSET_ADDRESS));
+    return super.balanceOf(user).rayMul(POOL.getInstrumentNormalizedIncome(UNDERLYING_ASSET_ADDRESS));
   }
 
   /**
@@ -226,7 +228,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
       return 0;
     }
 
-    return currentSupplyScaled.rayMul(POOL.getReserveNormalizedIncome(UNDERLYING_ASSET_ADDRESS));
+    return currentSupplyScaled.rayMul(POOL.getInstrumentNormalizedIncome(UNDERLYING_ASSET_ADDRESS));
   }
 
   /**
@@ -252,6 +254,11 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
   function getSighAccured(address user)  external override view returns (uint)  {
     return sighHarvester.getSighAccured(user);
   }
+
+  function averageBalanceOf(address account) public override view returns (uint256) {
+    return _averageBalanceOf(account);
+  }
+
 
 //  ##################################################
 //  ######### IMPLEMENTS THE PERMIT FUNCTION #########
@@ -292,7 +299,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
    * @param validate `true` if the transfer needs to be validated
    **/
   function _transfer(address from, address to, uint256 amount, bool validate) internal {
-    uint256 index = POOL.getReserveNormalizedIncome(UNDERLYING_ASSET_ADDRESS);
+    uint256 index = POOL.getInstrumentNormalizedIncome(UNDERLYING_ASSET_ADDRESS);
 
     uint256 fromBalanceBefore = super.balanceOf(from).rayMul(index);
     uint256 toBalanceBefore = super.balanceOf(to).rayMul(index);

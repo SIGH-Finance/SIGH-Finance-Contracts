@@ -5,6 +5,9 @@ import {VersionedInitializable} from "../dependencies/upgradability/VersionedIni
 import {SafeERC20} from '../dependencies/openzeppelin/token/ERC20/SafeERC20.sol';
 import {IERC20} from '../dependencies/openzeppelin/token/ERC20/IERC20.sol';
 
+import {UserConfiguration} from './libraries/configuration/UserConfiguration.sol';
+import {InstrumentReserveLogic} from './libraries/logic/InstrumentReserveLogic.sol';
+import {InstrumentConfiguration} from './libraries/configuration/InstrumentConfiguration.sol';
 import {GenericLogic} from "./libraries/logic/GenericLogic.sol";
 import {Helpers} from "./libraries/helpers/Helpers.sol";
 import {ValidationLogic} from "./libraries/logic/ValidationLogic.sol";
@@ -39,6 +42,11 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
   using SafeMath for uint256;
   using WadRayMath for uint256;
   using PercentageMath for uint256;
+
+  using InstrumentReserveLogic for DataTypes.InstrumentData;
+  using InstrumentConfiguration for DataTypes.InstrumentConfigurationMap;
+  using UserConfiguration for DataTypes.UserConfigurationMap;
+
 
   uint256 internal constant LIQUIDATION_CLOSE_FACTOR_PERCENT = 5000;
 
@@ -98,8 +106,8 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
     **/
     function liquidationCall( address collateralAsset, address debtAsset, address user, uint256 debtToCover, bool receiveIToken ) external override returns (uint256, string memory) {
 
-        DataTypes.InstrumentData storage collateralInstrument =_instruments[collateralAsset];
-        DataTypes.InstrumentData storage debtInstrument =_instruments[debtAsset];
+        DataTypes.InstrumentData storage collateralInstrument = _instruments[collateralAsset];
+        DataTypes.InstrumentData storage debtInstrument = _instruments[debtAsset];
         DataTypes.UserConfigurationMap storage userConfig = _usersConfig[user];
 
         LiquidationCallLocalVars memory vars;        // Usage of a memory struct of vars to avoid "Stack too deep" errors due to local variables
@@ -156,8 +164,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
             }
         }
 
-        address sighPayAggregator = addressesProvider.getSIGHPAYAggregator();
-        debtInstrument.updateState(sighPayAggregator);
+//        debtInstrument.updateState(sighPayAggregator);
 
         if (vars.userVariableDebt >= vars.actualDebtToLiquidate) {
             IVariableDebtToken(debtInstrument.variableDebtTokenAddress).burn( user, vars.actualDebtToLiquidate, debtInstrument.variableBorrowIndex );
@@ -169,7 +176,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
             IStableDebtToken(debtInstrument.stableDebtTokenAddress).burn( user, vars.actualDebtToLiquidate.sub(vars.userVariableDebt) );
         }
 
-        debtInstrument.updateInterestRates( debtAsset, debtInstrument.iTokenAddress, vars.actualDebtToLiquidate, 0 );
+//        debtInstrument.updateInterestRates( debtAsset, debtInstrument.iTokenAddress, vars.actualDebtToLiquidate, 0 );
 
         if (receiveIToken) {
             vars.liquidatorPreviousITokenBalance = IERC20(vars.collateralItoken).balanceOf(msg.sender);
@@ -199,16 +206,16 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
         IERC20(debtAsset).safeTransferFrom( msg.sender, debtInstrument.iTokenAddress, vars.actualDebtToLiquidate);
 
         // Transfer liquidated Platform fee (collateral) to the SIGH Finance Fee Collector address
-        if (vars.platformFeeLiquidated) {
+        if (vars.platformFeeLiquidated > 0) {
             collateralInstrument.updateState(sighPayAggregator);
             collateralInstrument.updateInterestRates( collateralAsset, address(vars.collateralItoken), 0, vars.maxCollateralToLiquidateForPlatformFee);
-            vars.collateralItoken.burn(user, addressesProvider.getSIGHFinanceFeeCollector() , vars.maxCollateralToLiquidateForPlatformFee, collateralInstrument.liquidityIndex);
+            vars.collateralItoken.burn(user, platformFeeCollector , vars.maxCollateralToLiquidateForPlatformFee, collateralInstrument.liquidityIndex);
             ISIGHHarvestDebtToken(debtInstrument.stableDebtTokenAddress).updatePlatformFee(user,0,vars.platformFeeLiquidated);
             emit PlatformFeeLiquidated(user, collateralAsset, debtAsset, vars.userPlatformFee, vars.maxLiquidatablePlatformFee, vars.platformFeeLiquidated, vars.maxCollateralToLiquidateForPlatformFee );
         }
 
         // Transfer liquidated Reserve fee (collateral) to the SIGH Finance Pay aggregator address
-        if (vars.reserveFeeLiquidated) {
+        if (vars.reserveFeeLiquidated > 0) {
             collateralInstrument.updateState(sighPayAggregator);
             collateralInstrument.updateInterestRates( collateralAsset, address(vars.collateralItoken), 0, vars.maxCollateralToLiquidateForReserveFee);
             vars.collateralItoken.burn(user, sighPayAggregator , vars.maxCollateralToLiquidateForReserveFee, collateralInstrument.liquidityIndex);

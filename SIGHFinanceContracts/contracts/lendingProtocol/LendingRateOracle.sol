@@ -16,7 +16,7 @@ contract LendingRateOracle is ILendingRateOracle {
         _;
     }
 
-    constructor(address _globalAddressesProvider) public {
+    constructor(address _globalAddressesProvider) {
         globalAddressesProvider = IGlobalAddressesProvider(_globalAddressesProvider);
     }
 

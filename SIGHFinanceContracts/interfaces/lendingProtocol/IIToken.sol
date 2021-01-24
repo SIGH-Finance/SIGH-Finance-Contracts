@@ -90,4 +90,6 @@ interface IIToken is IERC20, IScaledBalanceToken {
 
   function setSIGHHarvesterAddress(address _SIGHHarvesterAddress) external returns (bool);
 
+  function averageBalanceOf(address account) external view returns (uint256);
+
 }

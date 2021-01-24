@@ -7,6 +7,8 @@ import {VersionedInitializable} from "../../../dependencies/upgradability/Versio
 import {ICreditDelegationToken} from "../../../../interfaces/lendingProtocol/ICreditDelegationToken.sol";
 import {ISIGHHarvester} from "../../../../interfaces/lendingProtocol/ISIGHHarvester.sol";
 import {ISIGHHarvestDebtToken} from "../../../../interfaces/lendingProtocol/ISIGHHarvestDebtToken.sol";
+import {SafeMath} from "../../../dependencies/openzeppelin/math/SafeMath.sol";
+
 
 /**
  * @title DebtTokenBase
@@ -16,9 +18,11 @@ import {ISIGHHarvestDebtToken} from "../../../../interfaces/lendingProtocol/ISIG
 
 abstract contract DebtTokenBase is ISIGHHarvestDebtToken, IncentivizedERC20, VersionedInitializable, ICreditDelegationToken {
 
+  using SafeMath for uint256;
+
   address public immutable UNDERLYING_ASSET_ADDRESS;
   ILendingPool public immutable POOL;
-  ISIGHHarvester public immutable sighHarvester;
+  ISIGHHarvester public sighHarvester;
 
   mapping(address => mapping(address => uint256)) internal _borrowAllowances;
 
@@ -34,7 +38,7 @@ abstract contract DebtTokenBase is ISIGHHarvestDebtToken, IncentivizedERC20, Ver
    * @dev The metadata of the token will be set on the proxy, that the reason of
    * passing "NULL" and 0 as metadata
    */
-  constructor(address pool, address underlyingAssetAddress, string memory name, string memory symbol) public IncentivizedERC20(name, symbol, 18) {
+  constructor(address pool, address underlyingAssetAddress, string memory name, string memory symbol) IncentivizedERC20(name, symbol, 18) {
     POOL = ILendingPool(pool);
     UNDERLYING_ASSET_ADDRESS = underlyingAssetAddress;
   }

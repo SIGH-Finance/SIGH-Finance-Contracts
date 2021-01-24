@@ -218,7 +218,7 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
         topUp = topUp.div(100);                    // topUp = fee * multiplier, where multipler = 120 represents 1.2
         
         boosterFuelInfo[boosterID].totalFuelRemaining = boosterFuelInfo[boosterID].totalFuelRemaining.add(topUp);
-        emit _boosterTopUp( boosterID, category, optionNo, amount, topUp, boosterFuelInfo[boosterID].totalFuelRemaining);
+        emit _boosterTopUp( boosterID, optionNo, amount, topUp, boosterFuelInfo[boosterID].totalFuelRemaining);
     }
 
 

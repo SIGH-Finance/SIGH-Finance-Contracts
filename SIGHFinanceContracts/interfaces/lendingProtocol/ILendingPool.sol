@@ -21,7 +21,7 @@ interface ILendingPool {
    * @param reserveFee Reserve Fee charged
    * @param boosterID The boosterID of the Booster used to get a discount on the Fee
    **/
-  event Deposit(address indexed instrument, address indexed user,uint256 amount, uint256 platformFee, uint256 reserveFee, uint16 boosterID);
+  event Deposit(address indexed instrument, address indexed user,uint256 amount, uint256 platformFee, uint256 reserveFee, uint256 boosterID);
 
   /**
    * @dev Emitted on withdraw()
@@ -45,7 +45,7 @@ interface ILendingPool {
    * @param borrowRate The numeric rate at which the user has borrowed
    * @param boosterID The boosterID of the Booster used to get a discount on the Fee
    **/
-  event Borrow(address indexed instrument, address user, address indexed onBehalfOf, uint256 amount,  uint256 platformFee, uint256 reserveFee,  uint256 borrowRateMode, uint256 borrowRate, uint16 boosterID);
+  event Borrow(address indexed instrument, address user, address indexed onBehalfOf, uint256 amount,  uint256 platformFee, uint256 reserveFee,  uint256 borrowRateMode, uint256 borrowRate, uint256 boosterID);
 
   /**
    * @dev Emitted on repay()
@@ -54,7 +54,7 @@ interface ILendingPool {
    * @param repayer The address of the user initiating the repay(), providing the funds
    * @param amount The amount repaid
    **/
-  event Repay(address indexed instrument, address indexed user, address indexed repayer, uint256 amount);
+  event Repay(address indexed instrument, address indexed user, address indexed repayer, uint256 platformFee, uint256 reserveFee, uint256 amount);
 
   /**
    * @dev Emitted on swapBorrowRateMode()
@@ -306,7 +306,7 @@ interface ILendingPool {
 
   function getInstrumentsList() external view returns (address[] memory);
 
-  function getAddressesProvider() external view returns (IGlobalAddressesProvider);
+  function getAddressesProvider() external view returns (address);
 
   function setPause(bool val) external;
 
