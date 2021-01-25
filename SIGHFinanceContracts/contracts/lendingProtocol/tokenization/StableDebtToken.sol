@@ -86,7 +86,7 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
     vars.currentAvgStableRate = _avgStableRate = vars.currentAvgStableRate.rayMul(vars.previousSupply.wadToRay()).add(rate.rayMul(vars.amountInRay)).rayDiv(vars.nextSupply.wadToRay());
 
     sighHarvester.accureSIGHForBorrowingStream(user);
-    _mint(onBehalfOf, amount.add(balanceIncrease), vars.previousSupply);
+    _mint(onBehalfOf, amount.add(balanceIncrease));
 
     emit Transfer(address(0), onBehalfOf, amount);
     emit Mint(user, onBehalfOf, amount, currentBalance, balanceIncrease, vars.newStableRate, vars.currentAvgStableRate, vars.nextSupply);
@@ -141,13 +141,13 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
     if (balanceIncrease > amount) {
       uint256 amountToMint = balanceIncrease.sub(amount);
       sighHarvester.accureSIGHForBorrowingStream(user);
-      _mint(user, amountToMint, previousSupply);
+      _mint(user, amountToMint);
       emit Mint(user, user, amountToMint, currentBalance, balanceIncrease, userStableRate, newAvgStableRate, nextSupply);
     }
     else {
       uint256 amountToBurn = amount.sub(balanceIncrease);
       sighHarvester.accureSIGHForBorrowingStream(user);
-      _burn(user, amountToBurn, previousSupply);
+      _burn(user, amountToBurn);
       emit Burn(user, amountToBurn, currentBalance, balanceIncrease, newAvgStableRate, nextSupply);
     }
 
@@ -285,9 +285,8 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
    * @dev Mints stable debt tokens to an user
    * @param account The account receiving the debt tokens
    * @param amount The amount being minted
-   * @param oldTotalSupply the total supply before the minting event
    **/
-  function _mint(address account, uint256 amount, uint256 oldTotalSupply) internal {
+  function _mint(address account, uint256 amount) internal override {
     uint256 oldAccountBalance = _balances[account];
     _balances[account] = oldAccountBalance.add(amount);
   }
@@ -296,9 +295,8 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
    * @dev Burns stable debt tokens of an user
    * @param account The user getting his debt burned
    * @param amount The amount being burned
-   * @param oldTotalSupply The total supply before the burning event
    **/
-  function _burn(address account, uint256 amount, uint256 oldTotalSupply) internal {
+  function _burn(address account, uint256 amount) internal override {
     uint256 oldAccountBalance = _balances[account];
     _balances[account] = oldAccountBalance.sub(amount, "BURN EXCEEDS BALANCE");
   }

@@ -21,6 +21,32 @@ pragma solidity 0.7.0;
  */
 library Errors {
   //common errors
+
+  string public constant MAX_INST_LIMIT = '1';
+  string public constant PAUSED = '2';
+  string public constant FAILED = '3';
+  string public constant INVALID_RETURN = '4';
+  string public constant NOT_ALLOWED = '5';
+  string public constant NOT_CONTRACT = '6';
+  string public constant VOL_HAR_INIT_FAIL = '7';
+  string public constant IT_INIT_FAIL = '8';
+  string public constant VT_INIT_FAIL = '9';
+  string public constant ST_INIT_FAIL = '10';
+
+  string public constant Already_Supported = '11';
+  string public constant LR_INVALID = '12';
+  string public constant SR_INVALID = '13';
+  string public constant VR_INVALID = '14';
+
+  string public constant CLI_OVRFLW = '15';
+  string public constant LI_OVRFLW = '16';
+  string public constant VI_OVRFLW = '17';  
+LIQUIDITY_NOT_AVAILABLE
+LPCM_NO_ERRORS
+INCONCISTENT_BALANCE
+
+
+
   string public constant CALLER_NOT_POOL_ADMIN = '33'; // 'The caller must be the pool admin'
   string public constant BORROW_ALLOWANCE_NOT_ENOUGH = '59'; // User borrows on behalf, but allowance are too small
 

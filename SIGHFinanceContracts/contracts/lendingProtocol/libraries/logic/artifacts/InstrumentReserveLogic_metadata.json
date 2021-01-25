@@ -95,7 +95,7 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": true,
+			"enabled": false,
 			"runs": 200
 		},
 		"remappings": []
@@ -141,12 +141,20 @@
 				"dweb:/ipfs/QmXZsEZLMB3D21ExmepmZRhuz3QQBsChtkBRxZY2a3TAHh"
 			]
 		},
-		"localhost/contracts/lendingProtocol/libraries/logic/InstrumentReserveLogic.sol": {
-			"keccak256": "0x8605077ac284a7a31e911e67f568693f64ecb908844de4c7cf524ee6f8628650",
+		"localhost/contracts/lendingProtocol/libraries/helpers/Errors.sol": {
+			"keccak256": "0xa3b14dcab26a900a010db7d3fdafeec3a2da78cee07c888618e3276272e16202",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://686b4dc4f4f21809cc1d9668cdbb45bb8b1df33a30803590fdd7a308ff35f6e0",
-				"dweb:/ipfs/QmcKJcgPUNv96SScthGAv4BBqEGT4W4Z4qEVGWbZ9dDRVh"
+				"bzz-raw://a0431c285325c698bd12b45a0f8f6e2d3cc23afc3aeffedaf8979adacc79f8d0",
+				"dweb:/ipfs/QmUFVu1puHygMb2XxKdxib5xWiTWQ82KYcDv3YHxeDGxZg"
+			]
+		},
+		"localhost/contracts/lendingProtocol/libraries/logic/InstrumentReserveLogic.sol": {
+			"keccak256": "0x70ad031e86bdf6e2e07956c0ffa2422fa729fe79439818927e5189956f8bdb12",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://e9036024ea3c26cb2d7cecb2d8857f09f23c6543326fe9c6897e953780b9b3c0",
+				"dweb:/ipfs/QmTCGujAQZis2DBdokssbxucxSQXWJQRhiX3Gbb3nE2jYB"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/math/MathUtils.sol": {
@@ -181,6 +189,14 @@
 				"dweb:/ipfs/QmQSkAcgL3iPCdumSRRbq2qmhNQfiTwG9MiexSTcX7PaR2"
 			]
 		},
+		"localhost/interfaces/lendingProtocol/IFeeProviderLendingPool.sol": {
+			"keccak256": "0xc45e917e0104c0dba302a62a3421f67392efc03ab4031fd554adc9d8a5dba448",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://e4c90b7a215af22b61d92dff20bac9741dd509a8293b864976d3776e91b6f644",
+				"dweb:/ipfs/QmYP8RaPzFUNvs8txgDtbxnBEiTyMmV9e5m66d4DKFdQVh"
+			]
+		},
 		"localhost/interfaces/lendingProtocol/IIToken.sol": {
 			"keccak256": "0x445144ca336ca836500bfc787a9ce410ce5d5150fdc991aaf67ea48a99f3c378",
 			"license": "agpl-3.0",
@@ -195,6 +211,14 @@
 			"urls": [
 				"bzz-raw://0bc04dc8ace55224ec3e9f40dae1390e6beb40dfb6ba86e3237359cba672042c",
 				"dweb:/ipfs/QmYY44fSgedCn5d9CQdRnuPSUvanDeGZKgq1DwHjnYzVYB"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/ISIGHHarvestDebtToken.sol": {
+			"keccak256": "0xf2d1d2529d3e24452388f9a59c82a0ac48a79784caeff1aee7289b237377fb32",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://aad676f3d0e673c1762f859f2e64c935dd6d92d496850ecac8527d06da71df62",
+				"dweb:/ipfs/QmZP4GUMu7uerCu9369MoCCAbauCvK3M6CtfqzMZazHMyh"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IScaledBalanceToken.sol": {

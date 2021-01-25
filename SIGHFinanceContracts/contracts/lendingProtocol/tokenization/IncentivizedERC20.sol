@@ -161,7 +161,6 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
     _balances[sender] = oldSenderBalance.sub(amount, 'ERC20: transfer amount exceeds balance');
     _averageBalances[sender] = _averageBalances[sender] == 0 ? amount : _averageBalances[sender].mul(9).sub(amount).div(10);         // Average Balance Updated
 
-    uint256 oldRecipientBalance = _balances[recipient];
     _balances[recipient] = _balances[recipient].add(amount);
     _averageBalances[recipient] = _averageBalances[recipient] == 0 ? amount : _averageBalances[recipient].mul(9).add(amount).div(10);   // Average Balance Updated
   }
@@ -222,7 +221,7 @@ contract IncentivizedERC20 is Context, IERC20, IERC20Detailed {
   }
 
   // Calculates the average total supply over last 100 transactions
-  function calculateAverageTotalSupply(uint newTotalSupply) internal returns(uint256) {
+  function calculateAverageTotalSupply(uint newTotalSupply) internal view returns(uint256) {
     return averageTotalSupply == 0 ? newTotalSupply : averageTotalSupply.mul(99).add(newTotalSupply).div(100);
   }
 

@@ -17,11 +17,8 @@ interface ILendingPool {
    * @param instrument The address of the underlying asset of the instrument
    * @param user The address initiating the deposit
    * @param amount The amount deposited
-   * @param platformFee Platform Fee charged
-   * @param reserveFee Reserve Fee charged
-   * @param boosterID The boosterID of the Booster used to get a discount on the Fee
    **/
-  event Deposit(address indexed instrument, address indexed user,uint256 amount, uint256 platformFee, uint256 reserveFee, uint256 boosterID);
+  event Deposit(address indexed instrument, address indexed user,uint256 amount);
 
   /**
    * @dev Emitted on withdraw()
@@ -39,22 +36,20 @@ interface ILendingPool {
    * initiator of the transaction on flashLoan()
    * @param onBehalfOf The address that will be getting the debt
    * @param amount The amount borrowed out
-   * @param platformFee Platform Fee charged
-   * @param reserveFee Reserve Fee charged
    * @param borrowRateMode The rate mode: 1 for Stable, 2 for Variable
    * @param borrowRate The numeric rate at which the user has borrowed
-   * @param boosterID The boosterID of the Booster used to get a discount on the Fee
    **/
-  event Borrow(address indexed instrument, address user, address indexed onBehalfOf, uint256 amount,  uint256 platformFee, uint256 reserveFee,  uint256 borrowRateMode, uint256 borrowRate, uint256 boosterID);
+  event Borrow(address indexed instrument, address user, address indexed onBehalfOf, uint256 amount, uint256 borrowRateMode, uint256 borrowRate);
 
   /**
    * @dev Emitted on repay()
    * @param instrument The address of the underlying asset of the instrument
    * @param user The beneficiary of the repayment, getting his debt reduced
    * @param repayer The address of the user initiating the repay(), providing the funds
-   * @param amount The amount repaid
+   * @param loanRepaid The amount repaid
+   * @param totalFeeRepaid The total Fee repaid
    **/
-  event Repay(address indexed instrument, address indexed user, address indexed repayer, uint256 platformFee, uint256 reserveFee, uint256 amount);
+  event Repay(address indexed instrument, address indexed user, address indexed repayer, uint256 loanRepaid, uint256 totalFeeRepaid);
 
   /**
    * @dev Emitted on swapBorrowRateMode()
@@ -117,8 +112,7 @@ interface ILendingPool {
   /**
    * @dev Emitted when the state of a instrument is updated. NOTE: This event is actually declared
    * in the InstrumentLogic library and emitted in the updateInterestRates() function. Since the function is internal,
-   * the event will actually be fired by the LendingPool contract. The event is therefore replicated here so it
-   * gets added to the LendingPool ABI
+   * the event will actually be fired by the LendingPool contract. The event is therefore replicated here so it gets added to the LendingPool ABI
    * @param instrument The address of the underlying asset
    * @param liquidityRate The new liquidity rate
    * @param stableBorrowRate The new stable borrow rate
@@ -127,6 +121,40 @@ interface ILendingPool {
    * @param variableBorrowIndex The new variable borrow index
    **/
   event InstrumentDataUpdated(address indexed instrument, uint256 liquidityRate, uint256 stableBorrowRate, uint256 variableBorrowRate, uint256 liquidityIndex, uint256 variableBorrowIndex);
+
+  /**
+   * @dev Emitted on deposit()
+   * @param instrumentAddress The address of the underlying asset 
+   * @param user The address initiating the deposit
+   * @param amount The amount deposited
+   * @param platformFee Platform Fee charged
+   * @param reserveFee Reserve Fee charged
+   * @param _boosterId The boosterID of the Booster used to get a discount on the Fee
+   **/
+  event depositFeeDeducted(address instrumentAddress, address user, uint amount, uint256 platformFee, uint256 reserveFee, uint16 _boosterId);
+  
+  /**
+   * @dev Emitted on borrow() and flashLoan() when debt needs to be opened
+   * @param instrumentAddress The address of the underlying asset being borrowed
+   * @param user The address that will be getting the debt
+   * @param amount The amount borrowed out
+   * @param platformFee Platform Fee charged
+   * @param reserveFee Reserve Fee charged
+   * @param _boosterId The boosterID of the Booster used to get a discount on the Fee
+   **/  
+  event borrowFeeUpdated(address instrumentAddress, address user, uint256 amount, uint256 platformFee, uint256 reserveFee, uint16 _boosterId);
+
+  /**
+   * @dev Emitted on borrow() and flashLoan() when debt needs to be opened
+   * @param instrumentAddress The address of the underlying asset being borrowed
+   * @param user The address repaying the amount
+   * @param onBehalfOf The user whose debt is being repaid
+   * @param amount The amount borrowed out
+   * @param platformFeePay Platform Fee paid
+   * @param reserveFeePay Reserve Fee paid
+   **/  
+  event feeRepaid(address instrumentAddress, address user, address onBehalfOf, uint256 amount, uint256 platformFeePay, uint256 reserveFeePay);
+
 
 
     //#########################################
@@ -144,7 +172,7 @@ interface ILendingPool {
    * @param amount The amount to be deposited
    * @param boosterID of the Booster used to get a discount on the Fee. 0 if no Booster NFT available
    **/
-  function deposit(address asset, uint256 amount, uint256 boosterID) external;
+  function deposit(address asset, uint256 amount, uint16 boosterID) external;
 
   /**
    * @dev Withdraws an `amount` of underlying asset, burning the equivalent iTokens owned
@@ -266,7 +294,7 @@ interface ILendingPool {
 
   function getInstrumentConfiguration(address asset) external view returns ( DataTypes.InstrumentConfigurationMap memory );
 
-  function initInstrument(address asset,address iTokenAddress, address stableDebtAddress, address variableDebtAddress, address _SIGHHarvesterProxyAddress, address interestRateStrategyAddress, uint8 underlyingAssetDecimals) external;
+  function initInstrument(address asset,address iTokenAddress, address stableDebtAddress, address variableDebtAddress, address interestRateStrategyAddress) external;
 
   function setInstrumentInterestRateStrategyAddress(address instrument, address rateStrategyAddress) external;
 
@@ -307,5 +335,7 @@ interface ILendingPool {
   function getInstrumentsList() external view returns (address[] memory);
 
   function setPause(bool val) external;
+
+
 
 }

@@ -46,7 +46,7 @@
 		"gasEstimates": null,
 		"methodIdentifiers": {
 			"borrow(address,uint256,uint256,uint16,address)": "a415bcad",
-			"deposit(address,uint256,uint256)": "0efe6a8b",
+			"deposit(address,uint256,uint16)": "d2d0e066",
 			"finalizeTransfer(address,address,address,uint256,uint256,uint256)": "d5ed3933",
 			"flashLoan(address,address[],uint256[],uint256[],address,bytes,uint16)": "ab9c4b5d",
 			"getInstrumentConfiguration(address)": "c619adac",
@@ -56,7 +56,7 @@
 			"getInstrumentsList()": "df9ac432",
 			"getUserAccountData(address)": "bf92857c",
 			"getUserConfiguration(address)": "4417a583",
-			"initInstrument(address,address,address,address,address,address,uint8)": "f2210dfc",
+			"initInstrument(address,address,address,address,address)": "570b0b74",
 			"liquidationCall(address,address,address,uint256,bool)": "00a718a9",
 			"rebalanceStableBorrowRate(address,address)": "cd112382",
 			"refreshConfig()": "7c55ccb3",
@@ -100,18 +100,6 @@
 				{
 					"indexed": false,
 					"internalType": "uint256",
-					"name": "platformFee",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "reserveFee",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
 					"name": "borrowRateMode",
 					"type": "uint256"
 				},
@@ -119,12 +107,6 @@
 					"indexed": false,
 					"internalType": "uint256",
 					"name": "borrowRate",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "boosterID",
 					"type": "uint256"
 				}
 			],
@@ -150,24 +132,6 @@
 					"indexed": false,
 					"internalType": "uint256",
 					"name": "amount",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "platformFee",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "reserveFee",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "boosterID",
 					"type": "uint256"
 				}
 			],
@@ -396,19 +360,13 @@
 				{
 					"indexed": false,
 					"internalType": "uint256",
-					"name": "platformFee",
+					"name": "loanRepaid",
 					"type": "uint256"
 				},
 				{
 					"indexed": false,
 					"internalType": "uint256",
-					"name": "reserveFee",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "amount",
+					"name": "totalFeeRepaid",
 					"type": "uint256"
 				}
 			],
@@ -478,6 +436,135 @@
 			"type": "event"
 		},
 		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "instrumentAddress",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "user",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "platformFee",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "reserveFee",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint16",
+					"name": "_boosterId",
+					"type": "uint16"
+				}
+			],
+			"name": "borrowFeeUpdated",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "instrumentAddress",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "user",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "platformFee",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "reserveFee",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint16",
+					"name": "_boosterId",
+					"type": "uint16"
+				}
+			],
+			"name": "depositFeeDeducted",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "instrumentAddress",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "user",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "onBehalfOf",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "platformFeePay",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "reserveFeePay",
+					"type": "uint256"
+				}
+			],
+			"name": "feeRepaid",
+			"type": "event"
+		},
+		{
 			"inputs": [
 				{
 					"internalType": "address",
@@ -523,9 +610,9 @@
 					"type": "uint256"
 				},
 				{
-					"internalType": "uint256",
+					"internalType": "uint16",
 					"name": "boosterID",
-					"type": "uint256"
+					"type": "uint16"
 				}
 			],
 			"name": "deposit",
@@ -878,18 +965,8 @@
 				},
 				{
 					"internalType": "address",
-					"name": "_SIGHHarvesterProxyAddress",
-					"type": "address"
-				},
-				{
-					"internalType": "address",
 					"name": "interestRateStrategyAddress",
 					"type": "address"
-				},
-				{
-					"internalType": "uint8",
-					"name": "underlyingAssetDecimals",
-					"type": "uint8"
 				}
 			],
 			"name": "initInstrument",

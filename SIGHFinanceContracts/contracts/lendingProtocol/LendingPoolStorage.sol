@@ -18,7 +18,7 @@ contract LendingPoolStorage {
 
   IGlobalAddressesProvider internal addressesProvider;
   ISIGHVolatilityHarvesterLendingPool internal sighVolatilityHarvester;
-  IFeeProviderLendingPool internal feeProvider;
+  address internal feeProvider;
 
   address internal sighPayAggregator;
   address internal platformFeeCollector;

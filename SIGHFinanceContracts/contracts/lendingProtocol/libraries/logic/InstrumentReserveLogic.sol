@@ -16,6 +16,10 @@ import {IInstrumentInterestRateStrategy} from "../../../../interfaces/lendingPro
 import {IVariableDebtToken} from "../../../../interfaces/lendingProtocol/IVariableDebtToken.sol";
 import {IStableDebtToken} from "../../../../interfaces/lendingProtocol/IStableDebtToken.sol";
 import {IIToken} from "../../../../interfaces/lendingProtocol/IIToken.sol";
+import {IFeeProviderLendingPool} from "../../../../interfaces/lendingProtocol/IFeeProviderLendingPool.sol";
+import {ISIGHHarvestDebtToken} from "../../../../interfaces/lendingProtocol/ISIGHHarvestDebtToken.sol";
+
+import {Errors} from '../helpers/Errors.sol';
 
 
 /**
@@ -105,7 +109,7 @@ library InstrumentReserveLogic {
         uint256 result = amountToLiquidityRatio.add(WadRayMath.ray());
 
         result = result.rayMul(instrument.liquidityIndex);
-        require(result <= type(uint128).max, "Cumulating Indexes : Liquidity Index overflow error");
+        require(result <= type(uint128).max, Errors.CLI_OVRFLW);
 
         instrument.liquidityIndex = uint128(result);
     }
@@ -117,7 +121,7 @@ library InstrumentReserveLogic {
     * @param interestRateStrategyAddress The address of the interest rate strategy contract
     **/
     function init( DataTypes.InstrumentData storage instrument, address iTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress) external {
-        require(instrument.iTokenAddress == address(0), "The underlying instrument is already supported by SIGH Finance's lending protocol");
+        require(instrument.iTokenAddress == address(0), Errors.Already_Supported);
 
         instrument.liquidityIndex = uint128(WadRayMath.ray());
         instrument.variableBorrowIndex = uint128(WadRayMath.ray());
@@ -163,9 +167,9 @@ library InstrumentReserveLogic {
                                                                                                                                                 vars.avgStableRate,
                                                                                                                                                 instrument.configuration.getReserveFactor()
                                                                                                                                             );
-        require(vars.newLiquidityRate <= type(uint128).max, "Updated Liquidity Rate not valid");
-        require(vars.newStableRate <= type(uint128).max, "Updated Liquidity Rate not valid");
-        require(vars.newVariableRate <= type(uint128).max, "Updated Liquidity Rate not valid");
+        require(vars.newLiquidityRate <= type(uint128).max, Errors.LR_INVALID);
+        require(vars.newStableRate <= type(uint128).max, Errors.SR_INVALID);
+        require(vars.newVariableRate <= type(uint128).max, Errors.VR_INVALID);
 
         instrument.currentLiquidityRate = uint128(vars.newLiquidityRate);
         instrument.currentStableBorrowRate = uint128(vars.newStableRate);
@@ -241,20 +245,62 @@ library InstrumentReserveLogic {
         if (currentLiquidityRate > 0) {
             uint256 cumulatedLiquidityInterest = MathUtils.calculateLinearInterest(currentLiquidityRate, timestamp);
             newLiquidityIndex = cumulatedLiquidityInterest.rayMul(liquidityIndex);
-            require(newLiquidityIndex <= type(uint128).max, "Updating Indexes : Liquidity Index overflow error");
+            require(newLiquidityIndex <= type(uint128).max, Errors.LI_OVRFLW);
             instrument.liquidityIndex = uint128(newLiquidityIndex);
 
             //as the liquidity rate might come only from stable rate loans, we need to ensure that there is actual variable debt before accumulating
             if (scaledVariableDebt != 0) {
                 uint256 cumulatedVariableBorrowInterest = MathUtils.calculateCompoundedInterest(instrument.currentVariableBorrowRate, timestamp);
                 newVariableBorrowIndex = cumulatedVariableBorrowInterest.rayMul(variableBorrowIndex);
-                require( newVariableBorrowIndex <= type(uint128).max, "Updating Indexes : Variable Borrow Index overflow error" );
+                require( newVariableBorrowIndex <= type(uint128).max, Errors.VI_OVRFLW );
                 instrument.variableBorrowIndex = uint128(newVariableBorrowIndex);
             }
         }
 
         instrument.lastUpdateTimestamp = uint40(block.timestamp);
         return (newLiquidityIndex, newVariableBorrowIndex);
+    }
+
+    function deductFeeOnDeposit(DataTypes.InstrumentData storage instrument,address user, address instrumentAddress, uint amount, address platformFeeCollector, address sighPayAggregator, uint16 _boosterId, address feeProvider ) internal returns(uint) {
+        (uint256 totalFee, uint256 platformFee, uint256 reserveFee) = IFeeProviderLendingPool(feeProvider).calculateDepositFee(user,instrumentAddress, amount, _boosterId);
+        if (platformFee > 0 && platformFeeCollector != address(0) ) {
+            IERC20(instrumentAddress).safeTransferFrom( user, platformFeeCollector, platformFee );
+        }
+        if (reserveFee > 0 && sighPayAggregator  != address(0) ) {
+            IERC20(instrumentAddress).safeTransferFrom( user, sighPayAggregator, reserveFee );
+        }
+        // emit depositFeeDeducted(instrumentAddress, user, amount, platformFee, reserveFee, _boosterId);
+        return totalFee;
+    }
+
+    function updateFeeOnBorrow(DataTypes.InstrumentData storage instrument,address user, address instrumentAddress, uint amount,uint16 _boosterId, address feeProvider ) internal {
+        (uint platformFee, uint reserveFee) = IFeeProviderLendingPool(feeProvider).calculateBorrowFee(user ,instrumentAddress, amount, _boosterId);
+        ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(user,platformFee,0);
+        ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(user,reserveFee,0);
+        // emit borrowFeeUpdated(user,instrumentAddress, amount, platformFee, reserveFee, _boosterId);
+    }
+
+    function updateFeeOnRepay(DataTypes.InstrumentData storage instrument,address user, address onBehalfOf, address instrumentAddress, uint amount, address platformFeeCollector, address sighPayAggregator) internal returns(uint, uint) {
+        uint platformFee = ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).getPlatformFee(onBehalfOf);    // getting platfrom Fee
+        uint reserveFee = ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).getReserveFee(onBehalfOf);     // getting reserve Fee
+        uint reserveFeePay; uint platformFeePay;
+        // PAY PLATFORM FEE
+        if ( platformFee > 0) {
+            platformFeePay =  amount >= platformFee ? platformFee : amount;
+            IERC20(instrumentAddress).safeTransferFrom( user, platformFeeCollector, platformFeePay );   // Platform Fee transferred
+            amount = amount.sub(platformFeePay);  // Update amount
+            ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(onBehalfOf,0,platformFeePay);
+        }
+        // PAY RESERVE FEE
+        if (reserveFee > 0 && amount > 0) {
+            reserveFeePay =  amount > reserveFee ? reserveFee : amount;
+            IERC20(instrumentAddress).safeTransferFrom( user, sighPayAggregator, reserveFeePay );       // Reserve Fee transferred
+            amount = amount.sub(reserveFeePay);  // Update payback amount
+            ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(onBehalfOf,0,reserveFeePay);
+        }
+
+        // emit feeRepaid(instrumentAddress,user,onBehalfOf, amount, platformFeePay, reserveFeePay);
+        return (amount, platformFeePay.add(reserveFeePay));
     }
 
 

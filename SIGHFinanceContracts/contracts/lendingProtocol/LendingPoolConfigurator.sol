@@ -125,6 +125,13 @@ contract LendingPoolConfigurator is VersionedInitializable  {
     currentConfig.setFrozen(false);
     pool.setConfiguration(asset, currentConfig.data);
 
+
+    require( sighVolatilityHarvester.addInstrument( asset, iTokenAddress,stableDebtAddress, variableDebtAddress, _SIGHHarvesterProxyAddress, underlyingAssetDecimals ), Errors.VOL_HAR_INIT_FAIL ); // ADDED BY SIGH FINANCE
+    require( ISIGHHarvestDebtToken(iTokenAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), Errors.IT_INIT_FAIL );
+    require( ISIGHHarvestDebtToken(variableDebtAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), Errors.VT_INIT_FAIL);
+    require( ISIGHHarvestDebtToken(stableDebtAddress).setSIGHHarvesterAddress( _SIGHHarvesterProxyAddress ), Errors.ST_INIT_FAIL );
+
+
     emit InstrumentInitialized(asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress, SIGHHarvesterProxyAddress, interestRateStrategyAddress, underlyingAssetDecimals);
   }
     

@@ -26,8 +26,8 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": true,
-			"runs": 1000
+			"enabled": false,
+			"runs": 200
 		},
 		"remappings": []
 	},
@@ -65,11 +65,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/LendingPoolStorage.sol": {
-			"keccak256": "0xaad29d509a8d7ecfe3f8243cc86066a464da5cf627d278791187eea061a597d0",
+			"keccak256": "0x67cdc41471543558b903d5b28eb1fb4d403d7383a0375622ba4be7cc1707e302",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://98af271729ce355f6317e0e8ff7d29efb3d154580a14e392962a697a0b0969f7",
-				"dweb:/ipfs/QmeczgKwSLaDoaKA7mPD4VjtGyN7Go6HhTeL71fmiNcBSY"
+				"bzz-raw://f0a066941dc778bc9b3309347e8e804e5f3291858244e2464b5b9426570dfd6f",
+				"dweb:/ipfs/QmR88oNXWzqpGePGLF7Zrb3bvnRQx4oFFyBgD1WihYfJdb"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/configuration/InstrumentConfiguration.sol": {
@@ -89,11 +89,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/logic/InstrumentReserveLogic.sol": {
-			"keccak256": "0x8605077ac284a7a31e911e67f568693f64ecb908844de4c7cf524ee6f8628650",
+			"keccak256": "0x3046c67fb658d58b079d38969e462f5952258fa67a10463f5413f9b6550e2589",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://686b4dc4f4f21809cc1d9668cdbb45bb8b1df33a30803590fdd7a308ff35f6e0",
-				"dweb:/ipfs/QmcKJcgPUNv96SScthGAv4BBqEGT4W4Z4qEVGWbZ9dDRVh"
+				"bzz-raw://1cb7f7c5ea155c5607949bfaff1736cc90527089ec563ed305c7e3f0e2e62948",
+				"dweb:/ipfs/QmPXXvJn592pcbZWtLw6mTy4mwuJgtQyeRVBVppgG3jewX"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/math/MathUtils.sol": {
@@ -158,6 +158,14 @@
 			"urls": [
 				"bzz-raw://0bc04dc8ace55224ec3e9f40dae1390e6beb40dfb6ba86e3237359cba672042c",
 				"dweb:/ipfs/QmYY44fSgedCn5d9CQdRnuPSUvanDeGZKgq1DwHjnYzVYB"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/ISIGHHarvestDebtToken.sol": {
+			"keccak256": "0xf2d1d2529d3e24452388f9a59c82a0ac48a79784caeff1aee7289b237377fb32",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://aad676f3d0e673c1762f859f2e64c935dd6d92d496850ecac8527d06da71df62",
+				"dweb:/ipfs/QmZP4GUMu7uerCu9369MoCCAbauCvK3M6CtfqzMZazHMyh"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/ISIGHVolatilityHarvesterLendingPool.sol": {

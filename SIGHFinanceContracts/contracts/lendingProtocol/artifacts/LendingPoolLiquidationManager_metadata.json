@@ -338,11 +338,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/LendingPoolStorage.sol": {
-			"keccak256": "0x02ef2189276c5e8363fed88a545877fa1a012131dc796877aaa0b60a3f65c154",
+			"keccak256": "0x67cdc41471543558b903d5b28eb1fb4d403d7383a0375622ba4be7cc1707e302",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://32e1710a1e3cb4ad520baae6f19597ef233f9d563c5fa908d86c874e0c1f4eb2",
-				"dweb:/ipfs/QmNU6Gv4FKKRb7kAp9fKpQxfUmZzkuWyU12QHbD8FW9vB9"
+				"bzz-raw://f0a066941dc778bc9b3309347e8e804e5f3291858244e2464b5b9426570dfd6f",
+				"dweb:/ipfs/QmR88oNXWzqpGePGLF7Zrb3bvnRQx4oFFyBgD1WihYfJdb"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/configuration/InstrumentConfiguration.sol": {
@@ -362,11 +362,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/helpers/Errors.sol": {
-			"keccak256": "0xdabbb9a872e3c05eb19408f3b6df3f349cc01b74204cbfa84d6dbd914a3fb3da",
+			"keccak256": "0xa3b14dcab26a900a010db7d3fdafeec3a2da78cee07c888618e3276272e16202",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://89617f32829cff4df237e2fde5c15d8e3dcbb9b346a8094059034a5a926c4368",
-				"dweb:/ipfs/QmdAkfros9Dcz8YKoVvFE3BmhsTTeTAuEk3nowHC6sWG2n"
+				"bzz-raw://a0431c285325c698bd12b45a0f8f6e2d3cc23afc3aeffedaf8979adacc79f8d0",
+				"dweb:/ipfs/QmUFVu1puHygMb2XxKdxib5xWiTWQ82KYcDv3YHxeDGxZg"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/helpers/Helpers.sol": {
@@ -386,11 +386,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/logic/InstrumentReserveLogic.sol": {
-			"keccak256": "0x8605077ac284a7a31e911e67f568693f64ecb908844de4c7cf524ee6f8628650",
+			"keccak256": "0x70ad031e86bdf6e2e07956c0ffa2422fa729fe79439818927e5189956f8bdb12",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://686b4dc4f4f21809cc1d9668cdbb45bb8b1df33a30803590fdd7a308ff35f6e0",
-				"dweb:/ipfs/QmcKJcgPUNv96SScthGAv4BBqEGT4W4Z4qEVGWbZ9dDRVh"
+				"bzz-raw://e9036024ea3c26cb2d7cecb2d8857f09f23c6543326fe9c6897e953780b9b3c0",
+				"dweb:/ipfs/QmTCGujAQZis2DBdokssbxucxSQXWJQRhiX3Gbb3nE2jYB"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/logic/ValidationLogic.sol": {
@@ -449,20 +449,20 @@
 				"dweb:/ipfs/QmSWGjXonfFRnCKbKRwgkhwf4ReoTEUrdo54ZCvX1bG7e4"
 			]
 		},
-		"localhost/interfaces/SIGHContracts/ISIGHVolatilityHarvester.sol": {
-			"keccak256": "0x6c55782212ddd855b4dd3359be2823af65050a7de49b1d39f49f55e3a077eac4",
-			"license": "agpl-3.0",
-			"urls": [
-				"bzz-raw://9aa86423c6bb17b9a5d8adcdb2319d9f4b4a9bd578591f25f736382ad8ea4dba",
-				"dweb:/ipfs/QmavrY52TXuEsrueGRwZyyQyuA9WPr28GM3ox27FKdRkH2"
-			]
-		},
 		"localhost/interfaces/lendingProtocol/IFeeProvider.sol": {
 			"keccak256": "0xe7e505a2d0f39e9a8c39dabb0188d4291a9184db3916d7227a68e9d5e95d53fc",
 			"license": "agpl-3.0",
 			"urls": [
 				"bzz-raw://8543e3012eddfdd8c7f58a0fcafdb21ffc6ae516843744c7d125da00b1238a29",
 				"dweb:/ipfs/QmRTVHTjYKJ9qDJkWX59phnZDVLU1dBBJBX5V9LrwXTW9q"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/IFeeProviderLendingPool.sol": {
+			"keccak256": "0xc45e917e0104c0dba302a62a3421f67392efc03ab4031fd554adc9d8a5dba448",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://e4c90b7a215af22b61d92dff20bac9741dd509a8293b864976d3776e91b6f644",
+				"dweb:/ipfs/QmYP8RaPzFUNvs8txgDtbxnBEiTyMmV9e5m66d4DKFdQVh"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IIToken.sol": {
@@ -495,6 +495,14 @@
 			"urls": [
 				"bzz-raw://aad676f3d0e673c1762f859f2e64c935dd6d92d496850ecac8527d06da71df62",
 				"dweb:/ipfs/QmZP4GUMu7uerCu9369MoCCAbauCvK3M6CtfqzMZazHMyh"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/ISIGHVolatilityHarvesterLendingPool.sol": {
+			"keccak256": "0x25f4643a796bcee484cbf64b97a669f6aaa611f27f5eacf44dbee3a2d625dcc2",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://4d5c2f9f1484a892ee73151d51666c76109f0e800ad8a3887aaebf36bf8c0c94",
+				"dweb:/ipfs/QmT4DphcW3uvSnLkZjgd4mSs6q4g2b3RKBV5XjHKUyZujQ"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IScaledBalanceToken.sol": {

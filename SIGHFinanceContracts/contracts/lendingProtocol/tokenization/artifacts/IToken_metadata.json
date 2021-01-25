@@ -1,0 +1,1225 @@
+{
+	"compiler": {
+		"version": "0.7.0+commit.9e61f92b"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "contract ILendingPool",
+						"name": "pool",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "underlyingAssetAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "tokenName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "tokenSymbol",
+						"type": "string"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "spender",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					}
+				],
+				"name": "Approval",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "BalanceTransfer",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "target",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "Burn",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "Mint",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					}
+				],
+				"name": "Transfer",
+				"type": "event"
+			},
+			{
+				"inputs": [],
+				"name": "DOMAIN_SEPARATOR",
+				"outputs": [
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "EIP712_REVISION",
+				"outputs": [
+					{
+						"internalType": "bytes",
+						"name": "",
+						"type": "bytes"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "IToken_REVISION",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "PERMIT_TYPEHASH",
+				"outputs": [
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "POOL",
+				"outputs": [
+					{
+						"internalType": "contract ILendingPool",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "UINT_MAX_VALUE",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "UNDERLYING_ASSET_ADDRESS",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "_averageBalanceOf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "_nonces",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "spender",
+						"type": "address"
+					}
+				],
+				"name": "allowance",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "spender",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "approve",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "averageBalanceOf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "balanceOf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "receiverOfUnderlying",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "burn",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "claimMySIGH",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address[]",
+						"name": "users",
+						"type": "address[]"
+					}
+				],
+				"name": "claimSIGH",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "decimals",
+				"outputs": [
+					{
+						"internalType": "uint8",
+						"name": "",
+						"type": "uint8"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "spender",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "subtractedValue",
+						"type": "uint256"
+					}
+				],
+				"name": "decreaseAllowance",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAverageTotalSupply",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "getScaledUserBalanceAndSupply",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "getSighAccured",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "spender",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "addedValue",
+						"type": "uint256"
+					}
+				],
+				"name": "increaseAllowance",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "underlyingAssetDecimals",
+						"type": "uint8"
+					},
+					{
+						"internalType": "string",
+						"name": "tokenName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "tokenSymbol",
+						"type": "string"
+					}
+				],
+				"name": "initialize",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "mint",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "sighPayAggregator",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "mintToTreasury",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "name",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "spender",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "deadline",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint8",
+						"name": "v",
+						"type": "uint8"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "r",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "s",
+						"type": "bytes32"
+					}
+				],
+				"name": "permit",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "scaledBalanceOf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "scaledTotalSupply",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_SIGHHarvesterAddress",
+						"type": "address"
+					}
+				],
+				"name": "setSIGHHarvesterAddress",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "sighHarvester",
+				"outputs": [
+					{
+						"internalType": "contract ISIGHHarvester",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "symbol",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "totalSupply",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "transfer",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "transferFrom",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					}
+				],
+				"name": "transferOnLiquidation",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "target",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "transferUnderlyingTo",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"author": "_astromartian",
+			"details": "Implementation of the interest bearing token for the Aave protocol",
+			"kind": "dev",
+			"methods": {
+				"_averageBalanceOf(address)": {
+					"returns": {
+						"_0": "The average balance of the token*"
+					}
+				},
+				"allowance(address,address)": {
+					"details": "Returns the allowance of spender on the tokens owned by owner",
+					"params": {
+						"owner": "The owner of the tokens",
+						"spender": "The user allowed to spend the owner's tokens"
+					},
+					"returns": {
+						"_0": "The amount of owner's tokens spender is allowed to spend*"
+					}
+				},
+				"approve(address,uint256)": {
+					"details": "Allows `spender` to spend the tokens owned by _msgSender()",
+					"params": {
+						"spender": "The user allowed to spend _msgSender() tokens"
+					},
+					"returns": {
+						"_0": "`true`*"
+					}
+				},
+				"balanceOf(address)": {
+					"details": "Calculates the balance of the user: principal balance + interest generated by the principal",
+					"params": {
+						"user": "The user whose balance is calculated"
+					},
+					"returns": {
+						"_0": "The balance of the user*"
+					}
+				},
+				"burn(address,address,uint256,uint256)": {
+					"details": "Burns ITokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying` - Only callable by the LendingPool, as extra state updates there need to be managed",
+					"params": {
+						"amount": "The amount being burned",
+						"index": "The new liquidity index of the reserve*",
+						"receiverOfUnderlying": "The address that will receive the underlying",
+						"user": "The owner of the ITokens, getting them burned"
+					}
+				},
+				"decimals()": {
+					"returns": {
+						"_0": "The decimals of the token*"
+					}
+				},
+				"decreaseAllowance(address,uint256)": {
+					"details": "Decreases the allowance of spender to spend _msgSender() tokens",
+					"params": {
+						"spender": "The user allowed to spend on behalf of _msgSender()",
+						"subtractedValue": "The amount being subtracted to the allowance"
+					},
+					"returns": {
+						"_0": "`true`*"
+					}
+				},
+				"getAverageTotalSupply()": {
+					"returns": {
+						"_0": "The averaged total supply of the token, requried by the SIGH Volatility harvester*"
+					}
+				},
+				"getScaledUserBalanceAndSupply(address)": {
+					"details": "Returns the scaled balance of the user and the scaled total supply.",
+					"params": {
+						"user": "The address of the user"
+					},
+					"returns": {
+						"_0": "The scaled balance of the user",
+						"_1": "The scaled balance and the scaled total supply*"
+					}
+				},
+				"increaseAllowance(address,uint256)": {
+					"details": "Increases the allowance of spender to spend _msgSender() tokens",
+					"params": {
+						"addedValue": "The amount being added to the allowance",
+						"spender": "The user allowed to spend on behalf of _msgSender()"
+					},
+					"returns": {
+						"_0": "`true`*"
+					}
+				},
+				"mint(address,uint256,uint256)": {
+					"details": "Mints `amount` ITokens to `user` - Only callable by the LendingPool, as extra state updates there need to be managed",
+					"params": {
+						"amount": "The amount of tokens getting minted",
+						"index": "The new liquidity index of the reserve",
+						"user": "The address receiving the minted tokens"
+					},
+					"returns": {
+						"_0": "`true` if the the previous balance of the user was 0"
+					}
+				},
+				"mintToTreasury(uint256,address,uint256)": {
+					"details": "Mints ITokens to the reserve treasury - Only callable by the LendingPool",
+					"params": {
+						"amount": "The amount of tokens getting minted",
+						"index": "The new liquidity index of the reserve"
+					}
+				},
+				"name()": {
+					"returns": {
+						"_0": "The name of the token*"
+					}
+				},
+				"permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": {
+					"details": "implements the permit function as for https://github.com/ethereum/EIPs/blob/8a34d644aacf0f9f8f00815307fd7dd5da07655f/EIPS/eip-2612.md",
+					"params": {
+						"deadline": "The deadline timestamp, type(uint256).max for max deadline",
+						"owner": "The owner of the funds",
+						"r": "Signature param",
+						"s": "Signature param",
+						"spender": "The spender",
+						"v": "Signature param",
+						"value": "The amount"
+					}
+				},
+				"scaledBalanceOf(address)": {
+					"details": "Returns the scaled balance of the user. The scaled balance is the sum of all the updated stored balance divided by the reserve's liquidity index at the moment of the update",
+					"params": {
+						"user": "The user whose balance is calculated"
+					},
+					"returns": {
+						"_0": "The scaled balance of the user*"
+					}
+				},
+				"scaledTotalSupply()": {
+					"details": "Returns the scaled total supply of the variable debt token. Represents sum(debt/index)",
+					"returns": {
+						"_0": "the scaled total supply*"
+					}
+				},
+				"setSIGHHarvesterAddress(address)": {
+					"details": "Sets the SIGH Harvester Proxy Contract Address",
+					"params": {
+						"_SIGHHarvesterAddress": "The SIGH Harvester Proxy Contract Address"
+					},
+					"returns": {
+						"_0": "The amount transferred*"
+					}
+				},
+				"symbol()": {
+					"returns": {
+						"_0": "The symbol of the token*"
+					}
+				},
+				"totalSupply()": {
+					"details": "calculates the total supply of the specific IToken since the balance of every single user increases over time, the total supply does that too.",
+					"returns": {
+						"_0": "the current total supply*"
+					}
+				},
+				"transfer(address,uint256)": {
+					"details": "Executes a transfer of tokens from _msgSender() to recipient",
+					"params": {
+						"amount": "The amount of tokens being transferred",
+						"recipient": "The recipient of the tokens"
+					},
+					"returns": {
+						"_0": "`true` if the transfer succeeds, `false` otherwise*"
+					}
+				},
+				"transferFrom(address,address,uint256)": {
+					"details": "Executes a transfer of token from sender to recipient, if _msgSender() is allowed to do so",
+					"params": {
+						"amount": "The amount of tokens being transferred",
+						"recipient": "The recipient of the tokens",
+						"sender": "The owner of the tokens"
+					},
+					"returns": {
+						"_0": "`true` if the transfer succeeds, `false` otherwise*"
+					}
+				},
+				"transferOnLiquidation(address,address,uint256)": {
+					"details": "Transfers ITokens in the event of a borrow being liquidated, in case the liquidators reclaims the IToken - Only callable by the LendingPool",
+					"params": {
+						"from": "The address getting liquidated, current owner of the ITokens",
+						"to": "The recipient",
+						"value": "The amount of tokens getting transferred*"
+					}
+				},
+				"transferUnderlyingTo(address,uint256)": {
+					"details": "Transfers the underlying asset to `target`. Used by the LendingPool to transfer assets in borrow(), withdraw() and flashLoan()",
+					"params": {
+						"amount": "The amount getting transferred",
+						"target": "The recipient of the ITokens"
+					},
+					"returns": {
+						"_0": "The amount transferred*"
+					}
+				}
+			},
+			"title": "ERC20 IToken (built upon Aave's AToken)",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/lendingProtocol/tokenization/IToken.sol": "IToken"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/dependencies/openzeppelin/GSN/Context.sol": {
+			"keccak256": "0x910a2e625b71168563edf9eeef55a50d6d699acfe27ceba3921f291829a8f938",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://248246ac66e6479dce1ad7d4945ec5540c98ceb09881e93c93f7c48d5772925c",
+				"dweb:/ipfs/QmXr8tmUiZgEYid6ixeeBRmTdUnASWjKzhP3KRxMPy8fRt"
+			]
+		},
+		"localhost/contracts/dependencies/openzeppelin/math/SafeMath.sol": {
+			"keccak256": "0xba96bc371ba999f452985a98717cca1e4c4abb598dc038a9a9c3db08129b1ba4",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://26e50e3f7b6482fb6f598f2e006994a74aa492687daa4b3eee7fd4fb5398ce7f",
+				"dweb:/ipfs/QmZudqoPSkA4USLMFsBBmt19dDPZFS8aaAmL5R7pECXu6t"
+			]
+		},
+		"localhost/contracts/dependencies/openzeppelin/token/ERC20/IERC20.sol": {
+			"keccak256": "0xbd74f587ab9b9711801baf667db1426e4a03fd2d7f15af33e0e0d0394e7cef76",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://2d0913dfbfce90d170df0d496ad7596c0778518e5fa7aba6c32562522546f66b",
+				"dweb:/ipfs/QmR6B8nLj2PJf5e1JWD9Nk7ErkAwkqUwadCnvE82FJr1RU"
+			]
+		},
+		"localhost/contracts/dependencies/openzeppelin/token/ERC20/IERC20Detailed.sol": {
+			"keccak256": "0x236309ced96407394e23b83516269b6e85c33eeb2a612a1ce2a28b360be56137",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://d2cffdab41e503c7937d9bfe2ce0e69b8333dfb849d2ac36333e5322da4e466c",
+				"dweb:/ipfs/QmbpDyDVfUpV7i2QjsUr8wQD7oQGjzyT2yQBoJsSqxXg23"
+			]
+		},
+		"localhost/contracts/dependencies/openzeppelin/token/ERC20/SafeERC20.sol": {
+			"keccak256": "0xc77dd6233a82c7c6e3dc49da8f3456baa00ecd3ea4dfa9222002a9aebf155dcd",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8e5f78a5b3e707177aa47371e008a54b83dbd28a52055d1746534502b010c21b",
+				"dweb:/ipfs/Qmeqfky5DvkMZZY3RtP6kYhFD5bZrPAMVPbqkwWhoUjZ3u"
+			]
+		},
+		"localhost/contracts/dependencies/openzeppelin/utils/Address.sol": {
+			"keccak256": "0x799dadcc9be20dc638f07336056f790f144b3f647b9f3c89c52af37c1be4794d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://c040ca0e11f4e9441f2307e3e70fac72b96c2394533c07eda42c40db26746e97",
+				"dweb:/ipfs/QmYGoQR56HmoBEpJo5bW7gWUXiejbxvBpeCt8dYsP79XWb"
+			]
+		},
+		"localhost/contracts/dependencies/upgradability/VersionedInitializable.sol": {
+			"keccak256": "0x4a35b2722384972abf8ca6f83a2e421262a88b2ddd56f92a2d4cc06f9c492743",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://5508cf15f58a8daaabd2d36b3808f89fde29b644aad0a3f642e396a7ec10e5b1",
+				"dweb:/ipfs/QmX7wV9twUVAmToFtfbizsXNiCydAxgEaRcgFuuSwdG47w"
+			]
+		},
+		"localhost/contracts/lendingProtocol/libraries/math/WadRayMath.sol": {
+			"keccak256": "0x504b929ff88e2fb5b300561d6e7a028c0761213537c6fc78fbcff1eca4e0f7ed",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://fabb2f931112a03593460ae730308803b8c3ced8c174a0a4791fb5c8b5e2fbe9",
+				"dweb:/ipfs/QmXApJYKEdDu7CFcfKpn2Ap9wAraxu62ZvfnDfDm3ejfHN"
+			]
+		},
+		"localhost/contracts/lendingProtocol/libraries/types/DataTypes.sol": {
+			"keccak256": "0x49156a840c4dcecea3da7e5949445ba724f374a54df7d2f60e33391f50b99581",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://37b3f5d93949cece243196e40eb06734ccea9e4d3fe4e95bb883d1c4077ba614",
+				"dweb:/ipfs/QmQSkAcgL3iPCdumSRRbq2qmhNQfiTwG9MiexSTcX7PaR2"
+			]
+		},
+		"localhost/contracts/lendingProtocol/tokenization/IToken.sol": {
+			"keccak256": "0x9ca8dc07e4bc20fbe70f450a89164ebca4efa0208f812417077c57c53c769d3d",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://b5f9b905c8f157f7912bdec2d725e6c97bbc47c56be18fc4ceaf8e81b5782774",
+				"dweb:/ipfs/QmUHMv5ff8EKRtHKLuRwhF8SLcH35B1QDGSM9i8snzhjGb"
+			]
+		},
+		"localhost/contracts/lendingProtocol/tokenization/IncentivizedERC20.sol": {
+			"keccak256": "0xb39c0b04abea26a479ac9133c5131afa2028c7add1845c689ad941272187fabf",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://6fb184d5868b9bf98566d7a5860b59e45b78e6bc0efc09c5e2e7a9d0b34f9f64",
+				"dweb:/ipfs/QmSESViY7NQaRxQWgFon8Tsxrpq5QtD4LyUykfiU9jrHsD"
+			]
+		},
+		"localhost/interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol": {
+			"keccak256": "0x21ac1e2d66fadbf678e845f012ce25df0a88f7bcebfc1f28e1dc4a1acf81f718",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://508f54f396633ee44b37c8da0110dcdbdc1b2580a88726db9d41373165a71eb4",
+				"dweb:/ipfs/QmNxrYwiDRQfw3rfiifhyB1tcNPWTd3NNaNUvthBmiAMoT"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/IIToken.sol": {
+			"keccak256": "0x445144ca336ca836500bfc787a9ce410ce5d5150fdc991aaf67ea48a99f3c378",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://64c32f12590af4ea24b4a4060deb24eff45a8c4923ce2d9ace985c1e96fd3739",
+				"dweb:/ipfs/QmYjQXxbydPLyDyYLUoYUfgBTaRi46NjGX2kpiP5GK6Kjj"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/ILendingPool.sol": {
+			"keccak256": "0x6138383c7d28a7589419a63a2503044063dba9bf9312119fd6dd958c8e9e79f6",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://57c364cc637c6883b38e3c2318d0e8b670ce701d996fe6c5c8c9582ac362f7fe",
+				"dweb:/ipfs/QmNk9Xc82oM2EaevT6vnFKN2fhiLUNayjymuX9bJbmaYL2"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/ISIGHHarvester.sol": {
+			"keccak256": "0x4ba75f671dd725ea5eda8eddb12262d487116d2a93bfcd8bf6283877e9ff7326",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://40aa434bda0532b0e7863881cee839b0f9381b7e381b3552f302ec61160dd4f3",
+				"dweb:/ipfs/QmaVmVwFy1APi9Jhfb38YbMiMjoWKF6cstGwAzMdatbryE"
+			]
+		},
+		"localhost/interfaces/lendingProtocol/IScaledBalanceToken.sol": {
+			"keccak256": "0x1594eeedc9845c21b6b2daf0091f3ebaf46f5c9c898d0048f6b07c5c89a45b8e",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://32ae84ad3e20ab2827ab24ced184f48e9c42678072a6946131d953e52fc63922",
+				"dweb:/ipfs/QmZtu9jJWkgoT3ct563RGSFTYwKdsM8cj5NMuq911cbzU1"
+			]
+		}
+	},
+	"version": 1
+}

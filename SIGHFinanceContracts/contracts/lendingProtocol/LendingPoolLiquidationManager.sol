@@ -12,6 +12,7 @@ import {GenericLogic} from "./libraries/logic/GenericLogic.sol";
 import {Helpers} from "./libraries/helpers/Helpers.sol";
 import {ValidationLogic} from "./libraries/logic/ValidationLogic.sol";
 import {WadRayMath} from './libraries/math/WadRayMath.sol';
+import {IFlashLoanReceiver} from "./flashLoan/interfaces/IFlashLoanReceiver.sol";
 
 import {SafeMath} from "../dependencies/openzeppelin/math/SafeMath.sol";
 import {PercentageMath} from './libraries/math/PercentageMath.sol';
@@ -85,7 +86,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
   }
 
     uint256 public constant LIQUIDATION_MANAGER_REVISION = 0x1;             // NEEDED AS PART OF UPGRADABLE CONTRACTS FUNCTIONALITY ( VersionedInitializable )
-
+    uint256 public constant FLASHLOAN_PREMIUM_TOTAL = 90;
 
     // as the contract extends the VersionedInitializable contract to match the state of the LendingPool contract, the getRevision() function is needed.
     function getRevision() internal override pure returns (uint256) {
@@ -226,7 +227,7 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
 
         emit LiquidationCall(collateralAsset, debtAsset, user, vars.actualDebtToLiquidate, vars.maxCollateralToLiquidate, msg.sender, receiveIToken);
 
-        return (uint256(Errors.CollateralManagerErrors.NO_ERROR), "NO ERRORS");
+        return (uint256(Errors.CollateralManagerErrors.NO_ERROR), Errors.LPCM_NO_ERRORS);
     }
 
 
@@ -282,4 +283,56 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
         }
         return (collateralAmount, debtAmountNeeded);
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+    /**
+    * @dev allows smartcontracts to access the liquidity of the pool within one transaction,
+    * as long as the amount taken plus a fee is returned. NOTE There are security concerns for developers of flashloan receiver contracts
+    * that must be kept into consideration. For further details please visit https://developers.aave.com
+    * @param _receiver The address of the contract receiving the funds. The receiver should implement the IFlashLoanReceiver interface.
+    * @param _instrument the address of the principal instrument
+    * @param _amount the amount requested for this flashloan
+    **/
+    function flashLoan(address user, address _receiver, address _instrument, uint256 _amount, bytes memory _params, uint16 boosterID) external returns (uint256, string memory) {
+        address iTokenAddress = _instruments[_instrument].iTokenAddress;
+
+        // check Liquidity
+        uint256 availableLiquidityBefore = _instrument == IERC20(_instrument).balanceOf(iTokenAddress);
+        require( availableLiquidityBefore >= _amount, Errors.LIQUIDITY_NOT_AVAILABLE);
+        
+        (uint totalFee, uint platformFee, uint reserveFee) = calculateFlashLoanFee(user,_amount,boosterID);    // get flash loan fee
+
+        IFlashLoanReceiver receiver = IFlashLoanReceiver(_receiver);            //get the FlashLoanReceiver instance
+        IIToken(iTokenAddress).transferUnderlyingTo(_receiver, _amount);        //transfer funds to the receiver
+        receiver.executeOperation(_instrument, _amount, totalFee, _params);     //execute action of the receiver
+
+        //check that the Fee is returned along with the amount
+        uint256 availableLiquidityAfter = IERC20(_instrument).balanceOf(iTokenAddress);
+        require( availableLiquidityAfter == availableLiquidityBefore.add(totalFee), Errors.INCONCISTENT_BALANCE);
+
+        _instruments[_instrument].updateState(sighPayAggregator);
+        _instruments[_instrument].cumulateToLiquidityIndex( IERC20(iTokenAddress).totalSupply(), reserveFee );
+        _instruments[_instrument].updateInterestRates(_instrument, iTokenAddress, _amount.add(reserveFee), 0 );
+
+        IIToken(iTokenAddress).transferUnderlyingTo(platformFeeCollector, platformFee);
+
+        emit FlashLoan(user, _receiver, _instrument, _amount, protocolFee, reserveFee, boosterID);
+        return (uint256(Errors.CollateralManagerErrors.NO_ERROR), Errors.LPCM_NO_ERRORS);
+    }
+
+  
+    
+    
+    
+    
 }

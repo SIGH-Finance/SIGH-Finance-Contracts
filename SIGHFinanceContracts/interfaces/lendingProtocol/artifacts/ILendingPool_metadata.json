@@ -35,18 +35,6 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "platformFee",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "reserveFee",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
 						"name": "borrowRateMode",
 						"type": "uint256"
 					},
@@ -54,12 +42,6 @@
 						"indexed": false,
 						"internalType": "uint256",
 						"name": "borrowRate",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "boosterID",
 						"type": "uint256"
 					}
 				],
@@ -85,24 +67,6 @@
 						"indexed": false,
 						"internalType": "uint256",
 						"name": "amount",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "platformFee",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "reserveFee",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "boosterID",
 						"type": "uint256"
 					}
 				],
@@ -331,19 +295,13 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "platformFee",
+						"name": "loanRepaid",
 						"type": "uint256"
 					},
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "reserveFee",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "amount",
+						"name": "totalFeeRepaid",
 						"type": "uint256"
 					}
 				],
@@ -413,6 +371,135 @@
 				"type": "event"
 			},
 			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "instrumentAddress",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "platformFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "reserveFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint16",
+						"name": "_boosterId",
+						"type": "uint16"
+					}
+				],
+				"name": "borrowFeeUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "instrumentAddress",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "platformFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "reserveFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint16",
+						"name": "_boosterId",
+						"type": "uint16"
+					}
+				],
+				"name": "depositFeeDeducted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "instrumentAddress",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "onBehalfOf",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "platformFeePay",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "reserveFeePay",
+						"type": "uint256"
+					}
+				],
+				"name": "feeRepaid",
+				"type": "event"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "address",
@@ -458,9 +545,9 @@
 						"type": "uint256"
 					},
 					{
-						"internalType": "uint256",
+						"internalType": "uint16",
 						"name": "boosterID",
-						"type": "uint256"
+						"type": "uint16"
 					}
 				],
 				"name": "deposit",
@@ -813,18 +900,8 @@
 					},
 					{
 						"internalType": "address",
-						"name": "_SIGHHarvesterProxyAddress",
-						"type": "address"
-					},
-					{
-						"internalType": "address",
 						"name": "interestRateStrategyAddress",
 						"type": "address"
-					},
-					{
-						"internalType": "uint8",
-						"name": "underlyingAssetDecimals",
-						"type": "uint8"
 					}
 				],
 				"name": "initInstrument",
@@ -1041,28 +1118,22 @@
 		],
 		"devdoc": {
 			"events": {
-				"Borrow(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256)": {
+				"Borrow(address,address,address,uint256,uint256,uint256)": {
 					"details": "Emitted on borrow() and flashLoan() when debt needs to be opened",
 					"params": {
 						"amount": "The amount borrowed out",
-						"boosterID": "The boosterID of the Booster used to get a discount on the Fee*",
-						"borrowRate": "The numeric rate at which the user has borrowed",
+						"borrowRate": "The numeric rate at which the user has borrowed*",
 						"borrowRateMode": "The rate mode: 1 for Stable, 2 for Variable",
 						"instrument": "The address of the underlying asset being borrowed",
 						"onBehalfOf": "The address that will be getting the debt",
-						"platformFee": "Platform Fee charged",
-						"reserveFee": "Reserve Fee charged",
 						"user": "The address of the user initiating the borrow(), receiving the funds on borrow() or just initiator of the transaction on flashLoan()"
 					}
 				},
-				"Deposit(address,address,uint256,uint256,uint256,uint256)": {
+				"Deposit(address,address,uint256)": {
 					"details": "Emitted on deposit()",
 					"params": {
-						"amount": "The amount deposited",
-						"boosterID": "The boosterID of the Booster used to get a discount on the Fee*",
+						"amount": "The amount deposited*",
 						"instrument": "The address of the underlying asset of the instrument",
-						"platformFee": "Platform Fee charged",
-						"reserveFee": "Reserve Fee charged",
 						"user": "The address initiating the deposit"
 					}
 				},
@@ -1121,12 +1192,13 @@
 						"user": "The address of the user for which the rebalance has been executed*"
 					}
 				},
-				"Repay(address,address,address,uint256,uint256,uint256)": {
+				"Repay(address,address,address,uint256,uint256)": {
 					"details": "Emitted on repay()",
 					"params": {
-						"amount": "The amount repaid*",
 						"instrument": "The address of the underlying asset of the instrument",
+						"loanRepaid": "The amount repaid",
 						"repayer": "The address of the user initiating the repay(), providing the funds",
+						"totalFeeRepaid": "The total Fee repaid*",
 						"user": "The beneficiary of the repayment, getting his debt reduced"
 					}
 				},
@@ -1146,6 +1218,39 @@
 						"to": "Address that will receive the underlying",
 						"user": "The address initiating the withdrawal, owner of iTokens"
 					}
+				},
+				"borrowFeeUpdated(address,address,uint256,uint256,uint256,uint16)": {
+					"details": "Emitted on borrow() and flashLoan() when debt needs to be opened",
+					"params": {
+						"_boosterId": "The boosterID of the Booster used to get a discount on the Fee*",
+						"amount": "The amount borrowed out",
+						"instrumentAddress": "The address of the underlying asset being borrowed",
+						"platformFee": "Platform Fee charged",
+						"reserveFee": "Reserve Fee charged",
+						"user": "The address that will be getting the debt"
+					}
+				},
+				"depositFeeDeducted(address,address,uint256,uint256,uint256,uint16)": {
+					"details": "Emitted on deposit()",
+					"params": {
+						"_boosterId": "The boosterID of the Booster used to get a discount on the Fee*",
+						"amount": "The amount deposited",
+						"instrumentAddress": "The address of the underlying asset ",
+						"platformFee": "Platform Fee charged",
+						"reserveFee": "Reserve Fee charged",
+						"user": "The address initiating the deposit"
+					}
+				},
+				"feeRepaid(address,address,address,uint256,uint256,uint256)": {
+					"details": "Emitted on borrow() and flashLoan() when debt needs to be opened",
+					"params": {
+						"amount": "The amount borrowed out",
+						"instrumentAddress": "The address of the underlying asset being borrowed",
+						"onBehalfOf": "The user whose debt is being repaid",
+						"platformFeePay": "Platform Fee paid",
+						"reserveFeePay": "Reserve Fee paid*",
+						"user": "The address repaying the amount"
+					}
 				}
 			},
 			"kind": "dev",
@@ -1160,7 +1265,7 @@
 						"onBehalfOf": "Address of the user who will receive the debt. Should be the address of the borrower itself calling the function if he wants to borrow against his own collateral, or the address of the credit delegator if he has been given credit delegation allowance*"
 					}
 				},
-				"deposit(address,uint256,uint256)": {
+				"deposit(address,uint256,uint16)": {
 					"details": "Deposits an `amount` of underlying asset, receiving in return overlying iTokens. - E.g. User deposits 100 USDC and gets in return 100 aUSDC",
 					"params": {
 						"amount": "The amount to be deposited",
@@ -1329,11 +1434,11 @@
 			]
 		},
 		"localhost/interfaces/lendingProtocol/ILendingPool.sol": {
-			"keccak256": "0x6138383c7d28a7589419a63a2503044063dba9bf9312119fd6dd958c8e9e79f6",
+			"keccak256": "0xd8a1ab3e7f39ae9a6c483de432b244543e66954c86150cd527452e322c9bafd2",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://57c364cc637c6883b38e3c2318d0e8b670ce701d996fe6c5c8c9582ac362f7fe",
-				"dweb:/ipfs/QmNk9Xc82oM2EaevT6vnFKN2fhiLUNayjymuX9bJbmaYL2"
+				"bzz-raw://3481180c0092a1b8e7f58a0d972a118742a4e19cb5846eb16258a32ed56e78de",
+				"dweb:/ipfs/Qme9uiFVsNhdfsXaQm3iVptAknXep2UmAy3r5g8ziEqEcM"
 			]
 		}
 	},
