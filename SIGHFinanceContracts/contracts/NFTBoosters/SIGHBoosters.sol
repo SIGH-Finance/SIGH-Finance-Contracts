@@ -107,6 +107,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         require(_sighPayDiscount_ > 0,"SIGH BOOSTERS: SIGH Pay Fee Discount cannot be 0");
         boosterCategories[_type] =  boosterCategory({isSupported: true, totalBoosters:0, _platformFeeDiscount: _platformFeeDiscount_, _sighPayDiscount: _sighPayDiscount_  });
         boosterTypesList.push(_type);
+        emit newCategoryAdded(_type,_platformFeeDiscount_,_sighPayDiscount_);
         return true;
     }
     
@@ -282,12 +283,20 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
          ( , boosterType ) =  boostersData.get(boosterId);
     }
 
-    // get Booster Discount Multiplier
+    // get Booster Discount Multiplier for a Booster
     function getDiscountRatiosForBooster(uint256 boosterId) external view override returns ( uint platformFeeDiscount, uint sighPayDiscount ) {
         require(_exists(boosterId), "SIGH BOOSTERS: Booster doesn't exist");
         platformFeeDiscount =  boosterCategories[getBoosterCategory(boosterId)]._platformFeeDiscount;
         sighPayDiscount =  boosterCategories[getBoosterCategory(boosterId)]._sighPayDiscount;
     }
+
+    // get Booster Discount Multipliers for Booster Category
+    function getDiscountRatiosForBoosterCategory(string memory _category) external view override returns ( uint platformFeeDiscount, uint sighPayDiscount ) {
+        require(!boosterCategories[_category].isSupported,"SIGH BOOSTERS: Booster Type doesn't exist");
+        platformFeeDiscount =  boosterCategories[_category]._platformFeeDiscount;
+        sighPayDiscount =  boosterCategories[_category]._sighPayDiscount;
+    }
+
 
     function isValidBooster(uint256 boosterId) external override view returns (bool) {
         return _exists(boosterId);

@@ -4,13 +4,15 @@ pragma solidity ^0.7.0;
 
 interface ISIGHBoosters {
 
+    event newCategoryAdded(string _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_);
+
     // #################################
     // ######## ADMIN FUNCTIONS ########
     // #################################
     
+    function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_) external returns (bool) ;
     function createNewBoosters(string[] memory _type,  string[] memory boosterURI) external returns (uint256);
     function createNewSIGHBooster(address _owner, string memory _type,  string memory boosterURI, bytes memory _data ) external returns (uint256) ;
-    function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_) external returns (bool) ;
     function _updateBaseURI(string memory baseURI )  external ;
     function updateBoosterURI(uint256 boosterId, string memory boosterURI )  external returns (bool) ;
 
@@ -19,7 +21,6 @@ interface ISIGHBoosters {
     // ###########################################
 
     function name() external view  returns (string memory) ;
-
     function symbol() external view  returns (string memory) ;
 
     // Returns total number of Boosters owned by the _owner
@@ -62,15 +63,16 @@ interface ISIGHBoosters {
     // ######## FUNCTIONS SPECIFIC TO SIGH FINANCE BOOSTERS ########
     // #############################################################
 
+    function isCategorySupported(string memory _category) external view returns (bool);
+    function totalBoostersAvailable(string memory _category) external view returns (uint256);
+    function getDiscountRatiosForBoosterCategory(string memory _category) external view returns ( uint platformFeeDiscount, uint sighPayDiscount );
+
     // Returns the number of Boosters of a particular category owned by the owner address
     function totalBoostersOwnedOfType(address owner, string memory _category) external view returns (uint256) ;
 
     // Returns farmer address who owns this Booster and its boosterType 
     function getBoosterInfo(uint256 boosterId) external view returns (address farmer, string memory boosterType );
 
-    function isCategorySupported(string memory _category) external view returns (bool);
-
-    function totalBoostersAvailable(string memory _category) external view returns (uint256);
 
     function getBoosterCategory(uint256 boosterId) external view returns ( string memory boosterType );
 
