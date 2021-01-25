@@ -142,19 +142,26 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
     }
 
 
-    function calculateFlashLoanFee(address _user, uint256 _amount, uint boosterId) external view override returns (uint256 flashLoanFee) {
-        flashLoanFee = _amount.percentMul(totalFlashLoanFeePercent);       // totalFlashLoanFeePercent = 5 represents 0.05%
+    function calculateFlashLoanFee(address _user, uint256 _amount, uint boosterId) external view override returns (uint256 ,uint256 ,uint256) {
+        uint totalFee = _amount.percentMul(totalFlashLoanFeePercent);       // totalFlashLoanFeePercent = 5 represents 0.05%
+        uint platformFee = totalFee.percentMul(platformFeePercent);       // platformFeePercent = 5000 represents 50%
+        uint sighPay = totalFee.sub(platformFee);
 
         if (boosterId == 0) {
-            return flashLoanFee;
+            return (totalFee,platformFee,sighPay);
         }
 
         require( _user == SIGH_Boosters.ownerOfBooster(boosterId), "FlashLoan() caller doesn't have the mentioned SIGH Booster needed to claim the discount on Fee. Please check the BoosterID that you provided again." );
 
-        ( , uint sighPayDiscount) = SIGH_Boosters.getDiscountRatiosForBooster(boosterId);
-        flashLoanFee = flashLoanFee.sub( flashLoanFee.div(sighPayDiscount) ) ;
-
+        (uint platformFeeDiscount, uint sighPayDiscount) = SIGH_Boosters.getDiscountRatiosForBooster(boosterId);
+        platformFee = platformFee.sub( platformFee.div(platformFeeDiscount) ) ;
+        sighPay = sighPay.sub( sighPay.div(sighPayDiscount) ) ;
+        totalFee = platformFee.add(sighPay);
+        
+        return (totalFee,platformFee,sighPay);
     }
+    
+    
 
     function calculateBorrowFee(address _user, address instrument, uint256 _amount, uint boosterId) external override onlyLendingPool returns (uint256, uint256) {
         uint totalFee = _amount.percentMul(totalBorrowFeePercent);       // totalDepositFeePercent = 50 represents 0.5%

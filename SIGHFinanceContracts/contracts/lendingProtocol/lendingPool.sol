@@ -124,6 +124,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         uint totalFee = instrument.deductFeeOnDeposit(msg.sender,_instrument,_amount,platformFeeCollector,sighPayAggregator,boosterId, feeProvider );
         instrument.updateState(sighPayAggregator);
         instrument.updateInterestRates(_instrument, iToken, _amount.sub(totalFee), 0);
+        sighVolatilityHarvester.updateSIGHSupplyIndex(_instrument);
 
         IERC20(_instrument).safeTransferFrom(msg.sender, iToken, _amount.sub(totalFee)); // Transfer the Deposit amount
         bool isFirstDeposit = IIToken(iToken).mint(msg.sender, _amount.sub(totalFee) , instrument.liquidityIndex); // Mint the ITokens
@@ -165,6 +166,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
         instrument.updateState(sighPayAggregator);
         instrument.updateInterestRates(_instrument, iToken, 0, amountToWithdraw);
+        sighVolatilityHarvester.updateSIGHSupplyIndex(_instrument);
 
         if (amountToWithdraw == userBalance) {
             _usersConfig[msg.sender].setUsingAsCollateral(instrument.id, false);
@@ -245,6 +247,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         }
 
         instrument.updateState(sighPayAggregator);
+        sighVolatilityHarvester.updateSIGHBorrowIndex(asset);
 
         if (vars.interestRateMode == DataTypes.InterestRateMode.STABLE) {
             IStableDebtToken(instrument.stableDebtTokenAddress).burn(onBehalfOf, vars.paybackAmount);
@@ -284,8 +287,8 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     DataTypes.InterestRateMode interestRateMode = DataTypes.InterestRateMode(rateMode);
 
     ValidationLogic.validateSwapRateMode( instrument, _usersConfig[msg.sender], stableDebt, variableDebt, interestRateMode);
-
     instrument.updateState(sighPayAggregator);
+    sighVolatilityHarvester.updateSIGHBorrowIndex(asset);
 
     if (interestRateMode == DataTypes.InterestRateMode.STABLE) {
       IStableDebtToken(instrument.stableDebtTokenAddress).burn(msg.sender, stableDebt);
@@ -321,6 +324,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
     ValidationLogic.validateRebalanceStableBorrowRate(instrument,asset,stableDebtToken,variableDebtToken,iTokenAddress);
     instrument.updateState(sighPayAggregator);
+    sighVolatilityHarvester.updateSIGHBorrowIndex(asset);
 
     IStableDebtToken(address(stableDebtToken)).burn(user, stableDebt);
     IStableDebtToken(address(stableDebtToken)).mint(user,user,stableDebt, instrument.currentStableBorrowRate);
@@ -423,6 +427,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     function getInstrumentConfiguration(address asset) external override view returns ( DataTypes.InstrumentConfigurationMap memory ) {
         return _instruments[asset].configuration;
     }
+    
 
     // Returns the configuration of the user across all the instrument reserves
     function getUserConfiguration(address user) external view override returns (DataTypes.UserConfigurationMap memory) {
@@ -469,8 +474,10 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         require(msg.sender ==_instruments[asset].iTokenAddress, Errors.NOT_ALLOWED);
 
         ValidationLogic.validateTransfer( from, _instruments, _usersConfig[from], _instrumentsList, _instrumentsCount, addressesProvider.getPriceOracle() );
-
         uint256 instrumentId =_instruments[asset].id;
+        sighVolatilityHarvester.updateSIGHBorrowIndex(asset);
+        sighVolatilityHarvester.updateSIGHSupplyIndex(asset);
+        
 
         if (from != to) {
             if (balanceFromBefore.sub(amount) == 0) {
@@ -566,6 +573,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
         ValidationLogic.validateBorrow( vars.asset, instrument, vars.onBehalfOf, vars.amount, amountInUSD, vars.interestRateMode, MAX_STABLE_RATE_BORROW_SIZE_PERCENT,_instruments, userConfig,_instrumentsList,_instrumentsCount, oracle );
         instrument.updateState(sighPayAggregator);
+        sighVolatilityHarvester.updateSIGHBorrowIndex(vars.asset);
 
         uint256 currentStableRate = 0;
         bool isFirstBorrowing = false;

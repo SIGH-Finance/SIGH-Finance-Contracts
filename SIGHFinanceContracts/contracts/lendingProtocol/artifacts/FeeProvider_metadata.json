@@ -336,7 +336,17 @@
 				"outputs": [
 					{
 						"internalType": "uint256",
-						"name": "flashLoanFee",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
 						"type": "uint256"
 					}
 				],
@@ -774,11 +784,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/FeeProvider.sol": {
-			"keccak256": "0x16586983dbfadb5b8b7f8db5a28d6e08645d61eb23043863a7bcab7ec6c407ef",
+			"keccak256": "0x3f5219503b9416ac641cea2104825fe4af6715ba85b87be1841ea5d897410ed3",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://bb2828eb14405b7fd2ac9562391369cb09a88e2f3a3605bea912256df79458e0",
-				"dweb:/ipfs/QmdxaySMBnNEsDEjTunRdLo9DMC4YbXvopdxiUD5TdE4Eb"
+				"bzz-raw://040a71b11f57cd12b01094835226a4594fc63366893fc511df699309c15abe38",
+				"dweb:/ipfs/QmT5hykQdNPj3nPQvyVpF4zbTZh5nmNR5C4BZZuSoD5hgJ"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/math/CarefulMath.sol": {
@@ -830,11 +840,11 @@
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IFeeProvider.sol": {
-			"keccak256": "0xe7e505a2d0f39e9a8c39dabb0188d4291a9184db3916d7227a68e9d5e95d53fc",
+			"keccak256": "0x4db2ede0ada68c4aeb1118f04e7d5cb7c4ea9cd7304bc63e520753bf52b72132",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://8543e3012eddfdd8c7f58a0fcafdb21ffc6ae516843744c7d125da00b1238a29",
-				"dweb:/ipfs/QmRTVHTjYKJ9qDJkWX59phnZDVLU1dBBJBX5V9LrwXTW9q"
+				"bzz-raw://e94104a3ba214eb92eb461fe0335980c2974d5461c514b2e7c43ed209deca493",
+				"dweb:/ipfs/QmfJdSz8ssxasPQjmqDPqHz9Sa16EPaHD47JJw3VoMVJBi"
 			]
 		}
 	},

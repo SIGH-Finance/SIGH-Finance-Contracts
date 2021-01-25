@@ -5,9 +5,9 @@ import {IGlobalAddressesProvider} from "../../interfaces/GlobalAddressesProvider
 import {UserConfiguration} from './libraries/configuration/UserConfiguration.sol';
 import {InstrumentConfiguration} from './libraries/configuration/InstrumentConfiguration.sol';
 import {DataTypes} from './libraries/types/DataTypes.sol';
+import {ISIGHVolatilityHarvesterLendingPool} from "../../interfaces/lendingProtocol/ISIGHVolatilityHarvesterLendingPool.sol";
 
 import {InstrumentReserveLogic} from './libraries/logic/InstrumentReserveLogic.sol';
-import {ISIGHVolatilityHarvesterLendingPool} from "../../interfaces/lendingProtocol/ISIGHVolatilityHarvesterLendingPool.sol";
 
 contract LendingPoolStorage {
 
