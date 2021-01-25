@@ -48,7 +48,7 @@
 			"borrow(address,uint256,uint256,uint16,address)": "a415bcad",
 			"deposit(address,uint256,uint16)": "d2d0e066",
 			"finalizeTransfer(address,address,address,uint256,uint256,uint256)": "d5ed3933",
-			"flashLoan(address,address[],uint256[],uint256[],address,bytes,uint16)": "ab9c4b5d",
+			"flashLoan(address,address,uint256,bytes,uint16)": "2fee4de7",
 			"getInstrumentConfiguration(address)": "c619adac",
 			"getInstrumentData(address)": "4dc54a38",
 			"getInstrumentNormalizedIncome(address)": "2b0475e1",
@@ -666,33 +666,23 @@
 					"type": "address"
 				},
 				{
-					"internalType": "address[]",
-					"name": "assets",
-					"type": "address[]"
-				},
-				{
-					"internalType": "uint256[]",
-					"name": "amounts",
-					"type": "uint256[]"
-				},
-				{
-					"internalType": "uint256[]",
-					"name": "modes",
-					"type": "uint256[]"
-				},
-				{
 					"internalType": "address",
-					"name": "onBehalfOf",
+					"name": "asset",
 					"type": "address"
 				},
 				{
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				},
+				{
 					"internalType": "bytes",
-					"name": "params",
+					"name": "_params",
 					"type": "bytes"
 				},
 				{
 					"internalType": "uint16",
-					"name": "boosterID",
+					"name": "boosterId",
 					"type": "uint16"
 				}
 			],

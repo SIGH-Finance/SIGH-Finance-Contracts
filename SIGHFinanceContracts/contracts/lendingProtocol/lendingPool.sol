@@ -375,26 +375,18 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
   }
 
 
-  /**
-  * @dev Allows smartcontracts to access the liquidity of the pool within one transaction, as long as the amount taken plus a fee is returned.
-  * IMPORTANT There are security concerns for developers of flashloan receiver contracts that must be kept into consideration.
-  * For further details please visit https://developers.aave.com
-  * @param receiverAddress The address of the contract receiving the funds, implementing the IFlashLoanReceiver interface
-  * @param assets The addresses of the assets being flash-borrowed
-  * @param amounts The amounts amounts being flash-borrowed
-  * @param modes Types of the debt to open if the flash loan is not returned:
-  *   0 -> Don't open any debt, just revert if funds can't be transferred from the receiver
-  *   1 -> Open debt at stable rate for the value of the amount flash-borrowed to the `onBehalfOf` address
-  *   2 -> Open debt at variable rate for the value of the amount flash-borrowed to the `onBehalfOf` address
-  * @param onBehalfOf The address  that will receive the debt in the case of using on `modes` 1 or 2
-  * @param params Variadic packed params to pass to the receiver as extra information
-  * @param boosterId Code used to register the integrator originating the operation, for potential rewards.
-  *   0 if the action is executed directly by the user, without any middle-man
-  **/
+    /**
+    * @dev allows smartcontracts to access the liquidity of the pool within one transaction, as long as the amount taken plus a fee is returned. 
+    * @param receiverAddress The address of the contract receiving the funds. The receiver should implement the IFlashLoanReceiver interface.
+    * @param asset the address of the principal instrument
+    * @param amount the amount requested for this flashloan
+    * @param _params the amount requested for this flashloan
+    * @param boosterId Booster ID to avail discount on fee. 0 as default
+    **/
   function flashLoan( address receiverAddress, address asset, uint256 amount, bytes calldata _params, uint16 boosterId) external override whenNotPaused {
     address flashLoanHandler = addressesProvider.getLendingPoolLiquidationManager();
 
-    (bool success, bytes memory result) =  flashLoanHandler.delegatecall( abi.encodeWithSignature('flashLoanCall(address,address,address,uint256,bytes,uint16)', msg.sender, receiverAddress, asset, amount, params, boosterId ) );
+    (bool success, bytes memory result) =  flashLoanHandler.delegatecall( abi.encodeWithSignature('flashLoanCall(address,address,address,uint256,bytes,uint16)', msg.sender, receiverAddress, asset, amount, _params, boosterId ) );
     require(success, Errors.FAILED);
 
     (uint256 returnCode, string memory returnMessage) = abi.decode(result, (uint256, string));

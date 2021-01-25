@@ -72,6 +72,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "INCONCISTENT_BALANCE",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "INVALID_RETURN",
 				"outputs": [
 					{
@@ -86,6 +99,19 @@
 			{
 				"inputs": [],
 				"name": "IT_INIT_FAIL",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "LIQUIDITY_NOT_AVAILABLE",
 				"outputs": [
 					{
 						"internalType": "string",
@@ -343,18 +369,18 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": false,
+			"enabled": true,
 			"runs": 200
 		},
 		"remappings": []
 	},
 	"sources": {
 		"localhost/contracts/lendingProtocol/libraries/helpers/Errors.sol": {
-			"keccak256": "0xa3b14dcab26a900a010db7d3fdafeec3a2da78cee07c888618e3276272e16202",
+			"keccak256": "0xe410ac075d19c6ed43c2743ef3bf7beb9e57ff4f4c2dc82fd39cec600e4bbd0c",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://a0431c285325c698bd12b45a0f8f6e2d3cc23afc3aeffedaf8979adacc79f8d0",
-				"dweb:/ipfs/QmUFVu1puHygMb2XxKdxib5xWiTWQ82KYcDv3YHxeDGxZg"
+				"bzz-raw://e18c34ca5002922273c3cd088989cdcf0c47f397ff367217c5a2c779b3147f3a",
+				"dweb:/ipfs/QmSzwoonEf2UvwDYJm6NwJT9gFzBvf3rvHGA7bcpA7Ry7F"
 			]
 		}
 	},

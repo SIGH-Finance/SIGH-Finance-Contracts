@@ -45,12 +45,241 @@
 		},
 		"gasEstimates": null,
 		"methodIdentifiers": {
+			"UpdateABoosterCategoryFuelAmount(string,uint256)": "c5efa352",
 			"calculateBorrowFee(address,address,uint256,uint256)": "258c71a0",
 			"calculateDepositFee(address,address,uint256,uint256)": "65f156de",
-			"calculateFlashLoanFee(address,uint256,uint256)": "7b9515c4"
+			"calculateFlashLoanFee(address,uint256,uint256)": "7b9515c4",
+			"fuelTopUp(uint256,uint256)": "e39deb99",
+			"getBorrowFeePercentage()": "2842bb22",
+			"getDepositFeePercentage()": "d91aa1d9",
+			"getFlashLoanFeePercentage()": "d877845c",
+			"getFuelAvailable(uint256)": "07a8216e",
+			"getFuelUsed(uint256)": "c490bedf",
+			"getOptionDetails(string,uint256)": "f8dc0e47",
+			"refreshConfiguration()": "64681083",
+			"transferFunds(address,address,uint256)": "1501bf03",
+			"updateATopUpOption(string,uint256,uint256,uint256)": "422e7a8b",
+			"updatePlatformFeePercent(uint256)": "ff1a3c82",
+			"updateTokenAccepted(address)": "19a24dc5",
+			"updateTotalBorrowFeePercent(uint256)": "321a09fa",
+			"updateTotalDepositFeePercent(uint256)": "7c05d850",
+			"updateTotalFlashLoanFeePercent(uint256)": "698626f8"
 		}
 	},
 	"abi": [
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "boosterID",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "optionNo",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "topUp",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "totalFuelRemaining",
+					"type": "uint256"
+				}
+			],
+			"name": "_boosterTopUp",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "totalBorrowFeePercent_",
+					"type": "uint256"
+				}
+			],
+			"name": "borrowFeePercentUpdated",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "_depositFeePercent",
+					"type": "uint256"
+				}
+			],
+			"name": "depositFeePercentUpdated",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "totalFlashLoanFeePercent_",
+					"type": "uint256"
+				}
+			],
+			"name": "flashLoanFeePercentUpdated",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "string",
+					"name": "categoryName",
+					"type": "string"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "initialFuel",
+					"type": "uint256"
+				}
+			],
+			"name": "initalFuelForABoosterCategoryUpdated",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "_platformFeePercent",
+					"type": "uint256"
+				}
+			],
+			"name": "platformFeePercentUpdated",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "prevToken",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "tokenAccepted",
+					"type": "address"
+				}
+			],
+			"name": "tokenForPaymentUpdated",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "token",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "destination",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "newBalance",
+					"type": "uint256"
+				}
+			],
+			"name": "tokensTransferred",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "string",
+					"name": "category",
+					"type": "string"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "optionNo",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "_fee",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "_multiplier",
+					"type": "uint256"
+				}
+			],
+			"name": "topUpOptionUpdated",
+			"type": "event"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "string",
+					"name": "categoryName",
+					"type": "string"
+				},
+				{
+					"internalType": "uint256",
+					"name": "initialFuel",
+					"type": "uint256"
+				}
+			],
+			"name": "UpdateABoosterCategoryFuelAmount",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
 		{
 			"inputs": [
 				{
@@ -156,11 +385,316 @@
 			"outputs": [
 				{
 					"internalType": "uint256",
-					"name": "flashLoanFee",
+					"name": "",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "",
 					"type": "uint256"
 				}
 			],
 			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "optionNo",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "boosterID",
+					"type": "uint256"
+				}
+			],
+			"name": "fuelTopUp",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getBorrowFeePercentage",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getDepositFeePercentage",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getFlashLoanFeePercentage",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "boosterID",
+					"type": "uint256"
+				}
+			],
+			"name": "getFuelAvailable",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "boosterID",
+					"type": "uint256"
+				}
+			],
+			"name": "getFuelUsed",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "string",
+					"name": "category",
+					"type": "string"
+				},
+				{
+					"internalType": "uint256",
+					"name": "optionNo",
+					"type": "uint256"
+				}
+			],
+			"name": "getOptionDetails",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "fee",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "multiplier",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "refreshConfiguration",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "token",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "destination",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				}
+			],
+			"name": "transferFunds",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "string",
+					"name": "category",
+					"type": "string"
+				},
+				{
+					"internalType": "uint256",
+					"name": "optionNo",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_fee",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_multiplier",
+					"type": "uint256"
+				}
+			],
+			"name": "updateATopUpOption",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "_platformFeePercent",
+					"type": "uint256"
+				}
+			],
+			"name": "updatePlatformFeePercent",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "_token",
+					"type": "address"
+				}
+			],
+			"name": "updateTokenAccepted",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "totalBorrowFeePercent_",
+					"type": "uint256"
+				}
+			],
+			"name": "updateTotalBorrowFeePercent",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "_depositFeePercent",
+					"type": "uint256"
+				}
+			],
+			"name": "updateTotalDepositFeePercent",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "totalFlashLoanFeePercent_",
+					"type": "uint256"
+				}
+			],
+			"name": "updateTotalFlashLoanFeePercent",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
 			"type": "function"
 		}
 	]

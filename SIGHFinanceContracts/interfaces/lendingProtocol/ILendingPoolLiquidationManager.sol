@@ -34,6 +34,19 @@ interface ILendingPoolLiquidationManager {
   event InstrumentUsedAsCollateralEnabled(address indexed reserve, address indexed user);
 
   /**
+   * @dev Emitted with the flash loan
+   * @param _user The address of the user making the transaction
+   * @param _receiver The address of receiver receiving the funds
+   * @param _instrument The address of the instrument
+   * @param _amount The loan amount
+   * @param protocolFee The fee charged by the protocol
+   * @param reserveFee The fee charged which is distributed among the depositors
+   * @param boosterID The booster ID to avail discount
+   **/
+    event FlashLoan(address _user,address _receiver,address _instrument,uint _amount,uint protocolFee,uint reserveFee,uint16 boosterID);
+
+
+  /**
    * @dev Users can invoke this function to liquidate an undercollateralized position.
    * @param collateral The address of the collateral to liquidated
    * @param principal The address of the principal reserve

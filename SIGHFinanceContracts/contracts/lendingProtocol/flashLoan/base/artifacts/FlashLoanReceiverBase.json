@@ -46,8 +46,7 @@
 		"gasEstimates": null,
 		"methodIdentifiers": {
 			"ADDRESSES_PROVIDER()": "0542975c",
-			"LENDING_POOL()": "b4dcfc77",
-			"executeOperation(address[],uint256[],uint256[],address,bytes)": "920f5c84"
+			"executeOperation(address,uint256,uint256,bytes)": "ee872558"
 		}
 	},
 	"abi": [
@@ -65,54 +64,30 @@
 			"type": "function"
 		},
 		{
-			"inputs": [],
-			"name": "LENDING_POOL",
-			"outputs": [
-				{
-					"internalType": "contract ILendingPool",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
 			"inputs": [
 				{
-					"internalType": "address[]",
-					"name": "assets",
-					"type": "address[]"
-				},
-				{
-					"internalType": "uint256[]",
-					"name": "amounts",
-					"type": "uint256[]"
-				},
-				{
-					"internalType": "uint256[]",
-					"name": "premiums",
-					"type": "uint256[]"
-				},
-				{
 					"internalType": "address",
-					"name": "initiator",
+					"name": "_instrument",
 					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_amount",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_fee",
+					"type": "uint256"
 				},
 				{
 					"internalType": "bytes",
-					"name": "params",
+					"name": "_params",
 					"type": "bytes"
 				}
 			],
 			"name": "executeOperation",
-			"outputs": [
-				{
-					"internalType": "bool",
-					"name": "",
-					"type": "bool"
-				}
-			],
+			"outputs": [],
 			"stateMutability": "nonpayable",
 			"type": "function"
 		}

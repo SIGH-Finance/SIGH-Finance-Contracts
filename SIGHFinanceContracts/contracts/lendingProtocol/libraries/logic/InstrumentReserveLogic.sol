@@ -34,6 +34,10 @@ library InstrumentReserveLogic {
     using PercentageMath for uint256;
     using SafeERC20 for IERC20;
 
+    using InstrumentReserveLogic for DataTypes.InstrumentData;
+    using InstrumentConfiguration for DataTypes.InstrumentConfigurationMap;
+
+
     /**
     * @dev Emitted when the state of a reserve is updated
     * @param asset The address of the underlying asset of the reserve
@@ -45,8 +49,40 @@ library InstrumentReserveLogic {
     **/
     event InstrumentDataUpdated(address indexed asset,uint256 liquidityRate, uint256 stableBorrowRate, uint256 variableBorrowRate,uint256 liquidityIndex, uint256 variableBorrowIndex);
 
-    using InstrumentReserveLogic for DataTypes.InstrumentData;
-    using InstrumentConfiguration for DataTypes.InstrumentConfigurationMap;
+  /**
+   * @dev Emitted on deposit()
+   * @param instrumentAddress The address of the underlying asset 
+   * @param user The address initiating the deposit
+   * @param amount The amount deposited
+   * @param platformFee Platform Fee charged
+   * @param reserveFee Reserve Fee charged
+   * @param _boosterId The boosterID of the Booster used to get a discount on the Fee
+   **/
+  event depositFeeDeducted(address instrumentAddress, address user, uint amount, uint256 platformFee, uint256 reserveFee, uint16 _boosterId);
+  
+  /**
+   * @dev Emitted on borrow() and flashLoan() when debt needs to be opened
+   * @param instrumentAddress The address of the underlying asset being borrowed
+   * @param user The address that will be getting the debt
+   * @param amount The amount borrowed out
+   * @param platformFee Platform Fee charged
+   * @param reserveFee Reserve Fee charged
+   * @param _boosterId The boosterID of the Booster used to get a discount on the Fee
+   **/  
+  event borrowFeeUpdated(address instrumentAddress, address user, uint256 amount, uint256 platformFee, uint256 reserveFee, uint16 _boosterId);
+
+  /**
+   * @dev Emitted on borrow() and flashLoan() when debt needs to be opened
+   * @param instrumentAddress The address of the underlying asset being borrowed
+   * @param user The address repaying the amount
+   * @param onBehalfOf The user whose debt is being repaid
+   * @param amount The amount borrowed out
+   * @param platformFeePay Platform Fee paid
+   * @param reserveFeePay Reserve Fee paid
+   **/  
+  event feeRepaid(address instrumentAddress, address user, address onBehalfOf, uint256 amount, uint256 platformFeePay, uint256 reserveFeePay);
+
+
 
     /**
     * @dev Returns the ongoing normalized income for the reserve
@@ -261,7 +297,7 @@ library InstrumentReserveLogic {
         return (newLiquidityIndex, newVariableBorrowIndex);
     }
 
-    function deductFeeOnDeposit(DataTypes.InstrumentData storage instrument,address user, address instrumentAddress, uint amount, address platformFeeCollector, address sighPayAggregator, uint16 _boosterId, address feeProvider ) internal returns(uint) {
+    function deductFeeOnDeposit(DataTypes.InstrumentData memory instrument, address user, address instrumentAddress, uint amount, address platformFeeCollector, address sighPayAggregator, uint16 _boosterId, address feeProvider ) internal returns(uint) {
         (uint256 totalFee, uint256 platformFee, uint256 reserveFee) = IFeeProviderLendingPool(feeProvider).calculateDepositFee(user,instrumentAddress, amount, _boosterId);
         if (platformFee > 0 && platformFeeCollector != address(0) ) {
             IERC20(instrumentAddress).safeTransferFrom( user, platformFeeCollector, platformFee );
@@ -269,7 +305,7 @@ library InstrumentReserveLogic {
         if (reserveFee > 0 && sighPayAggregator  != address(0) ) {
             IERC20(instrumentAddress).safeTransferFrom( user, sighPayAggregator, reserveFee );
         }
-        // emit depositFeeDeducted(instrumentAddress, user, amount, platformFee, reserveFee, _boosterId);
+        emit depositFeeDeducted(instrumentAddress, user, amount, platformFee, reserveFee, _boosterId);
         return totalFee;
     }
 
@@ -277,7 +313,7 @@ library InstrumentReserveLogic {
         (uint platformFee, uint reserveFee) = IFeeProviderLendingPool(feeProvider).calculateBorrowFee(user ,instrumentAddress, amount, _boosterId);
         ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(user,platformFee,0);
         ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(user,reserveFee,0);
-        // emit borrowFeeUpdated(user,instrumentAddress, amount, platformFee, reserveFee, _boosterId);
+        emit borrowFeeUpdated(user,instrumentAddress, amount, platformFee, reserveFee, _boosterId);
     }
 
     function updateFeeOnRepay(DataTypes.InstrumentData storage instrument,address user, address onBehalfOf, address instrumentAddress, uint amount, address platformFeeCollector, address sighPayAggregator) internal returns(uint, uint) {
@@ -299,7 +335,7 @@ library InstrumentReserveLogic {
             ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(onBehalfOf,0,reserveFeePay);
         }
 
-        // emit feeRepaid(instrumentAddress,user,onBehalfOf, amount, platformFeePay, reserveFeePay);
+        emit feeRepaid(instrumentAddress,user,onBehalfOf, amount, platformFeePay, reserveFeePay);
         return (amount, platformFeePay.add(reserveFeePay));
     }
 

@@ -6,6 +6,66 @@
 	"output": {
 		"abi": [
 			{
+				"inputs": [
+					{
+						"internalType": "contract IGlobalAddressesProvider",
+						"name": "provider",
+						"type": "address"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_receiver",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_instrument",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "protocolFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "reserveFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint16",
+						"name": "boosterID",
+						"type": "uint16"
+					}
+				],
+				"name": "FlashLoan",
+				"type": "event"
+			},
+			{
 				"anonymous": false,
 				"inputs": [
 					{
@@ -192,6 +252,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "FLASHLOAN_PREMIUM_TOTAL",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "LIQUIDATION_MANAGER_REVISION",
 				"outputs": [
 					{
@@ -201,6 +274,55 @@
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_receiver",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_instrument",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "_params",
+						"type": "bytes"
+					},
+					{
+						"internalType": "uint16",
+						"name": "boosterID",
+						"type": "uint16"
+					}
+				],
+				"name": "flashLoan",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -253,6 +375,20 @@
 			"details": "Implements actions involving management of collateral in the protocol, the main one being the liquidations IMPORTANT This contract will run always via DELEGATECALL, through the LendingPool, so the chain of inheritance is the same as the LendingPool, to have compatible storage layouts*",
 			"kind": "dev",
 			"methods": {
+				"constructor": {
+					"details": "Function is invoked by the proxy contract when the LendingPool contract is added to the LendingPoolAddressesProvider of the market. - Caching the address of the LendingPoolAddressesProvider in order to reduce gas consumption   on subsequent operations",
+					"params": {
+						"provider": "The address of the LendingPoolAddressesProvider*"
+					}
+				},
+				"flashLoan(address,address,address,uint256,bytes,uint16)": {
+					"details": "allows smartcontracts to access the liquidity of the pool within one transaction, as long as the amount taken plus a fee is returned. NOTE There are security concerns for developers of flashloan receiver contracts that must be kept into consideration. For further details please visit https://developers.aave.com",
+					"params": {
+						"_amount": "the amount requested for this flashloan*",
+						"_instrument": "the address of the principal instrument",
+						"_receiver": "The address of the contract receiving the funds. The receiver should implement the IFlashLoanReceiver interface."
+					}
+				},
 				"liquidationCall(address,address,address,uint256,bool)": {
 					"details": "users can invoke this function to liquidate an undercollateralized position.",
 					"params": {
@@ -330,19 +466,27 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/LendingPoolLiquidationManager.sol": {
-			"keccak256": "0x9651fc9d4bf289d1d9fefe339aa7e214c4d56d4f48f830ae4479344777c0d2bf",
+			"keccak256": "0xff8ef81b839119fc512854f1f56c3a252c8012983752edc7b77de0f39efe26b2",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://b05fd63b7071330dd480e328b47d27ec3fbeb97507755c15299d92d5ed7e1488",
-				"dweb:/ipfs/QmVaXgpH4BWW3dAroUo2FCAX2Dj4MSHUGjAJV9VHSi4yfT"
+				"bzz-raw://80c24a73440d89989a3800c561a79c2bd8090002479963c0be92baa540e0105b",
+				"dweb:/ipfs/QmfJHC9sd1t5dwmRHFQDabP4ZEbZajq8APWkMjVWuwTnaM"
 			]
 		},
 		"localhost/contracts/lendingProtocol/LendingPoolStorage.sol": {
-			"keccak256": "0x67cdc41471543558b903d5b28eb1fb4d403d7383a0375622ba4be7cc1707e302",
+			"keccak256": "0x8659aab4d4cd03db15743591ef4dfc095a747e290e2b8212e0fd64fc9732bdbe",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://f0a066941dc778bc9b3309347e8e804e5f3291858244e2464b5b9426570dfd6f",
-				"dweb:/ipfs/QmR88oNXWzqpGePGLF7Zrb3bvnRQx4oFFyBgD1WihYfJdb"
+				"bzz-raw://fcdf64eb443caf10229dc7ae0a49f08f553b483d7fd7937935e1d184eface81f",
+				"dweb:/ipfs/QmVSppVAEAHhcYYMGmTtWFSat17VhBRXB7sDqLsSnqB151"
+			]
+		},
+		"localhost/contracts/lendingProtocol/flashLoan/interfaces/IFlashLoanReceiver.sol": {
+			"keccak256": "0xc3f78e1a0da10c1036ab131c2cb07e8a29ae32b301f78ac27fe8c041e1e8de73",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://4c672ef3851667415c0660439bc9b6eb675600869221bf01d2b83627e2dc38bf",
+				"dweb:/ipfs/QmYcGZyMJXDfyvYf4KuK52i83btyAssRfqEbxvakfoqNN8"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/configuration/InstrumentConfiguration.sol": {
@@ -362,11 +506,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/helpers/Errors.sol": {
-			"keccak256": "0xa3b14dcab26a900a010db7d3fdafeec3a2da78cee07c888618e3276272e16202",
+			"keccak256": "0xe410ac075d19c6ed43c2743ef3bf7beb9e57ff4f4c2dc82fd39cec600e4bbd0c",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://a0431c285325c698bd12b45a0f8f6e2d3cc23afc3aeffedaf8979adacc79f8d0",
-				"dweb:/ipfs/QmUFVu1puHygMb2XxKdxib5xWiTWQ82KYcDv3YHxeDGxZg"
+				"bzz-raw://e18c34ca5002922273c3cd088989cdcf0c47f397ff367217c5a2c779b3147f3a",
+				"dweb:/ipfs/QmSzwoonEf2UvwDYJm6NwJT9gFzBvf3rvHGA7bcpA7Ry7F"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/helpers/Helpers.sol": {
@@ -386,11 +530,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/logic/InstrumentReserveLogic.sol": {
-			"keccak256": "0x70ad031e86bdf6e2e07956c0ffa2422fa729fe79439818927e5189956f8bdb12",
+			"keccak256": "0x4b81472fbe48b7f975d49202bf3258c87ad8b3bbcd5f46d3871b4af37f4bbb87",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://e9036024ea3c26cb2d7cecb2d8857f09f23c6543326fe9c6897e953780b9b3c0",
-				"dweb:/ipfs/QmTCGujAQZis2DBdokssbxucxSQXWJQRhiX3Gbb3nE2jYB"
+				"bzz-raw://7eef334aafa7ee7cb5da2fbbdf03fd9f96526169fdff30ee571d59c1bc6461e6",
+				"dweb:/ipfs/QmRm1fqGLB7P9PSgeR58bFYfYE6LXUsG8abSTdWBkDVsop"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/logic/ValidationLogic.sol": {
@@ -450,19 +594,19 @@
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IFeeProvider.sol": {
-			"keccak256": "0xe7e505a2d0f39e9a8c39dabb0188d4291a9184db3916d7227a68e9d5e95d53fc",
+			"keccak256": "0x4db2ede0ada68c4aeb1118f04e7d5cb7c4ea9cd7304bc63e520753bf52b72132",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://8543e3012eddfdd8c7f58a0fcafdb21ffc6ae516843744c7d125da00b1238a29",
-				"dweb:/ipfs/QmRTVHTjYKJ9qDJkWX59phnZDVLU1dBBJBX5V9LrwXTW9q"
+				"bzz-raw://e94104a3ba214eb92eb461fe0335980c2974d5461c514b2e7c43ed209deca493",
+				"dweb:/ipfs/QmfJdSz8ssxasPQjmqDPqHz9Sa16EPaHD47JJw3VoMVJBi"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IFeeProviderLendingPool.sol": {
-			"keccak256": "0xc45e917e0104c0dba302a62a3421f67392efc03ab4031fd554adc9d8a5dba448",
+			"keccak256": "0xbed6fa0793f786c8184f4e89c457e1825f142404659490859fe1d76246127ee2",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://e4c90b7a215af22b61d92dff20bac9741dd509a8293b864976d3776e91b6f644",
-				"dweb:/ipfs/QmYP8RaPzFUNvs8txgDtbxnBEiTyMmV9e5m66d4DKFdQVh"
+				"bzz-raw://38928ac8817801d1404bf6d97bbbe82783b8d10c9bb5fd02dd9196e2b0524c2b",
+				"dweb:/ipfs/QmW3b51K38JpBeb2TQxC6hjvZKnUw7uAyJivn4N9X9eQx5"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IIToken.sol": {
@@ -482,11 +626,11 @@
 			]
 		},
 		"localhost/interfaces/lendingProtocol/ILendingPoolLiquidationManager.sol": {
-			"keccak256": "0xd772f05d24a5da71b14478acc9f0b78c2c7b3de21871b41221d642cf60fcc30e",
+			"keccak256": "0xbeee7939f18327b96ea82a78774cf0cb7c8612473e0555f55d4cbbd09d0162eb",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://31152e38b0ff9083eb4cb653c341d5a37a869968f0d3e2567611a3d1b015b4af",
-				"dweb:/ipfs/QmQK2EEzox3DhS8YQpW2CeJZNTVD6QjDp6csdY3ReFcZAx"
+				"bzz-raw://81a4774cf8835cea54920180d786d4aea52ace2b3b7109084c006e263b6e5bfa",
+				"dweb:/ipfs/QmQtF8FkJmBFfciaNHecWc6mj6TPiqqYeWiEEKcsU8yF22"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/ISIGHHarvestDebtToken.sol": {

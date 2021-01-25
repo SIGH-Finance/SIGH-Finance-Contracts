@@ -110,7 +110,17 @@
 				"outputs": [
 					{
 						"internalType": "uint256",
-						"name": "flashLoanFee",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
 						"type": "uint256"
 					}
 				],
@@ -143,17 +153,17 @@
 		},
 		"optimizer": {
 			"enabled": true,
-			"runs": 1000
+			"runs": 200
 		},
 		"remappings": []
 	},
 	"sources": {
 		"localhost/interfaces/lendingProtocol/IFeeProviderLendingPool.sol": {
-			"keccak256": "0xc45e917e0104c0dba302a62a3421f67392efc03ab4031fd554adc9d8a5dba448",
+			"keccak256": "0xbed6fa0793f786c8184f4e89c457e1825f142404659490859fe1d76246127ee2",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://e4c90b7a215af22b61d92dff20bac9741dd509a8293b864976d3776e91b6f644",
-				"dweb:/ipfs/QmYP8RaPzFUNvs8txgDtbxnBEiTyMmV9e5m66d4DKFdQVh"
+				"bzz-raw://38928ac8817801d1404bf6d97bbbe82783b8d10c9bb5fd02dd9196e2b0524c2b",
+				"dweb:/ipfs/QmW3b51K38JpBeb2TQxC6hjvZKnUw7uAyJivn4N9X9eQx5"
 			]
 		}
 	},

@@ -26,7 +26,7 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": false,
+			"enabled": true,
 			"runs": 200
 		},
 		"remappings": []
@@ -65,11 +65,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/LendingPoolStorage.sol": {
-			"keccak256": "0x67cdc41471543558b903d5b28eb1fb4d403d7383a0375622ba4be7cc1707e302",
+			"keccak256": "0x8659aab4d4cd03db15743591ef4dfc095a747e290e2b8212e0fd64fc9732bdbe",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://f0a066941dc778bc9b3309347e8e804e5f3291858244e2464b5b9426570dfd6f",
-				"dweb:/ipfs/QmR88oNXWzqpGePGLF7Zrb3bvnRQx4oFFyBgD1WihYfJdb"
+				"bzz-raw://fcdf64eb443caf10229dc7ae0a49f08f553b483d7fd7937935e1d184eface81f",
+				"dweb:/ipfs/QmVSppVAEAHhcYYMGmTtWFSat17VhBRXB7sDqLsSnqB151"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/configuration/InstrumentConfiguration.sol": {
@@ -88,12 +88,20 @@
 				"dweb:/ipfs/QmaW3h7Yu4LBA5Z4wSFr6W2F99Ha6geca4K9xfmx2pVn25"
 			]
 		},
-		"localhost/contracts/lendingProtocol/libraries/logic/InstrumentReserveLogic.sol": {
-			"keccak256": "0x3046c67fb658d58b079d38969e462f5952258fa67a10463f5413f9b6550e2589",
+		"localhost/contracts/lendingProtocol/libraries/helpers/Errors.sol": {
+			"keccak256": "0xe410ac075d19c6ed43c2743ef3bf7beb9e57ff4f4c2dc82fd39cec600e4bbd0c",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://1cb7f7c5ea155c5607949bfaff1736cc90527089ec563ed305c7e3f0e2e62948",
-				"dweb:/ipfs/QmPXXvJn592pcbZWtLw6mTy4mwuJgtQyeRVBVppgG3jewX"
+				"bzz-raw://e18c34ca5002922273c3cd088989cdcf0c47f397ff367217c5a2c779b3147f3a",
+				"dweb:/ipfs/QmSzwoonEf2UvwDYJm6NwJT9gFzBvf3rvHGA7bcpA7Ry7F"
+			]
+		},
+		"localhost/contracts/lendingProtocol/libraries/logic/InstrumentReserveLogic.sol": {
+			"keccak256": "0x70ad031e86bdf6e2e07956c0ffa2422fa729fe79439818927e5189956f8bdb12",
+			"license": "agpl-3.0",
+			"urls": [
+				"bzz-raw://e9036024ea3c26cb2d7cecb2d8857f09f23c6543326fe9c6897e953780b9b3c0",
+				"dweb:/ipfs/QmTCGujAQZis2DBdokssbxucxSQXWJQRhiX3Gbb3nE2jYB"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/math/MathUtils.sol": {

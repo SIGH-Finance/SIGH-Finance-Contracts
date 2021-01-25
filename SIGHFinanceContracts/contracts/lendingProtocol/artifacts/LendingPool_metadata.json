@@ -653,28 +653,18 @@
 						"type": "address"
 					},
 					{
-						"internalType": "address[]",
-						"name": "assets",
-						"type": "address[]"
-					},
-					{
-						"internalType": "uint256[]",
-						"name": "amounts",
-						"type": "uint256[]"
-					},
-					{
-						"internalType": "uint256[]",
-						"name": "modes",
-						"type": "uint256[]"
-					},
-					{
 						"internalType": "address",
-						"name": "onBehalfOf",
+						"name": "asset",
 						"type": "address"
 					},
 					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
 						"internalType": "bytes",
-						"name": "params",
+						"name": "_params",
 						"type": "bytes"
 					},
 					{
@@ -1214,16 +1204,14 @@
 						"to": "The user receiving the iTokens"
 					}
 				},
-				"flashLoan(address,address[],uint256[],uint256[],address,bytes,uint16)": {
-					"details": "Allows smartcontracts to access the liquidity of the pool within one transaction, as long as the amount taken plus a fee is returned. IMPORTANT There are security concerns for developers of flashloan receiver contracts that must be kept into consideration. For further details please visit https://developers.aave.com",
+				"flashLoan(address,address,uint256,bytes,uint16)": {
+					"details": "allows smartcontracts to access the liquidity of the pool within one transaction, as long as the amount taken plus a fee is returned. ",
 					"params": {
-						"amounts": "The amounts amounts being flash-borrowed",
-						"assets": "The addresses of the assets being flash-borrowed",
-						"boosterId": "Code used to register the integrator originating the operation, for potential rewards.   0 if the action is executed directly by the user, without any middle-man*",
-						"modes": "Types of the debt to open if the flash loan is not returned:   0 -> Don't open any debt, just revert if funds can't be transferred from the receiver   1 -> Open debt at stable rate for the value of the amount flash-borrowed to the `onBehalfOf` address   2 -> Open debt at variable rate for the value of the amount flash-borrowed to the `onBehalfOf` address",
-						"onBehalfOf": "The address  that will receive the debt in the case of using on `modes` 1 or 2",
-						"params": "Variadic packed params to pass to the receiver as extra information",
-						"receiverAddress": "The address of the contract receiving the funds, implementing the IFlashLoanReceiver interface"
+						"_params": "the amount requested for this flashloan",
+						"amount": "the amount requested for this flashloan",
+						"asset": "the address of the principal instrument",
+						"boosterId": "Booster ID to avail discount on fee. 0 as default*",
+						"receiverAddress": "The address of the contract receiving the funds. The receiver should implement the IFlashLoanReceiver interface."
 					}
 				},
 				"getInstrumentData(address)": {
@@ -1432,27 +1420,27 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/LendingPoolStorage.sol": {
-			"keccak256": "0x67cdc41471543558b903d5b28eb1fb4d403d7383a0375622ba4be7cc1707e302",
+			"keccak256": "0x8659aab4d4cd03db15743591ef4dfc095a747e290e2b8212e0fd64fc9732bdbe",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://f0a066941dc778bc9b3309347e8e804e5f3291858244e2464b5b9426570dfd6f",
-				"dweb:/ipfs/QmR88oNXWzqpGePGLF7Zrb3bvnRQx4oFFyBgD1WihYfJdb"
+				"bzz-raw://fcdf64eb443caf10229dc7ae0a49f08f553b483d7fd7937935e1d184eface81f",
+				"dweb:/ipfs/QmVSppVAEAHhcYYMGmTtWFSat17VhBRXB7sDqLsSnqB151"
 			]
 		},
 		"localhost/contracts/lendingProtocol/flashLoan/interfaces/IFlashLoanReceiver.sol": {
-			"keccak256": "0x4921fee6b42012fc97260cb56450eccc0578ed466ad5c3fe82f8db8e5ec9d283",
+			"keccak256": "0xc3f78e1a0da10c1036ab131c2cb07e8a29ae32b301f78ac27fe8c041e1e8de73",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://d7ff3f93c7eacc44a5f37772328152560782c00dfa69756d91d3e6cfad7cfccb",
-				"dweb:/ipfs/QmbYeVcwzNVywAy598YSJF7VuWURnt7TSm8n2qBVdTzXyp"
+				"bzz-raw://4c672ef3851667415c0660439bc9b6eb675600869221bf01d2b83627e2dc38bf",
+				"dweb:/ipfs/QmYcGZyMJXDfyvYf4KuK52i83btyAssRfqEbxvakfoqNN8"
 			]
 		},
 		"localhost/contracts/lendingProtocol/lendingPool.sol": {
-			"keccak256": "0x0f42b794a0d0398bf0c2a1ef77d953c8a81cc76875e28eac3e9179b12ec19708",
+			"keccak256": "0xb996533287d4733bdaf92dc7b1aae40520d821c6b7f2d44728e7c2d3047574ee",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://2764cbf670e5e0e5cd263f7c9ee0b5f8f66660a4c907bf03d07c6a66d586179b",
-				"dweb:/ipfs/QmUhBQnBjFLM87jMv3cjp84uQf7TW6GKnqubByXznDRX1T"
+				"bzz-raw://abe4a479b19d0c23cf3e89645eb83a707ab828d0dda3aeb2e2004d34e8b5f484",
+				"dweb:/ipfs/QmajiZGcugrYsrUiQxAgdb8ZUE4raVsmQC4ZpuCzHdzW9u"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/configuration/InstrumentConfiguration.sol": {
@@ -1472,11 +1460,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/helpers/Errors.sol": {
-			"keccak256": "0xa3b14dcab26a900a010db7d3fdafeec3a2da78cee07c888618e3276272e16202",
+			"keccak256": "0xe410ac075d19c6ed43c2743ef3bf7beb9e57ff4f4c2dc82fd39cec600e4bbd0c",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://a0431c285325c698bd12b45a0f8f6e2d3cc23afc3aeffedaf8979adacc79f8d0",
-				"dweb:/ipfs/QmUFVu1puHygMb2XxKdxib5xWiTWQ82KYcDv3YHxeDGxZg"
+				"bzz-raw://e18c34ca5002922273c3cd088989cdcf0c47f397ff367217c5a2c779b3147f3a",
+				"dweb:/ipfs/QmSzwoonEf2UvwDYJm6NwJT9gFzBvf3rvHGA7bcpA7Ry7F"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/helpers/Helpers.sol": {
@@ -1496,11 +1484,11 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/logic/InstrumentReserveLogic.sol": {
-			"keccak256": "0x70ad031e86bdf6e2e07956c0ffa2422fa729fe79439818927e5189956f8bdb12",
+			"keccak256": "0x4b81472fbe48b7f975d49202bf3258c87ad8b3bbcd5f46d3871b4af37f4bbb87",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://e9036024ea3c26cb2d7cecb2d8857f09f23c6543326fe9c6897e953780b9b3c0",
-				"dweb:/ipfs/QmTCGujAQZis2DBdokssbxucxSQXWJQRhiX3Gbb3nE2jYB"
+				"bzz-raw://7eef334aafa7ee7cb5da2fbbdf03fd9f96526169fdff30ee571d59c1bc6461e6",
+				"dweb:/ipfs/QmRm1fqGLB7P9PSgeR58bFYfYE6LXUsG8abSTdWBkDVsop"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/logic/ValidationLogic.sol": {
@@ -1560,19 +1548,19 @@
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IFeeProvider.sol": {
-			"keccak256": "0xe7e505a2d0f39e9a8c39dabb0188d4291a9184db3916d7227a68e9d5e95d53fc",
+			"keccak256": "0x4db2ede0ada68c4aeb1118f04e7d5cb7c4ea9cd7304bc63e520753bf52b72132",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://8543e3012eddfdd8c7f58a0fcafdb21ffc6ae516843744c7d125da00b1238a29",
-				"dweb:/ipfs/QmRTVHTjYKJ9qDJkWX59phnZDVLU1dBBJBX5V9LrwXTW9q"
+				"bzz-raw://e94104a3ba214eb92eb461fe0335980c2974d5461c514b2e7c43ed209deca493",
+				"dweb:/ipfs/QmfJdSz8ssxasPQjmqDPqHz9Sa16EPaHD47JJw3VoMVJBi"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IFeeProviderLendingPool.sol": {
-			"keccak256": "0xc45e917e0104c0dba302a62a3421f67392efc03ab4031fd554adc9d8a5dba448",
+			"keccak256": "0xbed6fa0793f786c8184f4e89c457e1825f142404659490859fe1d76246127ee2",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://e4c90b7a215af22b61d92dff20bac9741dd509a8293b864976d3776e91b6f644",
-				"dweb:/ipfs/QmYP8RaPzFUNvs8txgDtbxnBEiTyMmV9e5m66d4DKFdQVh"
+				"bzz-raw://38928ac8817801d1404bf6d97bbbe82783b8d10c9bb5fd02dd9196e2b0524c2b",
+				"dweb:/ipfs/QmW3b51K38JpBeb2TQxC6hjvZKnUw7uAyJivn4N9X9eQx5"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IIToken.sol": {
@@ -1592,11 +1580,11 @@
 			]
 		},
 		"localhost/interfaces/lendingProtocol/ILendingPool.sol": {
-			"keccak256": "0xd8a1ab3e7f39ae9a6c483de432b244543e66954c86150cd527452e322c9bafd2",
+			"keccak256": "0x11393732de789977cf45118be9ce6d69e5cd687456d4e02ed62ee40a09b02642",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://3481180c0092a1b8e7f58a0d972a118742a4e19cb5846eb16258a32ed56e78de",
-				"dweb:/ipfs/Qme9uiFVsNhdfsXaQm3iVptAknXep2UmAy3r5g8ziEqEcM"
+				"bzz-raw://9d57b3f2e6e2432d4dd854d31569267f5a7bd2c06edbd8adfe62b3f6e282d097",
+				"dweb:/ipfs/QmZoAWudSptVTD9A1cypFBDQ6ou2Ygh838hHaAAoQ36sjE"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/ISIGHHarvestDebtToken.sol": {

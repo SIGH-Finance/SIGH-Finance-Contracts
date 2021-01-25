@@ -41,9 +41,8 @@ library Errors {
   string public constant CLI_OVRFLW = '15';
   string public constant LI_OVRFLW = '16';
   string public constant VI_OVRFLW = '17';  
-LIQUIDITY_NOT_AVAILABLE
-LPCM_NO_ERRORS
-INCONCISTENT_BALANCE
+  string public constant LIQUIDITY_NOT_AVAILABLE = '18'; 
+  string public constant INCONCISTENT_BALANCE = '20'; 
 
 
 

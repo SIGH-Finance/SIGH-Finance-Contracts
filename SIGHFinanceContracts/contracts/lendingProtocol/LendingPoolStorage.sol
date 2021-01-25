@@ -7,7 +7,6 @@ import {InstrumentConfiguration} from './libraries/configuration/InstrumentConfi
 import {DataTypes} from './libraries/types/DataTypes.sol';
 
 import {InstrumentReserveLogic} from './libraries/logic/InstrumentReserveLogic.sol';
-import {IFeeProviderLendingPool} from "../../interfaces/lendingProtocol/IFeeProviderLendingPool.sol";
 import {ISIGHVolatilityHarvesterLendingPool} from "../../interfaces/lendingProtocol/ISIGHVolatilityHarvesterLendingPool.sol";
 
 contract LendingPoolStorage {

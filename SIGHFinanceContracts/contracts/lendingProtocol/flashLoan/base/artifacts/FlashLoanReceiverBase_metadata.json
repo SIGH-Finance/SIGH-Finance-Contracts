@@ -19,54 +19,30 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
-				"name": "LENDING_POOL",
-				"outputs": [
-					{
-						"internalType": "contract ILendingPool",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
 				"inputs": [
 					{
-						"internalType": "address[]",
-						"name": "assets",
-						"type": "address[]"
-					},
-					{
-						"internalType": "uint256[]",
-						"name": "amounts",
-						"type": "uint256[]"
-					},
-					{
-						"internalType": "uint256[]",
-						"name": "premiums",
-						"type": "uint256[]"
-					},
-					{
 						"internalType": "address",
-						"name": "initiator",
+						"name": "_instrument",
 						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_fee",
+						"type": "uint256"
 					},
 					{
 						"internalType": "bytes",
-						"name": "params",
+						"name": "_params",
 						"type": "bytes"
 					}
 				],
 				"name": "executeOperation",
-				"outputs": [
-					{
-						"internalType": "bool",
-						"name": "",
-						"type": "bool"
-					}
-				],
+				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			}
@@ -131,19 +107,19 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/flashLoan/base/FlashLoanReceiverBase.sol": {
-			"keccak256": "0x9ef751a41419d31215e9245eb6a1ab9f03162680107c78588819d5105fde2e44",
+			"keccak256": "0x6b36569d8f0e7c50bd841d6bbb214187f3abe735a8a573508b6bf1cf456edfa8",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://8d224d6e3c2fc37311385219c07b4ee77e0563cc410f0d80e81014538559faeb",
-				"dweb:/ipfs/Qma7PkRYU3pfHyqKYcB7abjXrN8HcCooJ7CZAfDZKJvaTq"
+				"bzz-raw://bc23e24e7e33263290139302a7bd4eb09099fb6d42cebf959d3d17d295068212",
+				"dweb:/ipfs/QmY3dcVfKty6o2JRkNiABafeSBRQQebV9yWqQvsfQxVNkN"
 			]
 		},
 		"localhost/contracts/lendingProtocol/flashLoan/interfaces/IFlashLoanReceiver.sol": {
-			"keccak256": "0x4921fee6b42012fc97260cb56450eccc0578ed466ad5c3fe82f8db8e5ec9d283",
+			"keccak256": "0xc3f78e1a0da10c1036ab131c2cb07e8a29ae32b301f78ac27fe8c041e1e8de73",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://d7ff3f93c7eacc44a5f37772328152560782c00dfa69756d91d3e6cfad7cfccb",
-				"dweb:/ipfs/QmbYeVcwzNVywAy598YSJF7VuWURnt7TSm8n2qBVdTzXyp"
+				"bzz-raw://4c672ef3851667415c0660439bc9b6eb675600869221bf01d2b83627e2dc38bf",
+				"dweb:/ipfs/QmYcGZyMJXDfyvYf4KuK52i83btyAssRfqEbxvakfoqNN8"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/types/DataTypes.sol": {
@@ -163,11 +139,11 @@
 			]
 		},
 		"localhost/interfaces/lendingProtocol/ILendingPool.sol": {
-			"keccak256": "0x34663bb262c9e4d91e8514feb0cf8d13b69202e6916216cab4cb480c4ff0cd8e",
+			"keccak256": "0xd8a1ab3e7f39ae9a6c483de432b244543e66954c86150cd527452e322c9bafd2",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://70ae824a38d670c6b3a3962f5f6ade2aa23b7d5ed19bf93789147aa96cc9d68b",
-				"dweb:/ipfs/Qmb47rJtW2n5wgpxEMccnhuDGoa4gt4Mkn3YbrjEMX7bZm"
+				"bzz-raw://3481180c0092a1b8e7f58a0d972a118742a4e19cb5846eb16258a32ed56e78de",
+				"dweb:/ipfs/Qme9uiFVsNhdfsXaQm3iVptAknXep2UmAy3r5g8ziEqEcM"
 			]
 		}
 	},

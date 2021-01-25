@@ -47,6 +47,135 @@
 				],
 				"name": "InstrumentDataUpdated",
 				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "instrumentAddress",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "platformFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "reserveFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint16",
+						"name": "_boosterId",
+						"type": "uint16"
+					}
+				],
+				"name": "borrowFeeUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "instrumentAddress",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "platformFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "reserveFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint16",
+						"name": "_boosterId",
+						"type": "uint16"
+					}
+				],
+				"name": "depositFeeDeducted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "instrumentAddress",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "onBehalfOf",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "platformFeePay",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "reserveFeePay",
+						"type": "uint256"
+					}
+				],
+				"name": "feeRepaid",
+				"type": "event"
 			}
 		],
 		"devdoc": {
@@ -61,6 +190,39 @@
 						"stableBorrowRate": "The new stable borrow rate",
 						"variableBorrowIndex": "The new variable borrow index*",
 						"variableBorrowRate": "The new variable borrow rate"
+					}
+				},
+				"borrowFeeUpdated(address,address,uint256,uint256,uint256,uint16)": {
+					"details": "Emitted on borrow() and flashLoan() when debt needs to be opened",
+					"params": {
+						"_boosterId": "The boosterID of the Booster used to get a discount on the Fee*",
+						"amount": "The amount borrowed out",
+						"instrumentAddress": "The address of the underlying asset being borrowed",
+						"platformFee": "Platform Fee charged",
+						"reserveFee": "Reserve Fee charged",
+						"user": "The address that will be getting the debt"
+					}
+				},
+				"depositFeeDeducted(address,address,uint256,uint256,uint256,uint16)": {
+					"details": "Emitted on deposit()",
+					"params": {
+						"_boosterId": "The boosterID of the Booster used to get a discount on the Fee*",
+						"amount": "The amount deposited",
+						"instrumentAddress": "The address of the underlying asset ",
+						"platformFee": "Platform Fee charged",
+						"reserveFee": "Reserve Fee charged",
+						"user": "The address initiating the deposit"
+					}
+				},
+				"feeRepaid(address,address,address,uint256,uint256,uint256)": {
+					"details": "Emitted on borrow() and flashLoan() when debt needs to be opened",
+					"params": {
+						"amount": "The amount borrowed out",
+						"instrumentAddress": "The address of the underlying asset being borrowed",
+						"onBehalfOf": "The user whose debt is being repaid",
+						"platformFeePay": "Platform Fee paid",
+						"reserveFeePay": "Reserve Fee paid*",
+						"user": "The address repaying the amount"
 					}
 				}
 			},
@@ -95,7 +257,7 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": false,
+			"enabled": true,
 			"runs": 200
 		},
 		"remappings": []
@@ -142,19 +304,19 @@
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/helpers/Errors.sol": {
-			"keccak256": "0xa3b14dcab26a900a010db7d3fdafeec3a2da78cee07c888618e3276272e16202",
+			"keccak256": "0xe410ac075d19c6ed43c2743ef3bf7beb9e57ff4f4c2dc82fd39cec600e4bbd0c",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://a0431c285325c698bd12b45a0f8f6e2d3cc23afc3aeffedaf8979adacc79f8d0",
-				"dweb:/ipfs/QmUFVu1puHygMb2XxKdxib5xWiTWQ82KYcDv3YHxeDGxZg"
+				"bzz-raw://e18c34ca5002922273c3cd088989cdcf0c47f397ff367217c5a2c779b3147f3a",
+				"dweb:/ipfs/QmSzwoonEf2UvwDYJm6NwJT9gFzBvf3rvHGA7bcpA7Ry7F"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/logic/InstrumentReserveLogic.sol": {
-			"keccak256": "0x70ad031e86bdf6e2e07956c0ffa2422fa729fe79439818927e5189956f8bdb12",
+			"keccak256": "0x4b81472fbe48b7f975d49202bf3258c87ad8b3bbcd5f46d3871b4af37f4bbb87",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://e9036024ea3c26cb2d7cecb2d8857f09f23c6543326fe9c6897e953780b9b3c0",
-				"dweb:/ipfs/QmTCGujAQZis2DBdokssbxucxSQXWJQRhiX3Gbb3nE2jYB"
+				"bzz-raw://7eef334aafa7ee7cb5da2fbbdf03fd9f96526169fdff30ee571d59c1bc6461e6",
+				"dweb:/ipfs/QmRm1fqGLB7P9PSgeR58bFYfYE6LXUsG8abSTdWBkDVsop"
 			]
 		},
 		"localhost/contracts/lendingProtocol/libraries/math/MathUtils.sol": {
@@ -190,11 +352,11 @@
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IFeeProviderLendingPool.sol": {
-			"keccak256": "0xc45e917e0104c0dba302a62a3421f67392efc03ab4031fd554adc9d8a5dba448",
+			"keccak256": "0xbed6fa0793f786c8184f4e89c457e1825f142404659490859fe1d76246127ee2",
 			"license": "agpl-3.0",
 			"urls": [
-				"bzz-raw://e4c90b7a215af22b61d92dff20bac9741dd509a8293b864976d3776e91b6f644",
-				"dweb:/ipfs/QmYP8RaPzFUNvs8txgDtbxnBEiTyMmV9e5m66d4DKFdQVh"
+				"bzz-raw://38928ac8817801d1404bf6d97bbbe82783b8d10c9bb5fd02dd9196e2b0524c2b",
+				"dweb:/ipfs/QmW3b51K38JpBeb2TQxC6hjvZKnUw7uAyJivn4N9X9eQx5"
 			]
 		},
 		"localhost/interfaces/lendingProtocol/IIToken.sol": {

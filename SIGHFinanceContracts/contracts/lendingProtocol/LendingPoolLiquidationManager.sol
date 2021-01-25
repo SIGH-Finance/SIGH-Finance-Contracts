@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.7.0;
 
+import {IGlobalAddressesProvider} from "../../interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol";
 import {VersionedInitializable} from "../dependencies/upgradability/VersionedInitializable.sol";
 import {SafeERC20} from '../dependencies/openzeppelin/token/ERC20/SafeERC20.sol';
 import {IERC20} from '../dependencies/openzeppelin/token/ERC20/IERC20.sol';
@@ -13,6 +14,7 @@ import {Helpers} from "./libraries/helpers/Helpers.sol";
 import {ValidationLogic} from "./libraries/logic/ValidationLogic.sol";
 import {WadRayMath} from './libraries/math/WadRayMath.sol';
 import {IFlashLoanReceiver} from "./flashLoan/interfaces/IFlashLoanReceiver.sol";
+import {IFeeProviderLendingPool} from "../../interfaces/lendingProtocol/IFeeProviderLendingPool.sol";
 
 import {SafeMath} from "../dependencies/openzeppelin/math/SafeMath.sol";
 import {PercentageMath} from './libraries/math/PercentageMath.sol';
@@ -92,6 +94,20 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
     function getRevision() internal override pure returns (uint256) {
         return LIQUIDATION_MANAGER_REVISION;
     }
+
+
+  /**
+   * @dev Function is invoked by the proxy contract when the LendingPool contract is added to the
+   * LendingPoolAddressesProvider of the market.
+   * - Caching the address of the LendingPoolAddressesProvider in order to reduce gas consumption
+   *   on subsequent operations
+   * @param provider The address of the LendingPoolAddressesProvider
+   **/
+  constructor(IGlobalAddressesProvider provider)  {
+    addressesProvider = provider;
+  }
+  
+  
 
 // #############################################################################################################################################
 // ######  LIQUIDATION FUNCTION --> Anyone can call this function to liquidate the position of the user whose position can be liquidated  ######
@@ -289,11 +305,17 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
     
     
     
+    struct flashLoanVars {
+       address iTokenAddress;
+       uint256 availableLiquidityBefore;
+       uint256 availableLiquidityAfter;
+       address feeProvider;
+       uint totalFee;
+       uint platformFee;
+       uint reserveFee;
+       IFlashLoanReceiver receiver;
+    }
     
-    
-    
-    
-
 
     /**
     * @dev allows smartcontracts to access the liquidity of the pool within one transaction,
@@ -304,29 +326,31 @@ contract LendingPoolLiquidationManager is ILendingPoolLiquidationManager, Versio
     * @param _amount the amount requested for this flashloan
     **/
     function flashLoan(address user, address _receiver, address _instrument, uint256 _amount, bytes memory _params, uint16 boosterID) external returns (uint256, string memory) {
-        address iTokenAddress = _instruments[_instrument].iTokenAddress;
+        flashLoanVars memory vars;
+        vars.iTokenAddress = _instruments[_instrument].iTokenAddress;
 
         // check Liquidity
-        uint256 availableLiquidityBefore = _instrument == IERC20(_instrument).balanceOf(iTokenAddress);
-        require( availableLiquidityBefore >= _amount, Errors.LIQUIDITY_NOT_AVAILABLE);
-        
-        (uint totalFee, uint platformFee, uint reserveFee) = calculateFlashLoanFee(user,_amount,boosterID);    // get flash loan fee
+        vars.availableLiquidityBefore = IERC20(_instrument).balanceOf(vars.iTokenAddress);
+        require( vars.availableLiquidityBefore >= _amount, Errors.LIQUIDITY_NOT_AVAILABLE);
 
-        IFlashLoanReceiver receiver = IFlashLoanReceiver(_receiver);            //get the FlashLoanReceiver instance
-        IIToken(iTokenAddress).transferUnderlyingTo(_receiver, _amount);        //transfer funds to the receiver
-        receiver.executeOperation(_instrument, _amount, totalFee, _params);     //execute action of the receiver
+        vars.feeProvider = addressesProvider.getFeeProvider();
+        (vars.totalFee, vars.platformFee, vars.reserveFee) = IFeeProviderLendingPool(vars.feeProvider).calculateFlashLoanFee(user,_amount,boosterID);    // get flash loan fee
+
+        vars.receiver = IFlashLoanReceiver(_receiver);            //get the FlashLoanReceiver instance
+        IIToken(vars.iTokenAddress).transferUnderlyingTo(_receiver, _amount);        //transfer funds to the receiver
+        vars.receiver.executeOperation(_instrument, _amount, vars.totalFee, _params);     //execute action of the receiver
 
         //check that the Fee is returned along with the amount
-        uint256 availableLiquidityAfter = IERC20(_instrument).balanceOf(iTokenAddress);
-        require( availableLiquidityAfter == availableLiquidityBefore.add(totalFee), Errors.INCONCISTENT_BALANCE);
+        vars.availableLiquidityAfter = IERC20(_instrument).balanceOf(vars.iTokenAddress);
+        require( vars.availableLiquidityAfter == vars.availableLiquidityBefore.add(vars.totalFee), Errors.INCONCISTENT_BALANCE);
 
-        _instruments[_instrument].updateState(sighPayAggregator);
-        _instruments[_instrument].cumulateToLiquidityIndex( IERC20(iTokenAddress).totalSupply(), reserveFee );
-        _instruments[_instrument].updateInterestRates(_instrument, iTokenAddress, _amount.add(reserveFee), 0 );
+        // _instruments[_instrument].updateState(sighPayAggregator);
+        _instruments[_instrument].cumulateToLiquidityIndex( IERC20(vars.iTokenAddress).totalSupply(), vars.reserveFee );
+        _instruments[_instrument].updateInterestRates(_instrument, vars.iTokenAddress, _amount.add(vars.reserveFee), 0 );
 
-        IIToken(iTokenAddress).transferUnderlyingTo(platformFeeCollector, platformFee);
+        IIToken(vars.iTokenAddress).transferUnderlyingTo(platformFeeCollector, vars.platformFee);
 
-        emit FlashLoan(user, _receiver, _instrument, _amount, protocolFee, reserveFee, boosterID);
+        emit FlashLoan(user, _receiver, _instrument, _amount, vars.platformFee, vars.reserveFee, boosterID);
         return (uint256(Errors.CollateralManagerErrors.NO_ERROR), Errors.LPCM_NO_ERRORS);
     }
 

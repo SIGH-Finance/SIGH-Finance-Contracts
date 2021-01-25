@@ -14,11 +14,30 @@ abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
   using SafeERC20 for IERC20;
   using SafeMath for uint256;
 
-  IGlobalAddressesProvider public immutable override ADDRESSES_PROVIDER;
-  ILendingPool public immutable override LENDING_POOL;
+   IGlobalAddressesProvider public ADDRESSES_PROVIDER;
 
-  constructor(IGlobalAddressesProvider provider) {
-    ADDRESSES_PROVIDER = provider;
-    LENDING_POOL = ILendingPool(provider.getLendingPool());
-  }
+   constructor(IGlobalAddressesProvider provider) {
+     ADDRESSES_PROVIDER = provider;
+   }
+  
+
+    function transferFundsBack(address _instrument, address iTokenAddress, uint256 _amount) internal {
+        transferInternal(iTokenAddress, _instrument, _amount);
+    }
+
+
+
+  
+    function transferInternal(address _destination, address _instrument, uint256  _amount) internal {
+        IERC20(_instrument).safeTransfer(_destination, _amount);
+    }  
+  
+// ################################################################################################
+// ####   INTERNAL VIEW FUNCTION : Instrument balance of the target address   #####################
+// ################################################################################################
+
+    function getBalanceInternal(address _target, address _instrument) internal view returns(uint256) {
+        return IERC20(_instrument).balanceOf(_target);
+    }
+    
 }
