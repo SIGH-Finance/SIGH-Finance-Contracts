@@ -88,6 +88,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     function createNewSIGHBooster(address _owner, string memory _type,  string memory boosterURI, bytes memory _data) public override onlyOwner returns (uint256) {
         require(boosterCategories[_type].isSupported,'Not a valid Booster Type');
+        require(_boosterIds.current() < 65535, 'Max Booster limit reached');
 
         _boosterIds.increment();
         uint256 newItemId = _boosterIds.current();
@@ -98,6 +99,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
         boosterCategories[_type].totalBoosters = boosterCategories[_type].totalBoosters.add(1);
 
+        emit BoosterMinted(_owner,_type,boosterURI,newItemId,boosterCategories[_type].totalBoosters);
         return newItemId;
     }
 
@@ -253,7 +255,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
         uint ans;
 
-        for (uint32 i=1; i <= boostersOwned.length(); i++ ) {
+        for (uint32 i=1; i < boostersOwned.length(); i++ ) {
             BoostersEnumerableSet.ownedBooster memory _booster = boostersOwned.at(i);
             if ( _booster._type.equal(_category) ) {
                 ans = ans + 1;
@@ -292,7 +294,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     // get Booster Discount Multipliers for Booster Category
     function getDiscountRatiosForBoosterCategory(string memory _category) external view override returns ( uint platformFeeDiscount, uint sighPayDiscount ) {
-        require(!boosterCategories[_category].isSupported,"SIGH BOOSTERS: Booster Type doesn't exist");
+        require(boosterCategories[_category].isSupported,"SIGH BOOSTERS: Booster Type doesn't exist");
         platformFeeDiscount =  boosterCategories[_category]._platformFeeDiscount;
         sighPayDiscount =  boosterCategories[_category]._sighPayDiscount;
     }

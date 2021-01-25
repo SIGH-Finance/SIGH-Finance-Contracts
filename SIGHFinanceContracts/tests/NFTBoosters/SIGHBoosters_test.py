@@ -1,4 +1,5 @@
 import pytest
+import brownie
 from brownie import SIGHBoosters, accounts
 
 
@@ -23,8 +24,15 @@ def test_supportsInterface(boosters):
 
 
 def test_addNewBoosterType(boosters):
-    SIGHBoosters.addNewBoosterType('Marvin', 100, 5, {'from': accounts[0]})
+    boosters.addNewBoosterType('Marvin', 100, 5, {'from': accounts[0]})
     assert boosters.isCategorySupported('Marvin') == True
     assert boosters.totalBoostersAvailable('Marvin') == 0
     assert boosters.getAllBoosterTypes() == ['Marvin']
     assert boosters.getDiscountRatiosForBoosterCategory('Marvin') == (100, 5)
+
+
+def test_updateBaseURI(boosters):
+    boosters._updateBaseURI('boosters/sigh.finance', {'from': accounts[0]})
+    assert boosters.baseURI() == 'boosters/sigh.finance'
+    with brownie.reverts():
+        boosters._updateBaseURI('boosters/sigh.finance', {'from': accounts[2]})

@@ -5,6 +5,7 @@ pragma solidity ^0.7.0;
 interface ISIGHBoosters {
 
     event newCategoryAdded(string _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_);
+    event BoosterMinted(address _owner, string _type,string boosterURI,uint256 newItemId,uint256 totalBoostersOfThisCategory);
 
     // #################################
     // ######## ADMIN FUNCTIONS ########
