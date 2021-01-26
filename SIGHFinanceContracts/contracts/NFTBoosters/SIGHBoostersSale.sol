@@ -2,15 +2,16 @@
 pragma experimental ABIEncoderV2;
 pragma solidity 0.7.0;
 
-import "../dependencies/openzeppelin/access/Ownable.sol";
-import "../dependencies/openzeppelin/math/SafeMath.sol";
-import "../dependencies/openzeppelin/token/ERC20/ERC20.sol";
-import "../dependencies/BoostersDependencies/BoostersStringUtils.sol";
+import {Ownable} from "../dependencies/openzeppelin/access/Ownable.sol";
+import {SafeMath} from "../dependencies/openzeppelin/math/SafeMath.sol";
+import {ERC20} from "../dependencies/openzeppelin/token/ERC20/ERC20.sol";
+import {BoostersStringUtils} from "../dependencies/BoostersDependencies/BoostersStringUtils.sol";
 
-import "../../interfaces/NFTBoosters/ISIGHBoosters.sol";
-import "../../interfaces/NFTBoosters/ISIGHBoostersSale.sol";
+import {ISIGHBoosters} from "../../interfaces/NFTBoosters/ISIGHBoosters.sol";
+import {ISIGHBoostersSale} from "../../interfaces/NFTBoosters/ISIGHBoostersSale.sol";
+import {IERC721Receiver} from "../dependencies/openzeppelin/token/ERC721/IERC721Receiver.sol";
 
-contract SIGHBoostersSale is Ownable,ISIGHBoostersSale {
+contract SIGHBoostersSale is IERC721Receiver,Ownable,ISIGHBoostersSale {
 
     using BoostersStringUtils for string;
     using SafeMath for uint256;
@@ -40,26 +41,12 @@ contract SIGHBoostersSale is Ownable,ISIGHBoostersSale {
     // ######## ADMIN FUNCTIONS ########
     // #################################
 
-    function addBoostersForSale(string memory _BoosterType, uint256[] memory boosterids) external override onlyOwner {
-        require( _SIGH_NFT_BoostersContract.isCategorySupported(_BoosterType),"Invalid Type");
-
-        if (!boosterTypes[_BoosterType]) {
-            boosterTypes[_BoosterType] = true;
-        }
-
-        for (uint i; i < boosterids.length; i++ ) {
-            require( !boosterIdsForSale[boosterids[i]], "Already Added");
-
-            ( , string memory _type, , ) = _SIGH_NFT_BoostersContract.getBoosterInfo(boosterids[i]);
-            require(_type.equal(_BoosterType),"Different type");
-
-            listOfBoosters[_type].boosterIdsList.push( boosterids[i] ); // ADDED the boosterID to the list of Boosters available for sale
-            listOfBoosters[_type].totalAvailable = listOfBoosters[_type].totalAvailable.add(1); // Incremented total available by 1
-            boosterIdsForSale[boosterids[i]] = true;
-
-            emit BoosterAddedForSale(_BoosterType , boosterids[i]);
-        }
-    }
+//    function addBoostersForSale(uint256[] memory boosterids) external override onlyOwner {
+//
+//        for (uint i; i < boosterids.length; i++ ) {
+//            addBoosterForSaleInternal(boosterids[i]);
+//        }
+//    }
 
     // Updates the Sale price for '_BoosterType' type of Boosters. Only owner can call this function
     function updateSalePrice(string memory _BoosterType, uint256 _price ) external override onlyOwner {
@@ -79,7 +66,7 @@ contract SIGHBoostersSale is Ownable,ISIGHBoostersSale {
     // Transfers part of the collected Funds to the 'to' address . Only owner can call this function
     function transferBalance(address to, uint amount) external override onlyOwner {
         require( to != address(0) ,"Invalid address");
-        require( amount <= getCurrentBalance() ,"Invalid amount");
+        require( amount <= getCurrentFundsBalance() ,"Invalid amount");
         tokenAcceptedAsPayment.transfer(to,amount);
         emit FundsTransferred(amount);
     }
@@ -114,6 +101,8 @@ contract SIGHBoostersSale is Ownable,ISIGHBoostersSale {
 
         require(transferFunds(msg.sender,amountToBePaid),'Funds transfer Failed');
         require(transferBoosters(receiver, _BoosterType, boostersToBuy),'Boosters transfer Failed');
+
+        emit BoostersBought(msg.sender,receiver,_BoosterType,boostersToBuy,amountToBePaid);
     }
 
 
@@ -129,24 +118,40 @@ contract SIGHBoostersSale is Ownable,ISIGHBoostersSale {
     }
 
     function getTokenAccepted() public view override returns(string memory symbol, address tokenAddress) {
+        require( address(tokenAcceptedAsPayment) != address(0) );
         symbol = tokenAcceptedAsPayment.symbol();
         tokenAddress = address(tokenAcceptedAsPayment);
     }
 
     function getCurrentFundsBalance() public view override returns (uint256) {
-        require(tokenAcceptedAsPayment!=address(0));
+        require( address(tokenAcceptedAsPayment) != address(0) );
         return tokenAcceptedAsPayment.balanceOf(address(this));
     }
 
     function getTokenBalance(address token) public view override returns (uint256) {
-        require(tokenAcceptedAsPayment!=address(0));
+        require(address(tokenAcceptedAsPayment)!=address(0));
         ERC20 token_ = ERC20(token);
         uint balance = token_.balanceOf(address(this));
         return balance;
     }
+
     // ####################################
     // ######## INTERNAL FUNCTIONS ########
     // ####################################
+
+    function addBoosterForSaleInternal(uint256 boosterId) internal {
+        require( !boosterIdsForSale[boosterId], "Already Added");
+        ( , string memory _BoosterType, , ) = _SIGH_NFT_BoostersContract.getBoosterInfo(boosterId);
+
+        if (!boosterTypes[_BoosterType]) {
+            boosterTypes[_BoosterType] = true;
+        }
+
+        listOfBoosters[_BoosterType].boosterIdsList.push( boosterId ); // ADDED the boosterID to the list of Boosters available for sale
+        listOfBoosters[_BoosterType].totalAvailable = listOfBoosters[_BoosterType].totalAvailable.add(1); // Incremented total available by 1
+        boosterIdsForSale[boosterId] = true;
+        emit BoosterAddedForSale(_BoosterType , boosterId);
+    }
 
     // Transfers 'totalBoosters' number of BOOSTERS of type '_BoosterType' to the 'to' address
     function transferBoosters(address to, string memory _BoosterType, uint totalBoosters) internal returns (bool) {
@@ -193,4 +198,13 @@ contract SIGHBoostersSale is Ownable,ISIGHBoostersSale {
         return true;
     }
 
+    // ############################################
+    // ######## onERC721Received FUNCTIONS ########
+    // ############################################
+
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes memory _data) public virtual override returns (bytes4) {
+        addBoosterForSaleInternal(tokenId);
+        emit BoosterAdded(operator,from,tokenId);
+        return this.onERC721Received.selector;
+    }
 }

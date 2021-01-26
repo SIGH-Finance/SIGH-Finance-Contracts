@@ -14,6 +14,9 @@ interface ISIGHBoosters {
     event boosterURIUpdated(uint256 boosterId, string _boosterURI);
     event discountMultiplierUpdated(string _type,uint256 _platformFeeDiscount_,uint256 _sighPayDiscount_ );
 
+    event BoosterWhiteListed(uint256 boosterId);
+    event BoosterBlackListed(uint256 boosterId);
+
     // #################################
     // ######## ADMIN FUNCTIONS ########
     // #################################
@@ -25,6 +28,8 @@ interface ISIGHBoosters {
     function updateBoosterURI(uint256 boosterId, string memory boosterURI )  external returns (bool) ;
     function updateDiscountMultiplier(string memory _type, uint256 _platformFeeDiscount_,uint256 _sighPayDiscount_)  external returns (bool) ;
 
+    function blackListBooster(uint256 boosterId) external;
+    function whiteListBooster(uint256 boosterId) external;
     // ###########################################
     // ######## STANDARD ERC721 FUNCTIONS ########
     // ###########################################
@@ -71,6 +76,7 @@ interface ISIGHBoosters {
     function getDiscountRatiosForBooster(uint256 boosterId) external view returns ( uint platformFeeDiscount, uint sighPayDiscount );
     function getBoosterInfo(uint256 boosterId) external view returns (address farmer, string memory boosterType,uint platformFeeDiscount, uint sighPayDiscount );
 
+    function isBlacklisted(uint boosterId) external view returns(bool) ;
 //     function getAllBoosterTypesSupported() external view returns (string[] memory) ;
 
 }

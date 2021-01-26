@@ -52,6 +52,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
     
     string[] private boosterTypesList ;
+    mapping(uint => bool) blacklistedBoosters;                                    // Mapping for blacklisted boosters
     mapping (string => boosterCategory) private boosterCategories;
     mapping (string => uint256) private totalBoosters;                            // (Booster Category => boosters Available) Mapping
     mapping (uint256 => string) private _BoosterCategory;
@@ -133,6 +134,19 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         emit discountMultiplierUpdated(_type,_platformFeeDiscount_,_sighPayDiscount_ );
         return true;
      }
+
+    function blackListBooster(uint256 boosterId) external override onlyOwner {
+        require(_exists(boosterId), "Non-existent Booster");
+        blacklistedBoosters[boosterId] = true;
+        emit BoosterBlackListed(boosterId);
+    }
+
+    function whiteListBooster(uint256 boosterId) external override onlyOwner {
+        require(_exists(boosterId), "Non-existent Booster");
+        require(blacklistedBoosters[boosterId], "Already whitelisted");
+        blacklistedBoosters[boosterId] = false;
+        emit BoosterWhiteListed(boosterId);
+    }
 
     // ###########################################
     // ######## STANDARD ERC721 FUNCTIONS ########
@@ -228,16 +242,19 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
 
     function safeTransferFrom(address from, address to, uint256 boosterId)  public virtual override(IERC721,ISIGHBoosters) {
+        require(!blacklistedBoosters[boosterId], "Booster blacklisted");
         safeTransferFrom(from, to, boosterId, "");
     }
 
     function safeTransferFrom(address from, address to, uint256 boosterId, bytes memory data) public virtual override(IERC721,ISIGHBoosters) {
+        require(!blacklistedBoosters[boosterId], "Booster blacklisted");
         require(_isApprovedOrOwner(_msgSender(), boosterId), "BOOSTERS: Neither owner nor approved");
         _safeTransfer(from, to, boosterId, data);
     }
 
 
     function transferFrom(address from, address to, uint256 boosterId) public virtual override(IERC721,ISIGHBoosters) {
+        require(!blacklistedBoosters[boosterId], "Booster blacklisted");
         require(_isApprovedOrOwner(_msgSender(), boosterId), "BOOSTERS: Neither owner nor approved");
         _transfer(from, to, boosterId);
     }
@@ -318,14 +335,20 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }   
     
     
-    // Returns a list of BoosterIDs of the boosters owned by the user
-    function getAllBoostersOwned(address user) external view returns(uint[] memory boosterIds) {
-        BoostersEnumerableSet.BoosterSet storage boostersOwned = farmersWithBoosts[user];
-        for (uint i=1; i < boostersOwned.length() ; i++) {
-            BoostersEnumerableSet.ownedBooster memory _booster = boostersOwned.at(i);
-            boosterIds[i] = _booster.boostId;
-        }
+//    // Returns a list of BoosterIDs of the boosters owned by the user
+//    function getAllBoostersOwned(address user) external view returns(uint[] memory boosterIds) {
+//        BoostersEnumerableSet.BoosterSet storage boostersOwned = farmersWithBoosts[user];
+//        for (uint i=1; i < boostersOwned.length() ; i++) {
+//            BoostersEnumerableSet.ownedBooster memory _booster = boostersOwned.at(i);
+//            boosterIds[i] = _booster.boostId;
+//        }
+//    }
+
+    // returns true is the Booster has been blacklisted. Else returns false
+    function isBlacklisted(uint boosterId) external override view returns(bool) {
+        return blacklistedBoosters[boosterId];
     }
+
 
 
 

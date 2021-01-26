@@ -8,15 +8,17 @@ interface ISIGHBoostersSale {
     event SalePriceUpdated(string _type,uint _price);
     event PaymentTokenUpdated(address token);
     event FundsTransferred(uint amount);
-    event updateSaleTime(uint initiateTimestamp);
+    event SaleTimeUpdated(uint initiateTimestamp);
     event BoosterSold(address _to, string _BoosterType,uint _boosterId, uint salePrice );
+    event BoostersBought(address caller,address receiver,string _BoosterType,uint boostersBought,uint amountToBePaid);
+    event BoosterAdded(address operator,address from,uint tokenId);
 
     // #################################
     // ######## ADMIN FUNCTIONS ########
     // #################################
 
     // Add a list of Boosters for sale at a particular price
-    function addBoostersForSale(string calldata _BoosterType, uint[] memory boosterIds) external;
+//    function addBoostersForSale(string calldata _BoosterType, uint[] memory boosterIds) external;
 
     // Update the sale price for a particular type of Boosters
     function updateSalePrice(string calldata _BoosterType, uint256 _price ) external;
@@ -28,7 +30,7 @@ interface ISIGHBoostersSale {
     function transferBalance(address to, uint amount) external;
 
     // Updates time when the Booster sale will go live
-    function saleTimeUpdated(uint timestamp) external;
+    function updateSaleTime(uint timestamp) external;
 
     function transferTokens(address token, address to, uint amount) external ;
     // ##########################################
@@ -51,6 +53,6 @@ interface ISIGHBoostersSale {
     // Get current balance of the token accepted for payments.
     function getCurrentFundsBalance() external view returns (uint256);
 
-    function getTokenBalance(address token) public view returns (uint256) ;
+    function getTokenBalance(address token) external view returns (uint256) ;
 
 }

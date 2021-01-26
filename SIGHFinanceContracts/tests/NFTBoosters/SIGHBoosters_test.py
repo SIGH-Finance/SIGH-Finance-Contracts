@@ -138,6 +138,12 @@ def test_safeTransferFrom(boosters):
         boosters.safeTransferFrom(accounts[4],accounts[1],1, {'from': accounts[0]})
     with brownie.reverts("BOOSTERS: Neither owner nor approved"):
         boosters.safeTransferFrom(accounts[0],accounts[1],1, {'from': accounts[4]})
+    boosters.blackListBooster(2,{'from': accounts[0]})
+    assert boosters.isBlacklisted(2) == True
+    with brownie.reverts("Booster blacklisted"):
+        boosters.safeTransferFrom(accounts[0], accounts[5], 2, {'from': accounts[0]})
+    boosters.whiteListBooster(2,{'from': accounts[0]})
+    assert boosters.isBlacklisted(2) == False
 
 
 def test_transferByApproved(boosters):
@@ -152,6 +158,11 @@ def test_transferByApproved(boosters):
         boosters.approve(accounts[0],2, {'from': accounts[0]})
     with brownie.reverts("BOOSTERS: Neither owner nor approved"):
         boosters.approve(accounts[4],2, {'from': accounts[1]})
+    boosters.approve(accounts[1],2, {'from': accounts[0]})
+    boosters.blackListBooster(2,{'from': accounts[0]})
+    assert boosters.isBlacklisted(2) == True
+    with brownie.reverts("Booster blacklisted"):
+        boosters.safeTransferFrom(accounts[0], accounts[5], 2, {'from': accounts[1]})
 
 
 def test_setApprovalForAll(boosters):
