@@ -8,14 +8,15 @@ import "../dependencies/openzeppelin/token/ERC20/ERC20.sol";
 import "../dependencies/BoostersDependencies/BoostersStringUtils.sol";
 
 import "../../interfaces/NFTBoosters/ISIGHBoosters.sol";
+import "../../interfaces/NFTBoosters/ISIGHBoostersSale.sol";
 
-contract SIGHBoostersSale is Ownable {
+contract SIGHBoostersSale is Ownable,ISIGHBoostersSale {
 
     using BoostersStringUtils for string;
     using SafeMath for uint256;
 
     ISIGHBoosters private _SIGH_NFT_BoostersContract;    // SIGH Finance NFT Boosters Contract
-    address private _BoosterVault;
+    uint public initiateTimestamp;
 
     ERC20 private tokenAcceptedAsPayment;         // Address of token accepted as payment
 
@@ -30,8 +31,6 @@ contract SIGHBoostersSale is Ownable {
     mapping (uint256 => bool) private boosterIdsForSale;      // Booster Ids that have been included for sale
     mapping (string => bool) private boosterTypes;            // Booster Type => Yes/No
 
-    event BoosterSold(address to, string _BoosterType, uint _boosterId, uint salePrice );
-
     constructor(address _SIGHNFTBoostersContract) {
         require(_SIGHNFTBoostersContract != address(0),'SIGH Finance : Invalid _SIGHNFTBoostersContract address');
         _SIGH_NFT_BoostersContract = ISIGHBoosters(_SIGHNFTBoostersContract);
@@ -41,59 +40,80 @@ contract SIGHBoostersSale is Ownable {
     // ######## ADMIN FUNCTIONS ########
     // #################################
 
-    function addBoostersForSale(string memory _BoosterType, uint256[] memory boosterids) external onlyOwner {
-        require( _SIGH_NFT_BoostersContract.isCategorySupported(_BoosterType),"SIGH Finance : Not a valid Booster Type");
+    function addBoostersForSale(string memory _BoosterType, uint256[] memory boosterids) external override onlyOwner {
+        require( _SIGH_NFT_BoostersContract.isCategorySupported(_BoosterType),"Invalid Type");
 
         if (!boosterTypes[_BoosterType]) {
             boosterTypes[_BoosterType] = true;
         }
 
         for (uint i; i < boosterids.length; i++ ) {
-            require( !boosterIdsForSale[boosterids[i]], "Booster already added for sale");
+            require( !boosterIdsForSale[boosterids[i]], "Already Added");
 
-            ( , string memory _type) = _SIGH_NFT_BoostersContract.getBoosterInfo(boosterids[i]);
-            require(_type.equal(_BoosterType),"Booster of different type");
+            ( , string memory _type, , ) = _SIGH_NFT_BoostersContract.getBoosterInfo(boosterids[i]);
+            require(_type.equal(_BoosterType),"Different type");
 
             listOfBoosters[_type].boosterIdsList.push( boosterids[i] ); // ADDED the boosterID to the list of Boosters available for sale
             listOfBoosters[_type].totalAvailable = listOfBoosters[_type].totalAvailable.add(1); // Incremented total available by 1
             boosterIdsForSale[boosterids[i]] = true;
+
+            emit BoosterAddedForSale(_BoosterType , boosterids[i]);
         }
     }
 
     // Updates the Sale price for '_BoosterType' type of Boosters. Only owner can call this function
-    function updateSalePrice(string memory _BoosterType, uint256 _price ) external onlyOwner {
-        require( _SIGH_NFT_BoostersContract.isCategorySupported(_BoosterType),"SIGH Finance : Not a valid Booster Type");
-        require( boosterTypes[_BoosterType] ,"SIGH Finance : Booster Type not initialized yet");
-
+    function updateSalePrice(string memory _BoosterType, uint256 _price ) external override onlyOwner {
+        require( _SIGH_NFT_BoostersContract.isCategorySupported(_BoosterType),"Invalid Type");
+        require( boosterTypes[_BoosterType] ,"Not yet initialized");
         listOfBoosters[_BoosterType].salePrice = _price;
+        emit SalePriceUpdated(_BoosterType,_price);
     }
 
-    // Transfers part of the collected DAI to the 'to' address . Only owner can call this function
-    function updateAcceptedToken(address token) external onlyOwner {
-        require( token != address(0) ,"Invalid destination address");
+    // Update the token accepted as payment
+    function updateAcceptedToken(address token) external override onlyOwner {
+        require( token != address(0) ,"Invalid address");
         tokenAcceptedAsPayment = ERC20(token);
+        emit PaymentTokenUpdated(token);
     }
 
-    // Transfers part of the collected DAI to the 'to' address . Only owner can call this function
-    function transferBalance(address to, uint amount) external onlyOwner {
-        require( to != address(0) ,"Invalid destination address");
+    // Transfers part of the collected Funds to the 'to' address . Only owner can call this function
+    function transferBalance(address to, uint amount) external override onlyOwner {
+        require( to != address(0) ,"Invalid address");
         require( amount <= getCurrentBalance() ,"Invalid amount");
         tokenAcceptedAsPayment.transfer(to,amount);
+        emit FundsTransferred(amount);
+    }
+
+    // Updates time when the Booster sale will go live
+    function updateSaleTime(uint timestamp) external override onlyOwner {
+        require( block.timestamp < timestamp,'Invalid stamp');
+        initiateTimestamp = timestamp;
+        emit SaleTimeUpdated(initiateTimestamp);
+    }
+
+    // Transfers part of the collected DAI to the 'to' address . Only owner can call this function
+    function transferTokens(address token, address to, uint amount) external override onlyOwner {
+        require( to != address(0) ,"Invalid address");
+        ERC20 token_ = ERC20(token);
+        uint balance = token_.balanceOf(address(this));
+        require( amount <= balance ,"Invalid amount");
+        token_.transfer(to,amount);
     }
 
     // ##########################################
     // ######## FUNCTION TO BY A BOOSTER ########
     // ##########################################
 
-    function buyBoosters(string memory _BoosterType, uint boostersToBuy) external {
-        require(boostersToBuy >= 1,"Invalid number of boosters provided");
+    function buyBoosters(address receiver, string memory _BoosterType, uint boostersToBuy) override external {
+        require( block.timestamp > initiateTimestamp,'Sale not begin');
+        require(boostersToBuy >= 1,"Invalid number of boosters");
         require(boosterTypes[_BoosterType],"Invalid Booster Type");
-        require(listOfBoosters[_BoosterType].totalAvailable >=  boostersToBuy,"Desired Number of boosters not available");
+        require(listOfBoosters[_BoosterType].totalAvailable >=  boostersToBuy,"Boosters not available");
 
         uint amountToBePaid = boostersToBuy.mul(listOfBoosters[_BoosterType].salePrice);
 
-        transferFunds(msg.sender,amountToBePaid);
-        require(transferBoosters(msg.sender, _BoosterType, boostersToBuy),'Failed to transfer the Boosters');
+        require(transferFunds(msg.sender,amountToBePaid),'Funds transfer Failed');
+        require(transferBoosters(receiver, _BoosterType, boostersToBuy),'Boosters transfer Failed');
     }
 
 
@@ -101,22 +121,29 @@ contract SIGHBoostersSale is Ownable {
     // ######## EXTERNAL VIEW FUNCTIONS ########
     // #########################################
 
-    function getBoosterSaleDetails(string memory _Boostertype) external view returns (uint256 available,uint256 price, uint256 sold) {
+    function getBoosterSaleDetails(string memory _Boostertype) external view override returns (uint256 available,uint256 price, uint256 sold) {
         require( _SIGH_NFT_BoostersContract.isCategorySupported(_Boostertype),"SIGH Finance : Not a valid Booster Type");
         available = listOfBoosters[_Boostertype].totalAvailable;
         price = listOfBoosters[_Boostertype].salePrice;
         sold = listOfBoosters[_Boostertype].totalBoostersSold;
     }
 
-    function getTokenAccepted() public view returns(string memory symbol, address tokenAddress) {
+    function getTokenAccepted() public view override returns(string memory symbol, address tokenAddress) {
         symbol = tokenAcceptedAsPayment.symbol();
         tokenAddress = address(tokenAcceptedAsPayment);
     }
 
-    function getCurrentBalance() public view returns (uint256) {
+    function getCurrentFundsBalance() public view override returns (uint256) {
+        require(tokenAcceptedAsPayment!=address(0));
         return tokenAcceptedAsPayment.balanceOf(address(this));
     }
 
+    function getTokenBalance(address token) public view override returns (uint256) {
+        require(tokenAcceptedAsPayment!=address(0));
+        ERC20 token_ = ERC20(token);
+        uint balance = token_.balanceOf(address(this));
+        return balance;
+    }
     // ####################################
     // ######## INTERNAL FUNCTIONS ########
     // ####################################
@@ -132,11 +159,12 @@ contract SIGHBoostersSale is Ownable {
             if (boosterIdsForSale[_boosterId] && listOfBoosters[_BoosterType].boosterIdsList[i] > 0) {
 
                 // Transfer the Booster and Verify the same
-                _SIGH_NFT_BoostersContract.safeTransferFrom(_BoosterVault,to,_boosterId);
+                _SIGH_NFT_BoostersContract.safeTransferFrom(address(this),to,_boosterId);
                 require(to == _SIGH_NFT_BoostersContract.ownerOfBooster(_boosterId),"Booster Transfer failed");
 
-                // Remove the Booster ID by making it 0
-                listOfBoosters[_BoosterType].boosterIdsList[i] = 0;
+                // Remove the Booster ID
+                listOfBoosters[_BoosterType].boosterIdsList[i] = listOfBoosters[_BoosterType].boosterIdsList[listLength.sub(1)];
+                listOfBoosters[_BoosterType].boosterIdsList.pop();
 
                 // Update the number of boosters available & sold
                 listOfBoosters[_BoosterType].totalAvailable = listOfBoosters[_BoosterType].totalAvailable.sub(1);
@@ -157,11 +185,12 @@ contract SIGHBoostersSale is Ownable {
     }
 
     // Transfers 'amount' of DAI to the contract
-    function transferFunds(address from, uint amount) internal {
+    function transferFunds(address from, uint amount) internal returns (bool) {
         uint prevBalance = tokenAcceptedAsPayment.balanceOf(address(this));
         tokenAcceptedAsPayment.transferFrom(from,address(this),amount);
         uint newBalance = tokenAcceptedAsPayment.balanceOf(address(this));
-        require(newBalance == prevBalance.add(amount),'DAI transfer failure');
+        require(newBalance == prevBalance.add(amount),'Funds Transfer failed');
+        return true;
     }
 
 }

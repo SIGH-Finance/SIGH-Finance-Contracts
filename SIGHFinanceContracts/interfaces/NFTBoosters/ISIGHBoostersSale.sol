@@ -2,14 +2,21 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-interface ISIGHNFTSale {
+interface ISIGHBoostersSale {
+
+    event BoosterAddedForSale(string _type,uint boosterid);
+    event SalePriceUpdated(string _type,uint _price);
+    event PaymentTokenUpdated(address token);
+    event FundsTransferred(uint amount);
+    event updateSaleTime(uint initiateTimestamp);
+    event BoosterSold(address _to, string _BoosterType,uint _boosterId, uint salePrice );
 
     // #################################
     // ######## ADMIN FUNCTIONS ########
     // #################################
 
     // Add a list of Boosters for sale at a particular price
-    function addBoostersForSale(string calldata _BoosterType, uint[] memory boosterids, uint256 _price ) external;
+    function addBoostersForSale(string calldata _BoosterType, uint[] memory boosterIds) external;
 
     // Update the sale price for a particular type of Boosters
     function updateSalePrice(string calldata _BoosterType, uint256 _price ) external;
@@ -20,12 +27,16 @@ interface ISIGHNFTSale {
     // Transfer part of the the token collected for payments to the 'to' address
     function transferBalance(address to, uint amount) external;
 
+    // Updates time when the Booster sale will go live
+    function saleTimeUpdated(uint timestamp) external;
+
+    function transferTokens(address token, address to, uint amount) external ;
     // ##########################################
     // ######## FUNCTION TO BY BOOSTERS  ########
     // ##########################################
 
     // Buy the 'boostersToBuy' no. of Boosters for the '_BoosterType' type of boosters
-    function buyBoosters(string memory _BoosterType, uint boostersToBuy) external;
+    function buyBoosters(address receiver, string memory _BoosterType, uint boostersToBuy) external;
 
     // #########################################
     // ######## EXTERNAL VIEW FUNCTIONS ########
@@ -35,9 +46,11 @@ interface ISIGHNFTSale {
     function getBoosterSaleDetails(string memory _Boostertype) external view returns (uint256 available,uint256 price, uint256 sold);
 
     // Get the symbol and address of the token accepted for payments
-    function getTokenAccepted() external view returns(string memory);
+    function getTokenAccepted() external view returns(string memory symbol, address tokenAddress);
 
     // Get current balance of the token accepted for payments.
-    function getCurrentBalance() external view returns (uint256);
+    function getCurrentFundsBalance() external view returns (uint256);
+
+    function getTokenBalance(address token) public view returns (uint256) ;
 
 }

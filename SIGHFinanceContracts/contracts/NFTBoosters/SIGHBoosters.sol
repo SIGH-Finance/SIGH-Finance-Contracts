@@ -77,7 +77,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     // #################################
 
     function createNewBoosters(string[] memory _type,  string[] memory boosterURI) public override onlyOwner returns (uint256) {
-        require( _type.length == boosterURI.length, 'Array Size not equal');
+        require( _type.length == boosterURI.length, 'Size not equal');
         bytes memory _data;
         uint i;
         for(; i< _type.length; i++) {
@@ -87,7 +87,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
 
     function createNewSIGHBooster(address _owner, string memory _type,  string memory boosterURI, bytes memory _data) public override onlyOwner returns (uint256) {
-        require(boosterCategories[_type].isSupported,'Not a valid Booster Type');
+        require(boosterCategories[_type].isSupported,'Not a valid Type');
         require(_boosterIds.current() < 65535, 'Max Booster limit reached');
 
         _boosterIds.increment();
@@ -104,9 +104,9 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
 
     function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_) public override onlyOwner returns (bool) {
-        require(!boosterCategories[_type].isSupported,"SIGH BOOSTERS: Booster Type already exists");
-        require(_platformFeeDiscount_ > 0,"SIGH BOOSTERS: Platform Fee Discount cannot be 0");
-        require(_sighPayDiscount_ > 0,"SIGH BOOSTERS: SIGH Pay Fee Discount cannot be 0");
+        require(!boosterCategories[_type].isSupported,"BOOSTERS: Type already exists");
+        require(_platformFeeDiscount_ > 0,"BOOSTERS: Platform Discount cannot be 0");
+        require(_sighPayDiscount_ > 0,"BOOSTERS: SIGH Pay Discount cannot be 0");
         boosterCategories[_type] =  boosterCategory({isSupported: true, totalBoosters:0, _platformFeeDiscount: _platformFeeDiscount_, _sighPayDiscount: _sighPayDiscount_  });
         boosterTypesList.push(_type);
         emit newCategoryAdded(_type,_platformFeeDiscount_,_sighPayDiscount_);
@@ -115,20 +115,22 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     
     function _updateBaseURI(string memory baseURI )  public override onlyOwner {
         _baseURI = baseURI;
+        emit baseURIUpdated(baseURI);
      }
     
     function updateBoosterURI(uint256 boosterId, string memory boosterURI )  public override onlyOwner returns (bool) {
-        require(_exists(boosterId), "SIGH BOOSTERS: URI set of nonexistent token");
+        require(_exists(boosterId), "Non-existent Booster");
         _setBoosterURI(boosterId,boosterURI);
         return true;
      }
 
-    function updateDiscountMultiplier(string memory _type, uint256 _platformFeeDiscount_,uint256 _sighPayDiscount_)  public onlyOwner returns (bool) {
-        require(!boosterCategories[_type].isSupported,"SIGH BOOSTERS: Booster Type doesn't exist");
-        require(_platformFeeDiscount_ > 0,"SIGH BOOSTERS: Platform Fee Discount cannot be 0");
-        require(_sighPayDiscount_ > 0,"SIGH BOOSTERS: SIGH Pay Fee Discount cannot be 0");
+    function updateDiscountMultiplier(string memory _type, uint256 _platformFeeDiscount_,uint256 _sighPayDiscount_)  public override onlyOwner returns (bool) {
+        require(boosterCategories[_type].isSupported,"BOOSTERS: Type doesn't exist");
+        require(_platformFeeDiscount_ > 0,"BOOSTERS: Platform Fee Discount cannot be 0");
+        require(_sighPayDiscount_ > 0,"BOOSTERS: SIGH Pay Fee Discount cannot be 0");
         boosterCategories[_type]._platformFeeDiscount = _platformFeeDiscount_;
         boosterCategories[_type]._sighPayDiscount = _sighPayDiscount_;
+        emit discountMultiplierUpdated(_type,_platformFeeDiscount_,_sighPayDiscount_ );
         return true;
      }
 
@@ -170,18 +172,22 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     // Returns the boostURI for the Booster
     function tokenURI(uint256 boosterId) public view override(IERC721Metadata,ISIGHBoosters) returns (string memory) {
-        require(_exists(boosterId), "URI query for nonexistent SIGH Booster");
+        require(_exists(boosterId), "Non-existent Booster");
         string memory _boostURI = _BoostURIs[boosterId];
         
-        if (bytes(_baseURI).length == 0) {                                  // If there is no base URI, return the token URI.
+        if (bytes(_baseURI).length == 0 && bytes(_boostURI).length > 0) {                                  // If there is no base URI, return the token URI.
             return _boostURI;
         }
 
-        if (bytes(_boostURI).length > 0) {                                  // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
+        if (bytes(_baseURI).length > 0 && bytes(_boostURI).length > 0) {                                  // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
             return string(abi.encodePacked(_baseURI, _boostURI));
         }
         
-        return string(abi.encodePacked(_baseURI, boosterId.toString()));    // If there is a baseURI but no tokenURI, concatenate the boosterId to the baseURI.
+        if (bytes(_baseURI).length > 0 && bytes(_boostURI).length == 0) {                                  // If there is a baseURI but no tokenURI, concatenate the boosterId to the baseURI.
+            return string(abi.encodePacked(_baseURI, boosterId.toString()));
+        }
+
+        return boosterId.toString();
     }
 
     function baseURI() public view override returns (string memory) {
@@ -200,26 +206,25 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     // A BOOSTER owner can approve anyone to be able to transfer the underlying booster
     function approve(address to, uint256 boosterId) override(IERC721,ISIGHBoosters) external {
         address _owner = ownerOfBooster(boosterId);
-        require(to != _owner, "SIGH BOOSTERS: Approval to current owner");
-        require(_msgSender() == _owner || isApprovedForAll(_owner, _msgSender()),"SIGH BOOSTERS: Caller is not the owner nor approved for all Boosters owned by the owner");
+        require(to != _owner, "BOOSTERS: Owner cannot be approved");
+        require(_msgSender() == _owner || isApprovedForAll(_owner, _msgSender()),"BOOSTERS: Neither owner nor approved");
         _approve(to, boosterId);
     }
 
     // Returns the Address currently approved for the Booster with ID = boosterId
     function getApproved(uint256 boosterId) public view override(IERC721,ISIGHBoosters) returns (address) {
-        require(_exists(boosterId), "SIGH BOOSTERS: Approved query for nonexistent Booster");
+        require(_exists(boosterId), "BOOSTERS: Non-existent Booster");
         return _BoosterApprovals[boosterId];
     }
 
     function setApprovalForAll(address operator, bool _approved) public virtual override(IERC721,ISIGHBoosters) {
-        require(operator != _msgSender(), "SIGH BOOSTERS: Caller cannot be Approved");
+        require(operator != _msgSender(), "BOOSTERS: Caller cannot be Approved");
         _operatorApprovals[_msgSender()][operator] = _approved;
         emit ApprovalForAll(_msgSender(), operator, _approved);
     }
 
     function isApprovedForAll(address owner, address operator) public view override(IERC721,ISIGHBoosters) returns (bool) {
-        _operatorApprovals[owner][operator];
-        return true;
+       return _operatorApprovals[owner][operator];
     }
 
     function safeTransferFrom(address from, address to, uint256 boosterId)  public virtual override(IERC721,ISIGHBoosters) {
@@ -227,13 +232,13 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
 
     function safeTransferFrom(address from, address to, uint256 boosterId, bytes memory data) public virtual override(IERC721,ISIGHBoosters) {
-        require(_isApprovedOrOwner(_msgSender(), boosterId), "SIGH BOOSTERS: Transfer caller is not owner nor approved");
+        require(_isApprovedOrOwner(_msgSender(), boosterId), "BOOSTERS: Neither owner nor approved");
         _safeTransfer(from, to, boosterId, data);
     }
 
 
     function transferFrom(address from, address to, uint256 boosterId) public virtual override(IERC721,ISIGHBoosters) {
-        require(_isApprovedOrOwner(_msgSender(), boosterId), "SIGH BOOSTERS: Transfer caller is not owner nor approved");
+        require(_isApprovedOrOwner(_msgSender(), boosterId), "BOOSTERS: Neither owner nor approved");
         _transfer(from, to, boosterId);
     }
 
@@ -244,8 +249,8 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     // Returns the number of Boosters of a particular category owned by the owner address
     function totalBoostersOwnedOfType(address owner, string memory _category) external view override returns (uint) {
-        require(owner != address(0), "SIGH BOOSTERS: balance query for the zero address");
-        require(boosterCategories[_category].isSupported, "Not a valid Booster Type");
+        require(owner != address(0), "SIGH BOOSTERS: zero address query");
+        require(boosterCategories[_category].isSupported, "Not valid Type");
 
         BoostersEnumerableSet.BoosterSet storage boostersOwned = farmersWithBoosts[owner];
 
@@ -255,7 +260,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
         uint ans;
 
-        for (uint32 i=1; i < boostersOwned.length(); i++ ) {
+        for (uint32 i=0; i < boostersOwned.length(); i++ ) {
             BoostersEnumerableSet.ownedBooster memory _booster = boostersOwned.at(i);
             if ( _booster._type.equal(_category) ) {
                 ans = ans + 1;
@@ -266,8 +271,10 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
 
     // Returns farmer address who owns this Booster and its boosterType 
-    function getBoosterInfo(uint256 boosterId) external view override returns (address farmer, string memory boosterType ) {
+    function getBoosterInfo(uint256 boosterId) external view override returns (address farmer, string memory boosterType, uint platformFeeDiscount, uint sighPayDiscount ) {
          ( farmer, boosterType ) =  boostersData.get(boosterId);
+         platformFeeDiscount = boosterCategories[boosterType]._platformFeeDiscount;
+         sighPayDiscount = boosterCategories[boosterType]._sighPayDiscount ;
     }
 
     function isCategorySupported(string memory _category) external view override returns (bool) {
@@ -287,14 +294,14 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     // get Booster Discount Multiplier for a Booster
     function getDiscountRatiosForBooster(uint256 boosterId) external view override returns ( uint platformFeeDiscount, uint sighPayDiscount ) {
-        require(_exists(boosterId), "SIGH BOOSTERS: Booster doesn't exist");
+        require(_exists(boosterId), "Non-existent Booster");
         platformFeeDiscount =  boosterCategories[getBoosterCategory(boosterId)]._platformFeeDiscount;
         sighPayDiscount =  boosterCategories[getBoosterCategory(boosterId)]._sighPayDiscount;
     }
 
     // get Booster Discount Multipliers for Booster Category
     function getDiscountRatiosForBoosterCategory(string memory _category) external view override returns ( uint platformFeeDiscount, uint sighPayDiscount ) {
-        require(boosterCategories[_category].isSupported,"SIGH BOOSTERS: Booster Type doesn't exist");
+        require(boosterCategories[_category].isSupported,"BOOSTERS: Type doesn't exist");
         platformFeeDiscount =  boosterCategories[_category]._platformFeeDiscount;
         sighPayDiscount =  boosterCategories[_category]._sighPayDiscount;
     }
@@ -305,8 +312,8 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
     
     
-    // Returns a list containing the all the Booster categories currently supported
-    function getAllBoosterTypes() external view returns (string[] memory) {
+    // Returns a list containing all the Booster categories currently supported
+    function getAllBoosterTypes() external override view returns (string[] memory) {
         return boosterTypesList;
     }   
     
@@ -314,12 +321,10 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     // Returns a list of BoosterIDs of the boosters owned by the user
     function getAllBoostersOwned(address user) external view returns(uint[] memory boosterIds) {
         BoostersEnumerableSet.BoosterSet storage boostersOwned = farmersWithBoosts[user];
-        
-        for (uint i; i < boostersOwned.length() ; i++) {
+        for (uint i=1; i < boostersOwned.length() ; i++) {
             BoostersEnumerableSet.ownedBooster memory _booster = boostersOwned.at(i);
             boosterIds[i] = _booster.boostId;
         }
-        
     }
 
 
@@ -334,7 +339,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
      */
     function _safeMint(address to, uint256 boosterId, string memory _typeOfBoost, bytes memory _data) internal {
         _mint(to, boosterId, _typeOfBoost);
-        require(_checkOnERC721Received(address(0), to, boosterId, _data), "SIGH BOOSTERS: transfer to non ERC721Receiver implementer");
+        require(_checkOnERC721Received(address(0), to, boosterId, _data), "BOOSTERS: Transfer to non ERC721Receiver implementer");
     }
 
 
@@ -343,8 +348,8 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
      * WARNING: Usage of this method is discouraged, use {_safeMint} whenever possible
      */
     function _mint(address to, uint256 boosterId, string memory _typeOfBoost) internal  {
-        require(to != address(0), "SIGH BOOSTERS: Cannot mint Booster to the zero address");
-        require(!_exists(boosterId), "SIGH BOOSTERS: Booster already minted");
+        require(to != address(0), "BOOSTERS: Cannot mint to zero address");
+        require(!_exists(boosterId), "BOOSTERS: Already minted");
 
         BoostersEnumerableSet.ownedBooster memory newBooster = BoostersEnumerableSet.ownedBooster({ boostId: boosterId, _type: _typeOfBoost });
         BoostersEnumerableMap.boosterInfo memory newBoosterInfo = BoostersEnumerableMap.boosterInfo({ owner: to, _type: _typeOfBoost });
@@ -371,12 +376,12 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
      * - `boosterId` must exist.
      */
     function _setBoosterURI(uint256 boosterId, string memory _boosterURI) internal  {
-        require(_exists(boosterId), "SIGH BOOSTERS: URI cannot be set for non-existent SIGH Booster");
         _BoostURIs[boosterId] = _boosterURI;
+         emit boosterURIUpdated(boosterId,_boosterURI);
     }
 
     function _setType(uint256 boosterId, string memory _type) internal virtual {
-        require(_exists(boosterId), "SIGH BOOSTERS: Type cannot be set for non-existent SIGH Booster");
+        require(_exists(boosterId), "Non-existent Booster");
         _BoosterCategory[boosterId] = _type;
     }
 
@@ -388,7 +393,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     // Returns whether `spender` is allowed to manage `tokenId`.
     function _isApprovedOrOwner(address spender, uint256 boosterId) internal view returns (bool) {
-        require(_exists(boosterId), "SIGH BOOSTERS: Operator query for nonexistent Booster");
+        require(_exists(boosterId), "Non-existent Booster");
         address owner = ownerOfBooster(boosterId);
         return (spender == owner || getApproved(boosterId) == spender || isApprovedForAll(owner, spender));
     }
@@ -399,8 +404,8 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
 
     function _transfer(address from, address to, uint256 boosterId) internal virtual {
-        require(ownerOfBooster(boosterId) == from, "SIGH BOOSTERS: Transfer of token that is not owned");
-        require(to != address(0), "SIGH BOOSTERS: Transfer to the zero address");
+        require(ownerOfBooster(boosterId) == from, "BOOSTERS: Not owned");
+        require(to != address(0), "BOOSTERS: Transfer to the zero address");
 
 //        _beforeTokenTransfer(from, to, boosterId);
         _approve(address(0), boosterId);          // Clear approvals from the previous owner
