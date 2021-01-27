@@ -156,21 +156,20 @@ contract SIGHBoostersSale is IERC721Receiver,Ownable,ISIGHBoostersSale {
 
     // Transfers 'totalBoosters' number of BOOSTERS of type '_BoosterType' to the 'to' address
     function transferBoosters(address to, string memory _BoosterType, uint totalBoosters) internal returns (bool) {
-        uint counter;
         uint listLength = listOfBoosters[_BoosterType].boosterIdsList.length;
 
-        for (uint i; i < listLength; i++ ) {
-            uint256 _boosterId = listOfBoosters[_BoosterType].boosterIdsList[i];  // current BoosterID
+        for (uint i=0; i < totalBoosters; i++ ) {
+            uint256 _boosterId = listOfBoosters[_BoosterType].boosterIdsList[0];  // current BoosterID
 
-            if (boosterIdsForSale[_boosterId] && listOfBoosters[_BoosterType].boosterIdsList[i] > 0) {
-
+            if (boosterIdsForSale[_boosterId]) {
                 // Transfer the Booster and Verify the same
                 _SIGH_NFT_BoostersContract.safeTransferFrom(address(this),to,_boosterId);
                 require(to == _SIGH_NFT_BoostersContract.ownerOfBooster(_boosterId),"Booster Transfer failed");
 
                 // Remove the Booster ID
-                listOfBoosters[_BoosterType].boosterIdsList[i] = listOfBoosters[_BoosterType].boosterIdsList[listLength.sub(1)];
+                listOfBoosters[_BoosterType].boosterIdsList[0] = listOfBoosters[_BoosterType].boosterIdsList[listLength.sub(1)];
                 listOfBoosters[_BoosterType].boosterIdsList.pop();
+                listLength = listLength.sub(1);
 
                 // Update the number of boosters available & sold
                 listOfBoosters[_BoosterType].totalAvailable = listOfBoosters[_BoosterType].totalAvailable.sub(1);
@@ -178,16 +177,11 @@ contract SIGHBoostersSale is IERC721Receiver,Ownable,ISIGHBoostersSale {
 
                 // Mark the BoosterID as sold and update the counter
                 boosterIdsForSale[_boosterId] = false;
-                counter = counter.add(1);
 
                 emit BoosterSold(to, _BoosterType, _boosterId, listOfBoosters[_BoosterType].salePrice );
-
-                if (counter == totalBoosters) {
-                    return true;
-                }
             }
         }
-        return false;
+        return true;
     }
 
     // Transfers 'amount' of DAI to the contract

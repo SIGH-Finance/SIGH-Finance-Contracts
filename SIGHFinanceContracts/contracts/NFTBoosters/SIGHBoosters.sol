@@ -106,8 +106,6 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_) public override onlyOwner returns (bool) {
         require(!boosterCategories[_type].isSupported,"BOOSTERS: Type already exists");
-        require(_platformFeeDiscount_ > 0,"BOOSTERS: Platform Discount cannot be 0");
-        require(_sighPayDiscount_ > 0,"BOOSTERS: SIGH Pay Discount cannot be 0");
         boosterCategories[_type] =  boosterCategory({isSupported: true, totalBoosters:0, _platformFeeDiscount: _platformFeeDiscount_, _sighPayDiscount: _sighPayDiscount_  });
         boosterTypesList.push(_type);
         emit newCategoryAdded(_type,_platformFeeDiscount_,_sighPayDiscount_);
