@@ -233,6 +233,8 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     function setApprovalForAll(address operator, bool _approved) public virtual override(IERC721,ISIGHBoosters) {
         require(operator != _msgSender(), "BOOSTERS: Caller cannot be Approved");
+        require(_operatorApprovals[_msgSender()][operator] != _approved && _approved != true , "Already Approved");
+        require(_operatorApprovals[_msgSender()][operator] != _approved && _approved != false , "Already Not-Approved");
         _operatorApprovals[_msgSender()][operator] = _approved;
         emit ApprovalForAll(_msgSender(), operator, _approved);
     }

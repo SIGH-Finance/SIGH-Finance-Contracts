@@ -85,6 +85,7 @@ contract SIGHBoostersSale is IERC721Receiver,Ownable,ISIGHBoostersSale {
         uint balance = token_.balanceOf(address(this));
         require( amount <= balance ,"Invalid amount");
         token_.transfer(to,amount);
+        emit TokensTransferred(token,to,amount);
     }
 
     // ##########################################

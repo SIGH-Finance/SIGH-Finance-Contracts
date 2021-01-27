@@ -95,7 +95,7 @@ def test_buyBooster(_boostersSale):
     with brownie.reverts('Invalid Booster Type'):
         boostersSale.buyBoosters(accounts[1], 'Deep_Thought', 1, {'from': accounts[0]})
     with brownie.reverts('Boosters not available'):
-        boostersSale.buyBoosters(accounts[1], 'Deep_Thought', 10, {'from': accounts[0]})
+        boostersSale.buyBoosters(accounts[1], 'Deep Thought', 10, {'from': accounts[0]})
 
 
 def test_transferBalance(_boostersSale):

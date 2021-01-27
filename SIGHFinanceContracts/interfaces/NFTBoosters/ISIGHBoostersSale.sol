@@ -8,6 +8,7 @@ interface ISIGHBoostersSale {
     event SalePriceUpdated(string _type,uint _price);
     event PaymentTokenUpdated(address token);
     event FundsTransferred(uint amount);
+    event TokensTransferred(address token,address to,uint amount);
     event SaleTimeUpdated(uint initiateTimestamp);
     event BoosterSold(address _to, string _BoosterType,uint _boosterId, uint salePrice );
     event BoostersBought(address caller,address receiver,string _BoosterType,uint boostersBought,uint amountToBePaid);
