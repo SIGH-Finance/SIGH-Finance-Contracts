@@ -430,9 +430,9 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 
 // ####################################################
 // ######  SIGH FINANCE FEE COLLECTOR #################
-// ####################################################
+// ###################################################
 
-    // SIGH FINANCE FEE COLLECTOR - BORROWING / FLASH LOAN FEE TRANSERRED TO THIS ADDRESS
+    // SIGH FINANCE FEE COLLECTOR - BORROWING / FLASH LOAN FEE TRANSFERRED TO THIS ADDRESS
     function getSIGHFinanceFeeCollector() external view override returns (address) {
         return getAddress(SIGH_Finance_Fee_Collector);
     }
@@ -450,7 +450,6 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     * @dev the functions below are storing specific addresses that are outside the context of the protocol
     * hence the upgradable proxy pattern is not used
     **/
-
     function getPriceOracle() external view override returns (address) {
         return getAddress(PRICE_ORACLE);
     }

@@ -15,7 +15,7 @@ def initiateSIGHBoosterContract():
 
 
 def deployScript(account):
-    boosters = SIGHBoosters.deploy('SIGH Boosters', 'BST', {'from': account})
+    boosters = SIGHBoosters.deploy('SIGH Boosters', '👽', {'from': account})
 
     # Update Boosters baseURI
     boosters._updateBaseURI('boosters.sigh.finance/',{'from':account})

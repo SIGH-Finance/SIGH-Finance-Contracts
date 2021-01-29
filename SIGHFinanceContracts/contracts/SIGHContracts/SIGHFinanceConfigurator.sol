@@ -18,7 +18,7 @@ import {ISIGHVolatilityHarvester} from "../../interfaces/SIGHContracts/ISIGHVola
 * to efficiently regulate the SIGH economics
 **/
 
-contract SighFinanceConfigurator is VersionedInitializable {
+contract SIGHFinanceConfigurator is VersionedInitializable {
 
     using SafeMath for uint256;
     GlobalAddressesProvider public globalAddressesProvider;

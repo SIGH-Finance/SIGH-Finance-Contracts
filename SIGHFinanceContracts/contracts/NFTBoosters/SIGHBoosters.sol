@@ -52,9 +52,9 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
     
     string[] private boosterTypesList ;
-    mapping(uint => bool) blacklistedBoosters;                                    // Mapping for blacklisted boosters
     mapping (string => boosterCategory) private boosterCategories;
-    mapping (string => uint256) private totalBoosters;                            // (Booster Category => boosters Available) Mapping
+
+    mapping(uint => bool) blacklistedBoosters;                                    // Mapping for blacklisted boosters
     mapping (uint256 => string) private _BoosterCategory;
     mapping (uint256 => address) private _BoosterApprovals;                       // Mapping from BoosterID to approved address
     mapping (address => mapping (address => bool)) private _operatorApprovals;    // Mapping from owner to operator approvals
@@ -76,6 +76,27 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     // #################################
     // ######## ADMIN FUNCTIONS ########
     // #################################
+
+    function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_) public override onlyOwner returns (bool) {
+        require(!boosterCategories[_type].isSupported,"BOOSTERS: Type already exists");
+        boosterCategories[_type] =  boosterCategory({isSupported: true, totalBoosters:0, _platformFeeDiscount: _platformFeeDiscount_, _sighPayDiscount: _sighPayDiscount_  });
+        boosterTypesList.push(_type);
+        emit newCategoryAdded(_type,_platformFeeDiscount_,_sighPayDiscount_);
+        return true;
+    }
+
+    function _updateBaseURI(string memory baseURI )  public override onlyOwner {
+        _baseURI = baseURI;
+        emit baseURIUpdated(baseURI);
+     }
+
+    function updateDiscountMultiplier(string memory _type, uint256 _platformFeeDiscount_,uint256 _sighPayDiscount_)  public override onlyOwner returns (bool) {
+        require(boosterCategories[_type].isSupported,"BOOSTERS: Type doesn't exist");
+        boosterCategories[_type]._platformFeeDiscount = _platformFeeDiscount_;
+        boosterCategories[_type]._sighPayDiscount = _sighPayDiscount_;
+        emit discountMultiplierUpdated(_type,_platformFeeDiscount_,_sighPayDiscount_ );
+        return true;
+     }
 
     function createNewBoosters(string[] memory _type,  string[] memory boosterURI) public override onlyOwner returns (uint256) {
         require( _type.length == boosterURI.length, 'Size not equal');
@@ -104,18 +125,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         return newItemId;
     }
 
-    function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_) public override onlyOwner returns (bool) {
-        require(!boosterCategories[_type].isSupported,"BOOSTERS: Type already exists");
-        boosterCategories[_type] =  boosterCategory({isSupported: true, totalBoosters:0, _platformFeeDiscount: _platformFeeDiscount_, _sighPayDiscount: _sighPayDiscount_  });
-        boosterTypesList.push(_type);
-        emit newCategoryAdded(_type,_platformFeeDiscount_,_sighPayDiscount_);
-        return true;
-    }
-    
-    function _updateBaseURI(string memory baseURI )  public override onlyOwner {
-        _baseURI = baseURI;
-        emit baseURIUpdated(baseURI);
-     }
+
     
     function updateBoosterURI(uint256 boosterId, string memory boosterURI )  public override onlyOwner returns (bool) {
         require(_exists(boosterId), "Non-existent Booster");
@@ -123,15 +133,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         return true;
      }
 
-    function updateDiscountMultiplier(string memory _type, uint256 _platformFeeDiscount_,uint256 _sighPayDiscount_)  public override onlyOwner returns (bool) {
-        require(boosterCategories[_type].isSupported,"BOOSTERS: Type doesn't exist");
-        require(_platformFeeDiscount_ > 0,"BOOSTERS: Platform Fee Discount cannot be 0");
-        require(_sighPayDiscount_ > 0,"BOOSTERS: SIGH Pay Fee Discount cannot be 0");
-        boosterCategories[_type]._platformFeeDiscount = _platformFeeDiscount_;
-        boosterCategories[_type]._sighPayDiscount = _sighPayDiscount_;
-        emit discountMultiplierUpdated(_type,_platformFeeDiscount_,_sighPayDiscount_ );
-        return true;
-     }
+
 
     function blackListBooster(uint256 boosterId) external override onlyOwner {
         require(_exists(boosterId), "Non-existent Booster");
@@ -462,6 +464,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         bytes4 retval = abi.decode(returndata, (bytes4));
         return (retval == _ERC721_RECEIVED);
     }
+
 
 //    /**
 //     * @dev Hook that is called before any token transfer.

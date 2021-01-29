@@ -158,6 +158,7 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
     }
 
     function refreshConfig() external override onlySighFinanceConfigurator {        // ()
+        require(addressesProvider.getSIGHFinanceManager() == msg.sender,'Caller not SIGH Finance Manager');
         refreshConfigInternal(); 
     }
 
@@ -181,7 +182,8 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
     * @param _iTokenAddress the address of the overlying iToken contract
     * @param _decimals the number of decimals of the underlying asset
     **/
-    function addInstrument( address _instrument, address _iTokenAddress,address _stableDebtToken,address _variableDebtToken, address _sighStreamAddress, uint8 _decimals ) external override onlyLendingPool returns (bool) {
+    function addInstrument( address _instrument, address _iTokenAddress,address _stableDebtToken,address _variableDebtToken, address _sighStreamAddress, uint8 _decimals ) external override returns (bool) {
+        require(addressesProvider.getLendingPoolConfigurator() == msg.sender,'Not Lending Pool Configurator');
         require(!crypto_instruments[_instrument].isListed ,"Instrument already supported.");
 
         all_Instruments.push(_instrument); // ADD THE INSTRUMENT TO THE LIST OF SUPPORTED INSTRUMENTS
