@@ -14,7 +14,7 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
 
     string _name_ = 'SIGH: Simulated yield optimizer';
     string _symbol_ = 'SIGH';
-    address public _owner;
+    address public _deployer;
     address public SpeedController;
     IGlobalAddressesProvider private globalAddressesProvider;
 
@@ -38,7 +38,7 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
 
     mintSnapshot[] private mintSnapshots;
 
-    uint256 public constant CYCLE_BLOCKS = 6500;  // 15 * 60 * 24 (KOVAN blocks minted per day)
+    uint256 public CYCLE_BLOCKS = 6500;  // 15 * 60 * 24 (KOVAN blocks minted per day)
     uint256 public constant FINAL_CYCLE = 1560; //
 
     uint256 private Current_Cycle;
@@ -54,7 +54,7 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
         uint256 divisibilityFactor;
     }
 
-    Schedule[11] private _schedules;
+    Schedule[5] private _schedules;
 
     /// @notice A record of each accounts delegate
     mapping (address => address) public delegates;
@@ -80,22 +80,30 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
     /// @notice A record of states for signing / validating signatures
     mapping (address => uint) public nonces;
 
+    modifier onlySIGHFinanceManager {
+        address sighFinanceManager =  globalAddressesProvider.getSIGHFinanceManager();
+        require( sighFinanceManager == msg.sender, "The caller must be the SIGH FINANCE Manager" );
+        _;
+    }
+
+    event MintingInitialized(address speedController);
+    event NewSchedule(uint newSchedule, uint newDivisibilityFactor, uint timeStamp );
+    event SIGHMinted( address minter, uint256 cycle, uint256 Schedule, uint inflationRate, uint256 amountMinted, uint mintSpeed, uint256 current_supply);
+
     /// @notice An event that's emitted when an account changes its delegate
     event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
 
     /// @notice An event that's emitted when a delegate account's vote balance changes
     event DelegateVotesChanged(address indexed delegate, uint previousBalance, uint newBalance);
 
-    event NewSchedule(uint newSchedule, uint newDivisibilityFactor, uint blockNumber, uint timeStamp );
-    event MintingInitialized(address speedController, uint256 blockNumber);
-    event SIGHMinted( address minter, uint256 cycle, uint256 Schedule, uint inflationRate, uint256 amountMinted, uint mintSpeed, uint256 current_supply, uint256 block_number);
-    event SIGHBurned( uint256 burntAmount, uint256 totalBurnedAmount, uint256 currentSupply, uint blockNumber);
+    event SIGHBurned( uint256 burntAmount, uint256 totalBurnedAmount, uint256 currentSupply);
 
     event accountBlocked(address _account, uint balance);
     event accountUnBlocked(address _account, uint balance);
+
     // constructing
     constructor () {
-        _owner = _msgSender();
+        _deployer = _msgSender();
     }
 
     // ################################################
@@ -103,7 +111,7 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
     // ################################################
 
     function initMinting(address _globalAddressesProvider, address newSpeedController) public returns (bool) {
-        require(_msgSender() == _owner,"Mining can only be initialized by the owner." );
+        require(_msgSender() == _deployer,"Mining can only be initialized by the Deployer." );
         require(newSpeedController != address(0), "Not a valid Speed Controller address");
         require(!mintingActivated, "Minting can only be initialized once" );
 
@@ -114,11 +122,11 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
         _mint(SpeedController,INITIAL_SUPPLY);
         mintSnapshot  memory currentMintSnapshot = mintSnapshot({ cycle:Current_Cycle, schedule:Current_Schedule, inflationRate: uint(0), mintedAmount:INITIAL_SUPPLY, mintSpeed:uint(0), newTotalSupply:totalSupply(), minter: msg.sender, blockNumber: block.number });
         mintSnapshots.push(currentMintSnapshot);                                                    // MINT SNAPSHOT ADDED TO THE ARRAY
-        emit SIGHMinted(currentMintSnapshot.minter, currentMintSnapshot.cycle, currentMintSnapshot.schedule, currentMintSnapshot.inflationRate, currentMintSnapshot.mintedAmount, currentMintSnapshot.mintSpeed, currentMintSnapshot.newTotalSupply,currentMintSnapshot.blockNumber );
 
+        emit MintingInitialized(SpeedController);
+        emit SIGHMinted(currentMintSnapshot.minter, currentMintSnapshot.cycle, currentMintSnapshot.schedule, currentMintSnapshot.inflationRate, currentMintSnapshot.mintedAmount, currentMintSnapshot.mintSpeed, currentMintSnapshot.newTotalSupply);
 
-        emit MintingInitialized(SpeedController, block.number );
-        _owner = address(0);
+        _deployer = address(0);
 
         return true;
     }
@@ -131,22 +139,23 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
         _schedules[4] = Schedule(1195, 1560, 1600 );        // 4th Mint Schedule
     }
 
-    function blockAnAccount(address _account) external returns (bool) {
-        require(msg.sender == globalAddressesProvider.getSIGHFinanceManager(), 'Only SIGH Finance Manager can call this function');
+    function blockAnAccount(address _account) external onlySIGHFinanceManager returns (bool) {
         blockList[_account] = true;
         uint balance = balanceOf(_account);
         emit accountBlocked(_account, balance );
         return true;
     }
 
-    function unBlockAnAccount(address _account) external returns (bool) {
-        require(msg.sender == globalAddressesProvider.getSIGHFinanceManager(), 'Only SIGH Finance Manager can call this function');
+    function unBlockAnAccount(address _account) external onlySIGHFinanceManager returns (bool) {
         blockList[_account] = false;
         emit accountUnBlocked(_account, balanceOf(_account) );
         return true;
     }
 
-
+    function update(uint deltaBlocks) external onlySIGHFinanceManager returns (bool) {
+        CYCLE_BLOCKS = deltaBlocks;
+        return true;
+    }
 
     // ############################################################
     // ############   OVER-LOADING TRANSFER FUNCTON    ############
@@ -159,6 +168,7 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
              mintNewCoins();
         }
         super._transfer(sender, recipient, amount);
+        _moveDelegates(delegates[sender], delegates[recipient], safe96(amount,'safe96: Overflow'));
     }
 
     // ################################################
@@ -186,7 +196,7 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
         if ( Current_Schedule < _CalculateCurrentSchedule() ) {
             Current_Schedule = Current_Schedule.add(1);
             currentDivisibilityFactor = _schedules[Current_Schedule].divisibilityFactor;
-            emit NewSchedule(Current_Schedule,currentDivisibilityFactor, block.number, block.timestamp);
+            emit NewSchedule(Current_Schedule,currentDivisibilityFactor, block.timestamp);
         }
 
         uint currentSupply = totalSupply();
@@ -200,13 +210,17 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
         }
 
         _mint( msg.sender, prize_amount );                                                          // PRIZE AMOUNT AWARDED TO THE MINTER
+        _moveDelegates(delegates[address(0)],delegates[msg.sender], safe96(prize_amount,'safe96: Overflow'));
+
         _mint( SpeedController, newCoins );                                                          // NEWLY MINTED SIGH TRANSFERRED TO SIGH SPEED CONTROLLER
+        _moveDelegates(delegates[address(0)], delegates[SpeedController], safe96(newCoins,'safe96: Overflow'));
+
 
         mintSnapshot  memory currentMintSnapshot = mintSnapshot({ cycle:Current_Cycle, schedule:Current_Schedule, inflationRate: currentDivisibilityFactor, mintedAmount:newCoins, mintSpeed:newmintSpeed, newTotalSupply:totalSupply(), minter: msg.sender, blockNumber: block.number });
         mintSnapshots.push(currentMintSnapshot);                                                    // MINT SNAPSHOT ADDED TO THE ARRAY
         previousMintBlock = block.number;
 
-        emit SIGHMinted(currentMintSnapshot.minter, currentMintSnapshot.cycle, currentMintSnapshot.schedule, currentMintSnapshot.inflationRate, currentMintSnapshot.mintedAmount, currentMintSnapshot.mintSpeed, currentMintSnapshot.newTotalSupply,currentMintSnapshot.blockNumber );
+        emit SIGHMinted(currentMintSnapshot.minter, currentMintSnapshot.cycle, currentMintSnapshot.schedule, currentMintSnapshot.inflationRate, currentMintSnapshot.mintedAmount, currentMintSnapshot.mintSpeed, currentMintSnapshot.newTotalSupply);
         return true;
     }
 
@@ -238,7 +252,9 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
     function burn(uint amount) external returns (bool) {
         _burn(msg.sender, amount);
         totalAmountBurnt = totalAmountBurnt.add(amount);
-        emit SIGHBurned( amount, totalAmountBurnt, totalSupply(), block.number );
+        emit SIGHBurned( amount, totalAmountBurnt, totalSupply() );
+        _moveDelegates(delegates[msg.sender], delegates[address(0)], safe96(amount,'safe96: Overflow'));
+
         return true;
     }
 
@@ -306,7 +322,8 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
 
       if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
           checkpoints[delegatee][nCheckpoints - 1].votes = newVotes;
-      } else {
+      }
+      else {
           checkpoints[delegatee][nCheckpoints] = Checkpoint(blockNumber, newVotes);
           numCheckpoints[delegatee] = nCheckpoints + 1;
       }
