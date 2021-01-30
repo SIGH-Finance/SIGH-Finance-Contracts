@@ -14,7 +14,7 @@ interface ISIGHSpeedController {
 // ###########   SIGH DISTRIBUTION : INITIALIZED DRIPPING (Can be called only once)   ##########
 // #############################################################################################
 
-  function beginDripping (address sighVolatilityHarvesterAddress_) external returns (bool);
+  function beginDripping () external returns (bool);
   function updateSighVolatilityDistributionSpeed(uint newSpeed) external returns (bool);
 
 // ############################################################################################################
@@ -22,8 +22,7 @@ interface ISIGHSpeedController {
 // ############################################################################################################
 
   function supportNewProtocol( address newProtocolAddress, uint sighSpeedRatio ) external returns (bool);
-  function removeSupportedProtocol(address protocolAddress_ ) external returns (bool);        //   ######### WE DO NOT DRIP WHEN REMOVING A PROTOCOL  #########
-  function changeProtocolSIGHSpeedRatio (address targetAddress, uint newRatio_) external returns (bool) ;
+  function updateProtocolState(address _protocolAddress, bool isSupported_, uint newRatio_) external  returns (bool);
 
 // #####################################################################
 // ###########   SIGH DISTRIBUTION FUNCTION - DRIP FUNCTION   ##########

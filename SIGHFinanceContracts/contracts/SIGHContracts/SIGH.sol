@@ -120,6 +120,8 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
         _initSchedules();
         mintingActivated = true;
         _mint(SpeedController,INITIAL_SUPPLY);
+         _moveDelegates(delegates[address(0)], delegates[SpeedController], safe96(INITIAL_SUPPLY,'safe96: Overflow'));
+
         mintSnapshot  memory currentMintSnapshot = mintSnapshot({ cycle:Current_Cycle, schedule:Current_Schedule, inflationRate: uint(0), mintedAmount:INITIAL_SUPPLY, mintSpeed:uint(0), newTotalSupply:totalSupply(), minter: msg.sender, blockNumber: block.number });
         mintSnapshots.push(currentMintSnapshot);                                                    // MINT SNAPSHOT ADDED TO THE ARRAY
 
@@ -140,13 +142,16 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
     }
 
     function blockAnAccount(address _account) external onlySIGHFinanceManager returns (bool) {
-        blockList[_account] = true;
         uint balance = balanceOf(_account);
+        require(balance > 0,'Invalid balance');
+        require( !blockList[_account],'Already Blocked');
+        blockList[_account] = true;
         emit accountBlocked(_account, balance );
         return true;
     }
 
     function unBlockAnAccount(address _account) external onlySIGHFinanceManager returns (bool) {
+        require( blockList[_account],'Account Not Blocked');
         blockList[_account] = false;
         emit accountUnBlocked(_account, balanceOf(_account) );
         return true;
@@ -220,7 +225,7 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
         mintSnapshots.push(currentMintSnapshot);                                                    // MINT SNAPSHOT ADDED TO THE ARRAY
         previousMintBlock = block.number;
 
-        emit SIGHMinted(currentMintSnapshot.minter, currentMintSnapshot.cycle, currentMintSnapshot.schedule, currentMintSnapshot.inflationRate, currentMintSnapshot.mintedAmount, currentMintSnapshot.mintSpeed, currentMintSnapshot.newTotalSupply);
+        emit SIGHMinted(currentMintSnapshot.minter, currentMintSnapshot.cycle, currentMintSnapshot.schedule, currentMintSnapshot.inflationRate, newCoins.add(prize_amount), currentMintSnapshot.mintSpeed, currentMintSnapshot.newTotalSupply);
         return true;
     }
 
@@ -291,6 +296,7 @@ contract SIGH is ERC20('SIGH: Simulated yield optimizer','SIGH') {
     }
 
     function _delegate(address delegator, address delegatee) internal {
+        require(balanceOf(delegator) > 0,'Invalid Delegator balance');
         address currentDelegate = delegates[delegator];
         uint96 delegatorBalance = safe96(balanceOf(delegator),'Balance exceeds max uint96');
         delegates[delegator] = delegatee;

@@ -70,36 +70,29 @@ contract SIGHFinanceConfigurator is VersionedInitializable {
     // CALLED ONLY ONCE
     function beginDrippingFromSIGHSpeedController() external onlySIGHFinanceManager returns (bool) {
         ISIGHSpeedController sigh_speed_Controller = ISIGHSpeedController( globalAddressesProvider.getSIGHSpeedController() );
-        require(sigh_speed_Controller.beginDripping(globalAddressesProvider.getSIGHVolatilityHarvester() ), "SIGH Dripping initialization from SIGH Speed Controller failed." );
+        require(sigh_speed_Controller.beginDripping(), "Initialization failed." );
         return true;
     }
 
     function updateSighVolatilityDistributionSpeedInSIGHSpeedController(uint newSpeed_) external onlySIGHFinanceManager returns (bool) {
         ISIGHSpeedController sigh_speed_Controller = ISIGHSpeedController( globalAddressesProvider.getSIGHSpeedController() );
-        require(sigh_speed_Controller.updateSighVolatilityDistributionSpeed(newSpeed_), " SIGH Volatility Distribution Speed update in SIGH Speed Controller failed." );
+        require(sigh_speed_Controller.updateSighVolatilityDistributionSpeed(newSpeed_), "Update failed." );
         return true;
     }
 
     function supportNewProtocolInSIGHSpeedController( address newProtocolAddress, uint sighSpeedRatio ) external onlySIGHFinanceManager returns (bool) {
         ISIGHSpeedController sigh_speed_Controller = ISIGHSpeedController( globalAddressesProvider.getSIGHSpeedController() );
-        require(sigh_speed_Controller.supportNewProtocol(newProtocolAddress, sighSpeedRatio), "New Protocol addition to SIGH Speed Controller failed." );
+        require(sigh_speed_Controller.supportNewProtocol(newProtocolAddress, sighSpeedRatio), "New Protocol addition failed." );
         return true;
     }
 
-    function removeSupportedProtocolFromSIGHSpeedController(address protocolAddress_) external onlySIGHFinanceManager returns (bool) {
+    function updateProtocolStateInSIGHSpeedController(address protocolAddress_, bool isSupported_, uint newRatio_) external onlySIGHFinanceManager returns (bool) {
         ISIGHSpeedController sigh_speed_Controller = ISIGHSpeedController( globalAddressesProvider.getSIGHSpeedController() );
-        require(sigh_speed_Controller.removeSupportedProtocol(protocolAddress_), " Protocol removal from SIGH Speed Controller failed." );
+        require(sigh_speed_Controller.updateProtocolState(protocolAddress_,isSupported_,newRatio_), " Protocol update failed." );
         return true;
     }
 
-    function changeProtocolSIGHSpeedRatioInSIGHSpeedController(address targetAddress, uint newRatio_) external onlySIGHFinanceManager returns (bool) {
-        ISIGHSpeedController sigh_speed_Controller = ISIGHSpeedController( globalAddressesProvider.getSIGHSpeedController() );
-        require(sigh_speed_Controller.changeProtocolSIGHSpeedRatio(targetAddress, newRatio_), " Protocol SIGH Distribution Ratio speed update in SIGH Speed Controller failed." );
-        return true;
-    }
-
-
-// #####################################################_24HrVolatilityLimitAmount
+// #####################################################
 // ####### SIGH DISTRIBUTION HANDLER FUNCTIONS #########
 // #####################################################
 
