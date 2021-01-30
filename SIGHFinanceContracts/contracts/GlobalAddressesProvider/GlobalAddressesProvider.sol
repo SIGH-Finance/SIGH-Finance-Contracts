@@ -30,7 +30,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     //LendingPool Contracts
     event LendingPoolConfiguratorUpdated(address indexed newAddress);
     event LendingPoolUpdated(address indexed newAddress);
-    event LendingPoolLiquidationManagerUpdated(address indexed newAddress);
+    event LendingPoolLiqAndLoanManagerUpdated(address indexed newAddress);
     event LendingRateOracleUpdated(address indexed newAddress);
     event FeeProviderUpdated(address indexed newAddress);
 
@@ -64,7 +64,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     //LendingPool Contracts    
     bytes32 private constant LENDING_POOL_CONFIGURATOR = "LENDING_POOL_CONFIGURATOR";       // CONTROLLED BY LENDINGPOOL MANAGER. MAKES STATE CHANGES RELATED TO LENDING PROTOCOL
     bytes32 private constant LENDING_POOL = "LENDING_POOL";
-    bytes32 private constant LENDING_POOL_LIQUIDATION_MANAGER = "LIQUIDATION_MANAGER";
+    bytes32 private constant LENDING_POOL_LIQANDLOAN_MANAGER = "LIQANDLOAN_MANAGER";
     bytes32 private constant LENDING_RATE_ORACLE = "LENDING_RATE_ORACLE";
     bytes32 private constant FEE_PROVIDER = "FEE_PROVIDER";
 
@@ -167,7 +167,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 // ########## 1. LendingPoolConfigurator (Upgradagble) #####################
 // ########## 3. LendingPool (Upgradagble) #################################
 // ########## 6. FeeProvider (Upgradagble) #################################
-// ########## 7. LendingPoolLiquidationManager (Directly Changed) ##########
+// ########## 7. LendingPoolLiqAndLoanManager (Directly Changed) ##########
 // ########## 8. LendingRateOracle (Directly Changed) ######################
 // #########################################################################
 
@@ -238,26 +238,26 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
     }
 
 // ##################################################
-// ######  LendingPoolLiquidationManager ######
+// ######  LendingPoolLiqAndLoanManager ######
 // ##################################################
     /**
-    * @dev returns the address of the LendingPoolLiquidationManager. Since the manager is used
+    * @dev returns the address of the LendingPoolLiqAndLoanManager. Since the manager is used
     * through delegateCall within the LendingPool contract, the proxy contract pattern does not work properly hence
     * the addresses are changed directly.
-    * @return the address of the Lending pool liquidation manager
+    * @return the address of the Lending pool LiqAndLoan manager
     **/
 
-    function getLendingPoolLiquidationManager() external view override returns (address) {
-        return getAddress(LENDING_POOL_LIQUIDATION_MANAGER);
+    function getLendingPoolLiqAndLoanManager() external view override returns (address) {
+        return getAddress(LENDING_POOL_LIQANDLOAN_MANAGER);
     }
 
     /**
-    * @dev updates the address of the Lending pool liquidation manager
-    * @param _manager the new lending pool liquidation manager address
+    * @dev updates the address of the Lending pool LiqAndLoan manager
+    * @param _manager the new lending pool LiqAndLoan manager address
     **/
-    function setLendingPoolLiquidationManager(address _manager) external override onlyLendingPoolManager {
-        _setAddress(LENDING_POOL_LIQUIDATION_MANAGER, _manager);
-        emit LendingPoolLiquidationManagerUpdated(_manager);
+    function setLendingPoolLiqAndLoanManager(address _manager) external override onlyLendingPoolManager {
+        _setAddress(LENDING_POOL_LIQANDLOAN_MANAGER, _manager);
+        emit LendingPoolLiqAndLoanManagerUpdated(_manager);
     }
 
 // ##################################################
@@ -407,7 +407,7 @@ contract GlobalAddressesProvider is IGlobalAddressesProvider, AddressStorage {
 
     /**
     * @dev updates the address of the SIGH Distribution Handler Contract (Manages the SIGH Speeds)
-    * @param _SIGHStaking the new lending pool liquidation manager address
+    * @param _SIGHStaking the new lending pool LiqAndLoan manager address
     **/
     function setSIGHStaking(address _SIGHStaking) external override onlySIGHFinanceManager  {
         updateImplInternal(SIGH_STAKING, _SIGHStaking);

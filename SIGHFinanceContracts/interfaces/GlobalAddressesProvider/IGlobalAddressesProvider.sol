@@ -33,7 +33,7 @@ interface IGlobalAddressesProvider  {
 // ########## 4. LendingPoolDataProvider (Upgradagble) #####################
 // ########## 5. LendingPoolParametersProvider (Upgradagble) ###############
 // ########## 6. FeeProvider (Upgradagble) #################################
-// ########## 7. LendingPoolLiquidationManager (Directly Changed) ##########
+// ########## 7. LendingPoolLiqAndLoanManager (Directly Changed) ##########
 // ########## 8. LendingRateOracle (Directly Changed) ######################
 // #########################################################################
 
@@ -46,8 +46,8 @@ interface IGlobalAddressesProvider  {
     function getFeeProvider() external view returns (address);
     function setFeeProviderImpl(address _feeProvider) external;
 
-    function getLendingPoolLiquidationManager() external view returns (address);
-    function setLendingPoolLiquidationManager(address _manager) external;
+    function getLendingPoolLiqAndLoanManager() external view returns (address);
+    function setLendingPoolLiqAndLoanManager(address _manager) external;
 
     function getLendingRateOracle() external view returns (address);
     function setLendingRateOracle(address _lendingRateOracle) external;

@@ -368,7 +368,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
    * @param _receiveIToken `true` if the liquidators wants to receive the collateral iTokens, `false` if he wants to receive the underlying collateral asset directly
    **/
     function liquidationCall( address collateralAsset, address debtAsset, address user, uint256 debtToCover, bool _receiveIToken ) external override whenNotPaused {
-        address collateralManager = addressesProvider.getLendingPoolLiquidationManager();
+        address collateralManager = addressesProvider.getLendingPoolLiqAndLoanManager();
 
         (bool success, bytes memory result) =  collateralManager.delegatecall( abi.encodeWithSignature('liquidationCall(address,address,address,uint256,bool)', collateralAsset, debtAsset, user, debtToCover, _receiveIToken ) );
         require(success, Errors.FAILED);
@@ -388,7 +388,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
     * @param boosterId Booster ID to avail discount on fee. 0 as default
     **/
   function flashLoan( address receiverAddress, address asset, uint256 amount, bytes calldata _params, uint16 boosterId) external override whenNotPaused {
-    address flashLoanHandler = addressesProvider.getLendingPoolLiquidationManager();
+    address flashLoanHandler = addressesProvider.getLendingPoolLiqAndLoanManager();
 
     (bool success, bytes memory result) =  flashLoanHandler.delegatecall( abi.encodeWithSignature('flashLoanCall(address,address,address,uint256,bytes,uint16)', msg.sender, receiverAddress, asset, amount, _params, boosterId ) );
     require(success, Errors.FAILED);
