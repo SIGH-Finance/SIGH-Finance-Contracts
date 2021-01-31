@@ -53,7 +53,7 @@ contract SIGHSpeedController is ISIGHSpeedController, VersionedInitializable  {
 
   event DistributionInitialized(address sighVolatilityHarvesterAddress);
 
-  event SighVolatilityHarvestsSpeedUpdated(uint newTreasurySpeedRatio );
+  event SighVolatilityHarvestsSpeedUpdated(uint newSIGHDistributionSpeed );
 
   event NewProtocolSupported (address protocolAddress, uint sighSpeedRatio, uint totalDrippedAmount);
   event ProtocolUpdated(address _protocolAddress, bool _isSupported , uint _sighSpeedRatio);
@@ -157,18 +157,27 @@ contract SIGHSpeedController is ISIGHSpeedController, VersionedInitializable  {
 
   function updateProtocolState (address _protocolAddress, bool isSupported_, uint newRatio_) external override onlySighFinanceConfigurator returns (bool) {
     require (  newRatio_ == 0 || ( 0.01e18 <= newRatio_ && newRatio_ <= 2e18 ), "Invalid Speed Ratio");
+    address[] memory protocols = storedSupportedProtocols;
+    bool counter = false;
+
+    for (uint i; i < protocols.length;i++) {
+        if ( _protocolAddress == protocols[i] ) {
+            counter = true;
+            break;
+        }
+    }
+    require(counter,'Protocol not supported');
 
     if (isDripAllowed) {
         dripInternal();
         dripToVolatilityHarvesterInternal();
         lastDripBlockNumber = block.number;
     }
+
     supportedProtocols[_protocolAddress].isSupported = isSupported_;
-
-    uint prevSpeed = supportedProtocols[_protocolAddress].sighSpeedRatio.mantissa;
     supportedProtocols[_protocolAddress].sighSpeedRatio.mantissa = newRatio_;
-
     require(supportedProtocols[_protocolAddress].sighSpeedRatio.mantissa == newRatio_, "SIGH Volatiltiy harvesting - Speed Ratio was not properly updated");
+
     emit ProtocolUpdated(_protocolAddress, supportedProtocols[_protocolAddress].isSupported , supportedProtocols[_protocolAddress].sighSpeedRatio.mantissa);
     return true;
   }
