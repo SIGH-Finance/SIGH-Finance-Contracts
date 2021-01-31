@@ -17,7 +17,7 @@ contract VariableDebtToken is DebtTokenBase, IVariableDebtToken {
 
   uint256 public constant DEBT_TOKEN_REVISION = 0x1;
 
-  constructor(address pool, address underlyingAsset, string memory name, string memory symbol) DebtTokenBase(pool, underlyingAsset, name, symbol) {}
+  constructor(address addressesProvider,address pool, address underlyingAsset, string memory name, string memory symbol) DebtTokenBase(addressesProvider,pool, underlyingAsset, name, symbol) {}
 
   /**
    * @dev Gets the revision of the stable debt token implementation

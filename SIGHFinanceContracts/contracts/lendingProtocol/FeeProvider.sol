@@ -87,6 +87,7 @@ contract FeeProvider is IFeeProvider, VersionedInitializable {
         totalDepositFeePercent = 50;            // deposit fee = 0.5%
         totalFlashLoanFeePercent = 5;           // Flash loan fee = 0.05%
         totalBorrowFeePercent =  50;            // borrow fee = 0.5%
+        platformFeePercent = 5000;              // = 50% of total Fee
     }
 
     function refreshConfiguration() external override onlySighFinanceConfigurator returns (bool) {

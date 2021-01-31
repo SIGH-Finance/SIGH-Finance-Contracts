@@ -5,7 +5,6 @@ import {IGlobalAddressesProvider} from "../../interfaces/GlobalAddressesProvider
 import {UserConfiguration} from './libraries/configuration/UserConfiguration.sol';
 import {InstrumentConfiguration} from './libraries/configuration/InstrumentConfiguration.sol';
 import {DataTypes} from './libraries/types/DataTypes.sol';
-import {ISIGHVolatilityHarvesterLendingPool} from "../../interfaces/lendingProtocol/ISIGHVolatilityHarvesterLendingPool.sol";
 
 import {InstrumentReserveLogic} from './libraries/logic/InstrumentReserveLogic.sol';
 
@@ -16,7 +15,6 @@ contract LendingPoolStorage {
   using UserConfiguration for DataTypes.UserConfigurationMap;
 
   IGlobalAddressesProvider internal addressesProvider;
-  ISIGHVolatilityHarvesterLendingPool internal sighVolatilityHarvester;
   address internal feeProvider;
 
   address internal sighPayAggregator;

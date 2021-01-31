@@ -25,7 +25,7 @@ contract StableDebtToken is IStableDebtToken, DebtTokenBase {
   mapping(address => uint256) internal _usersStableRate;
   uint40 internal _totalSupplyTimestamp;
 
-  constructor(address pool, address underlyingAsset, string memory name, string memory symbol) DebtTokenBase(pool, underlyingAsset, name, symbol) {}
+  constructor(address addressesProvider,address pool, address underlyingAsset, string memory name, string memory symbol) DebtTokenBase(addressesProvider,pool, underlyingAsset, name, symbol) {}
 
   /**
    * @dev Gets the revision of the stable debt token implementation

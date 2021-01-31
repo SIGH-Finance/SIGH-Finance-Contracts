@@ -28,6 +28,7 @@ import {InstrumentConfiguration} from './libraries/configuration/InstrumentConfi
 import {UserConfiguration} from './libraries/configuration/UserConfiguration.sol';
 import {DataTypes} from './libraries/types/DataTypes.sol';
 import {LendingPoolStorage} from './LendingPoolStorage.sol';
+import {ISIGHVolatilityHarvesterLendingPool} from "../../interfaces/lendingProtocol/ISIGHVolatilityHarvesterLendingPool.sol";
 
 
 
@@ -62,6 +63,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
   uint256 public constant FLASHLOAN_PREMIUM_TOTAL = 90;
   uint256 public constant _MAX_NUMBER_INSTRUMENTS = 128;
   uint256 public constant LENDINGPOOL_REVISION = 0x1;
+  ISIGHVolatilityHarvesterLendingPool private sighVolatilityHarvester;
 
   modifier whenNotPaused() {
     _whenNotPaused();
@@ -97,6 +99,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
   }
 
   function refreshConfigInternal() internal {
+    sighVolatilityHarvester = ISIGHVolatilityHarvesterLendingPool(addressesProvider.getSIGHVolatilityHarvester());
     feeProvider = addressesProvider.getFeeProvider();
     sighPayAggregator = addressesProvider.getSIGHPAYAggregator() ;
     platformFeeCollector = addressesProvider.getSIGHFinanceFeeCollector();

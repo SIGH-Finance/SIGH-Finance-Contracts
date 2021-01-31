@@ -19,6 +19,10 @@ contract SIGH_Fee_Collector {
         globalAddressesProvider = IGlobalAddressesProvider(globalAddressesProvider_);
     }
 
+//    #################################################
+//    ####### FUNCTION TO TRANSFER COLLECTED FEE ######
+//    #################################################
+
     function transferInstrumentBalance(IERC20 tokenAddress, address destination, uint amount) external onlySIGHFinanceManager returns (bool) {
         uint prevBalance = tokenAddress.balanceOf(address(this));
         require(prevBalance >= amount,'Required balance not available');
@@ -27,6 +31,10 @@ contract SIGH_Fee_Collector {
         emit CollectedFeeTransferred(address(tokenAddress),destination,amount,newBalance);
         return true;
     }
+
+//    ############################
+//    ####### VIEW FUNCTION ######
+//    ############################
 
     function getInstrumentBalance(IERC20 tokenAddress) external returns (uint) {
         return tokenAddress.balanceOf(address(this));

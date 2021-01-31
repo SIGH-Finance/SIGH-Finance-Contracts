@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.7.0;
 
+import {IGlobalAddressesProvider} from "../../../../interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol";
 import {IncentivizedERC20} from '../IncentivizedERC20.sol';
 import {ILendingPool} from "../../../../interfaces/lendingProtocol/ILendingPool.sol";
 import {VersionedInitializable} from "../../../dependencies/upgradability/VersionedInitializable.sol";
@@ -11,7 +12,7 @@ import {SafeMath} from "../../../dependencies/openzeppelin/math/SafeMath.sol";
 
 
 /**
- * @title DebtTokenBase
+ * @title DebtTokenBase g
  * @notice Base contract for different types of debt tokens, like StableDebtToken or VariableDebtToken
  * @author Aave
  */
@@ -22,6 +23,7 @@ abstract contract DebtTokenBase is ISIGHHarvestDebtToken, IncentivizedERC20, Ver
 
   address public immutable UNDERLYING_ASSET_ADDRESS;
   ILendingPool public immutable POOL;
+  IGlobalAddressesProvider public immutable ADDRESSES_PROVIDER;
   ISIGHHarvester public sighHarvester;
 
   mapping(address => mapping(address => uint256)) internal _borrowAllowances;
@@ -38,8 +40,9 @@ abstract contract DebtTokenBase is ISIGHHarvestDebtToken, IncentivizedERC20, Ver
    * @dev The metadata of the token will be set on the proxy, that the reason of
    * passing "NULL" and 0 as metadata
    */
-  constructor(address pool, address underlyingAssetAddress, string memory name, string memory symbol) IncentivizedERC20(name, symbol, 18) {
+  constructor(address addressesProvider, address pool, address underlyingAssetAddress, string memory name, string memory symbol) IncentivizedERC20(name, symbol, 18) {
     POOL = ILendingPool(pool);
+    ADDRESSES_PROVIDER = IGlobalAddressesProvider(addressesProvider);
     UNDERLYING_ASSET_ADDRESS = underlyingAssetAddress;
   }
 
@@ -127,7 +130,8 @@ abstract contract DebtTokenBase is ISIGHHarvestDebtToken, IncentivizedERC20, Ver
    * @param _SIGHHarvesterAddress The SIGH Harvester Proxy Contract Address
    * @return The amount transferred
    **/
-  function setSIGHHarvesterAddress(address _SIGHHarvesterAddress) external override onlyLendingPool returns (bool) {
+  function setSIGHHarvesterAddress(address _SIGHHarvesterAddress) external override returns (bool) {
+    require(ADDRESSES_PROVIDER.getLendingPoolConfigurator() == msg.sender,'ONLY LP CONFIGURATOR');
     sighHarvester = ISIGHHarvester(_SIGHHarvesterAddress);
     return true;
   }

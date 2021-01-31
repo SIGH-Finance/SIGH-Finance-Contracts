@@ -75,7 +75,7 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 // ####### PROXY RELATED #######
 // #############################
 
-    uint256 public constant CONFIGURATOR_REVISION = 0x1;
+    uint256 public constant CONFIGURATOR_REVISION = 0x2;
 
     function getRevision() internal override pure returns (uint256) {
         return CONFIGURATOR_REVISION;
@@ -118,10 +118,10 @@ contract LendingPoolConfigurator is VersionedInitializable  {
     require(asset == ITokenConfiguration(stableDebtTokenImpl).UNDERLYING_ASSET_ADDRESS(), "INVALID STABLE DEBT TOKEN UNDERLYING ADDRESS");
     require(asset == ITokenConfiguration(variableDebtTokenImpl).UNDERLYING_ASSET_ADDRESS(), "INVALID VARIABLE DEBT TOKEN UNDERLYING ADDRESS");
 
-    address iTokenProxyAddress;// = _initTokenWithProxy(iTokenImpl, underlyingAssetDecimals);                          // Create a proxy contract for IToken
-    address stableDebtTokenProxyAddress;// = _initTokenWithProxy(stableDebtTokenImpl, underlyingAssetDecimals);        // Create a proxy contract for stable Debt Token
-    address variableDebtTokenProxyAddress;// = _initTokenWithProxy(variableDebtTokenImpl, underlyingAssetDecimals);    // Create a proxy contract for variable Debt Token
-    address SIGHHarvesterProxyAddress; // = setSIGHHarvesterImplInternal(address(globalAddressesProvider),sighHarvesterAddressImpl, asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress );    // creates a Proxy Contract for the SIGH Harvester
+    address iTokenProxyAddress = _initTokenWithProxy(iTokenImpl, underlyingAssetDecimals);                          // Create a proxy contract for IToken
+    address stableDebtTokenProxyAddress = _initTokenWithProxy(stableDebtTokenImpl, underlyingAssetDecimals);        // Create a proxy contract for stable Debt Token
+    address variableDebtTokenProxyAddress = _initTokenWithProxy(variableDebtTokenImpl, underlyingAssetDecimals);    // Create a proxy contract for variable Debt Token
+    address SIGHHarvesterProxyAddress = setSIGHHarvesterImplInternal(address(globalAddressesProvider),sighHarvesterAddressImpl, asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress );    // creates a Proxy Contract for the SIGH Harvester
 
     pool.initInstrument(asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress, interestRateStrategyAddress);
 
@@ -149,7 +149,7 @@ contract LendingPoolConfigurator is VersionedInitializable  {
   **/
   function updateIToken(address asset, address implementation) external onlyLendingPoolManager {
     DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
-    // _upgradeTokenImplementation(asset, instrumentData.iTokenAddress, implementation);
+     _upgradeTokenImplementation(asset, instrumentData.iTokenAddress, implementation);
     emit ITokenUpgraded(asset, instrumentData.iTokenAddress, implementation);
   }
 
@@ -160,7 +160,7 @@ contract LendingPoolConfigurator is VersionedInitializable  {
   **/
   function updateStableDebtToken(address asset, address implementation) external onlyLendingPoolManager {
     DataTypes.InstrumentData memory instrumentData = pool.getInstrumentData(asset);
-    // _upgradeTokenImplementation(asset, instrumentData.stableDebtTokenAddress, implementation);
+     _upgradeTokenImplementation(asset, instrumentData.stableDebtTokenAddress, implementation);
     emit StableDebtTokenUpgraded(asset, instrumentData.stableDebtTokenAddress, implementation);
   }
 

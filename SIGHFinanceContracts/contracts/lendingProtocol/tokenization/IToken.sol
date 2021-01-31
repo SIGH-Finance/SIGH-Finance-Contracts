@@ -5,6 +5,7 @@ import {IncentivizedERC20} from './IncentivizedERC20.sol';
 import {VersionedInitializable} from "../../dependencies/upgradability/VersionedInitializable.sol";
 import {IERC20} from "../../dependencies/openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "../../dependencies/openzeppelin/token/ERC20/SafeERC20.sol";
+import {IGlobalAddressesProvider} from "../../../interfaces/GlobalAddressesProvider/IGlobalAddressesProvider.sol";
 import {ILendingPool} from "../../../interfaces/lendingProtocol/ILendingPool.sol";
 import {IIToken} from "../../../interfaces/lendingProtocol/IIToken.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
@@ -30,6 +31,7 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
   uint256 public constant IToken_REVISION = 0x1;
   address public immutable UNDERLYING_ASSET_ADDRESS;
   ILendingPool public immutable POOL;
+  IGlobalAddressesProvider public immutable ADDRESSES_PROVIDER;
   ISIGHHarvester public sighHarvester;
 
 
@@ -51,7 +53,8 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
 //  ###############################
 
 
-  constructor(ILendingPool pool, address underlyingAssetAddress, string memory tokenName, string memory tokenSymbol) IncentivizedERC20(tokenName, tokenSymbol, 18) {
+  constructor(IGlobalAddressesProvider addressesProvider, ILendingPool pool, address underlyingAssetAddress, string memory tokenName, string memory tokenSymbol) IncentivizedERC20(tokenName, tokenSymbol, 18) {
+    ADDRESSES_PROVIDER = addressesProvider;
     POOL = pool;
     UNDERLYING_ASSET_ADDRESS = underlyingAssetAddress;
   }
@@ -174,7 +177,8 @@ contract IToken is VersionedInitializable, IncentivizedERC20, IIToken {
    * @param _SIGHHarvesterAddress The SIGH Harvester Proxy Contract Address
    * @return The amount transferred
    **/
-  function setSIGHHarvesterAddress(address _SIGHHarvesterAddress) external override onlyLendingPool returns (bool) {
+  function setSIGHHarvesterAddress(address _SIGHHarvesterAddress) external override returns (bool) {
+    require(ADDRESSES_PROVIDER.getLendingPoolConfigurator() == msg.sender,'ONLY LP CONFIGURATOR');
     sighHarvester = ISIGHHarvester(_SIGHHarvesterAddress);
     return true;
   }

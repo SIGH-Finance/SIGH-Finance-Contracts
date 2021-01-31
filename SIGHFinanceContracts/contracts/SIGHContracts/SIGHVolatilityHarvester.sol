@@ -157,9 +157,8 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
         refreshConfigInternal(); 
     }
 
-    function refreshConfig() external override onlySighFinanceConfigurator {        // ()
-        require(addressesProvider.getSIGHFinanceManager() == msg.sender,'Caller not SIGH Finance Manager');
-        refreshConfigInternal(); 
+    function refreshConfig() external override onlySighFinanceConfigurator {
+        refreshConfigInternal();
     }
 
     function refreshConfigInternal() internal {

@@ -67,25 +67,28 @@ contract SIGHFinanceConfigurator is VersionedInitializable {
 // ####### SIGH SPEED CONTROLLER FUNCTIONS #########
 // #################################################
 
-    // CALLED ONLY ONCE
+    // CALLED ONLY ONCE : TESTED
     function beginDrippingFromSIGHSpeedController() external onlySIGHFinanceManager returns (bool) {
         ISIGHSpeedController sigh_speed_Controller = ISIGHSpeedController( globalAddressesProvider.getSIGHSpeedController() );
         require(sigh_speed_Controller.beginDripping(), "Initialization failed." );
         return true;
     }
 
+    // TESTED
     function updateSighVolatilityDistributionSpeedInSIGHSpeedController(uint newSpeed_) external onlySIGHFinanceManager returns (bool) {
         ISIGHSpeedController sigh_speed_Controller = ISIGHSpeedController( globalAddressesProvider.getSIGHSpeedController() );
         require(sigh_speed_Controller.updateSighVolatilityDistributionSpeed(newSpeed_), "Update failed." );
         return true;
     }
 
+    // TESTED
     function supportNewProtocolInSIGHSpeedController( address newProtocolAddress, uint sighSpeedRatio ) external onlySIGHFinanceManager returns (bool) {
         ISIGHSpeedController sigh_speed_Controller = ISIGHSpeedController( globalAddressesProvider.getSIGHSpeedController() );
         require(sigh_speed_Controller.supportNewProtocol(newProtocolAddress, sighSpeedRatio), "New Protocol addition failed." );
         return true;
     }
 
+    // TESTED
     function updateProtocolStateInSIGHSpeedController(address protocolAddress_, bool isSupported_, uint newRatio_) external onlySIGHFinanceManager returns (bool) {
         ISIGHSpeedController sigh_speed_Controller = ISIGHSpeedController( globalAddressesProvider.getSIGHSpeedController() );
         require(sigh_speed_Controller.updateProtocolState(protocolAddress_,isSupported_,newRatio_), " Protocol update failed." );
@@ -93,42 +96,42 @@ contract SIGHFinanceConfigurator is VersionedInitializable {
     }
 
 // #####################################################
-// ####### SIGH DISTRIBUTION HANDLER FUNCTIONS #########
+// ####### SIGH VOLATILITY HARVESTER FUNCTIONS #########
 // #####################################################
 
     function refreshSIGHVolatilityHarvesterConfig() external onlySIGHFinanceManager  {
-        ISIGHVolatilityHarvester sigh_distribution_mechanism = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
-        sigh_distribution_mechanism.refreshConfig() ;
+        ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
+        sigh_volatility_harvester.refreshConfig() ;
     }
 
-    function instrument__SIGH_StateUpdated_Distribution_Handler(address instrument_,  uint _bearSentiment,uint _bullSentiment, bool _isSIGHMechanismActivated ) external onlySIGHFinanceManager returns (bool) {
-        ISIGHVolatilityHarvester sigh_distribution_mechanism = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
-        require(sigh_distribution_mechanism.Instrument_SIGH_StateUpdated( instrument_, _bearSentiment, _bullSentiment, _isSIGHMechanismActivated ), "Instrument_SIGH_StateUpdated() execution failed." );
+    function updateInstrumentConfigVolatilityHarvester(address instrument_,  uint _bearSentiment,uint _bullSentiment, bool _isSIGHMechanismActivated ) external onlySIGHFinanceManager returns (bool) {
+        ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
+        require(sigh_volatility_harvester.Instrument_SIGH_StateUpdated( instrument_, _bearSentiment, _bullSentiment, _isSIGHMechanismActivated ), "Instrument_SIGH_StateUpdated() execution failed." );
         return true;
     }
 
-    function updateSIGHSpeed_In_SIGH_Distribution_Handler(uint newSighSpeed) external onlySIGHFinanceManager returns (bool) {
-        ISIGHVolatilityHarvester sigh_distribution_mechanism = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
-        require(sigh_distribution_mechanism.updateSIGHSpeed( newSighSpeed ), "updateSIGHSpeed() execution failed." );
+    function updateSIGHSpeed_VolatilityHarvester(uint newSighSpeed) external onlySIGHFinanceManager returns (bool) {
+        ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
+        require(sigh_volatility_harvester.updateSIGHSpeed( newSighSpeed ), "updateSIGHSpeed() execution failed." );
         return true;
     }
 
 
-    function updateStakingSpeedForAnInstrument_In_SIGH_Distribution_Handler(address instrument_, uint newStakingSpeed) external onlySIGHFinanceManager returns (bool) {
-        ISIGHVolatilityHarvester sigh_distribution_mechanism = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
-        require(sigh_distribution_mechanism.updateStakingSpeedForAnInstrument( instrument_, newStakingSpeed ), "updateStakingSpeedForAnInstrument() execution failed." );
+    function updateStakingSpeed_VolatilityHarvester(address instrument_, uint newStakingSpeed) external onlySIGHFinanceManager returns (bool) {
+        ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
+        require(sigh_volatility_harvester.updateStakingSpeedForAnInstrument( instrument_, newStakingSpeed ), "updateStakingSpeedForAnInstrument() execution failed." );
         return true;
     }
 
-    function UpdateCryptoMarketSentiment_In_SIGH_Distribution_Handler( uint maxVolatilityProtocolLimit_) external onlySIGHFinanceManager returns (bool) {
-        ISIGHVolatilityHarvester sigh_distribution_mechanism = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
-        require(sigh_distribution_mechanism.updateCryptoMarketSentiment( maxVolatilityProtocolLimit_ ), "updateCryptoMarketSentiment() execution failed." );
+    function UpdateCryptoMarketSentiment_VolatilityHarvester( uint maxVolatilityProtocolLimit_) external onlySIGHFinanceManager returns (bool) {
+        ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
+        require(sigh_volatility_harvester.updateCryptoMarketSentiment( maxVolatilityProtocolLimit_ ), "updateCryptoMarketSentiment() execution failed." );
         return true;
     }
 
-    function updateDeltaTimestampRefresh_In_SIGH_Distribution_Handler(uint deltaBlocksLimit) external onlySIGHFinanceManager returns (bool) {
-        ISIGHVolatilityHarvester sigh_distribution_mechanism = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
-        require(sigh_distribution_mechanism.updateDeltaTimestampRefresh( deltaBlocksLimit ), "updateDeltaTimestampRefresh() execution failed." );
+    function updateDeltaTimestamp_VolatilityHarvester(uint deltaBlocksLimit) external onlySIGHFinanceManager returns (bool) {
+        ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
+        require(sigh_volatility_harvester.updateDeltaTimestampRefresh( deltaBlocksLimit ), "updateDeltaTimestampRefresh() execution failed." );
         return true;
     }
 

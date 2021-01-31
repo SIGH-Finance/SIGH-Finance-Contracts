@@ -305,6 +305,7 @@ library InstrumentReserveLogic {
         if (reserveFee > 0 && sighPayAggregator  != address(0) ) {
             IERC20(instrumentAddress).safeTransferFrom( user, sighPayAggregator, reserveFee );
         }
+
         emit depositFeeDeducted(instrumentAddress, user, amount, platformFee, reserveFee, _boosterId);
         return totalFee;
     }
