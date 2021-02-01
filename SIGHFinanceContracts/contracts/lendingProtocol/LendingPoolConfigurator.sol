@@ -119,9 +119,16 @@ contract LendingPoolConfigurator is VersionedInitializable  {
     require(asset == ITokenConfiguration(variableDebtTokenImpl).UNDERLYING_ASSET_ADDRESS(), "INVALID VARIABLE DEBT TOKEN UNDERLYING ADDRESS");
 
     address iTokenProxyAddress = _initTokenWithProxy(iTokenImpl, underlyingAssetDecimals);                          // Create a proxy contract for IToken
+    emit ITokenUpgraded(asset, iTokenProxyAddress, iTokenImpl);
+
     address stableDebtTokenProxyAddress = _initTokenWithProxy(stableDebtTokenImpl, underlyingAssetDecimals);        // Create a proxy contract for stable Debt Token
+    emit StableDebtTokenUpgraded(asset, stableDebtTokenProxyAddress, stableDebtTokenImpl);
+
     address variableDebtTokenProxyAddress = _initTokenWithProxy(variableDebtTokenImpl, underlyingAssetDecimals);    // Create a proxy contract for variable Debt Token
+    emit VariableDebtTokenUpgraded(asset, variableDebtTokenProxyAddress, variableDebtTokenImpl);
+
     address SIGHHarvesterProxyAddress = setSIGHHarvesterImplInternal(address(globalAddressesProvider),sighHarvesterAddressImpl, asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress );    // creates a Proxy Contract for the SIGH Harvester
+    emit sighHarvesterImplUpdated(asset, sighHarvesterAddressImpl );
 
     pool.initInstrument(asset, iTokenProxyAddress, stableDebtTokenProxyAddress, variableDebtTokenProxyAddress, interestRateStrategyAddress);
 

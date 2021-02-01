@@ -97,15 +97,15 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
     // ############## EVENTS ##############
     // ####################################
 
-    event InstrumentAdded (address instrumentAddress_, address iTokenAddress, address sighStreamAddress,  uint8 decimals , uint blockNumber);
-    event InstrumentRemoved(address _instrument, uint blockNumber); 
+    event InstrumentAdded (address instrumentAddress_, address iTokenAddress, address sighStreamAddress,  uint8 decimals);
+    event InstrumentRemoved(address _instrument);
     event InstrumentSIGHStateUpdated( address instrument_, bool isSIGHMechanismActivated, uint bearSentiment, uint bullSentiment );
 
-    event SIGHSpeedUpdated(uint oldSIGHSpeed, uint newSIGHSpeed, uint timestamp);     /// Emitted when SIGH speed is changed
+    event SIGHSpeedUpdated(uint oldSIGHSpeed, uint newSIGHSpeed);     /// Emitted when SIGH speed is changed
     event CryptoMarketSentimentUpdated( uint cryptoMarketSentiment );
     event minimumTimestampForSpeedRefreshUpdated( uint prevdeltaTimestamp,uint newdeltaTimestamp );
     event EthereumOracleAddressUpdated(address ethOracleAddress);
-    event StakingSpeedUpdated(address instrumentAddress_ , uint prevStakingSpeed, uint new_staking_Speed, uint blockNumber );
+    event StakingSpeedUpdated(address instrumentAddress_ , uint prevStakingSpeed, uint new_staking_Speed);
     
     event PriceSnapped(address instrument, uint prevPrice, uint currentPrice, uint deltaBlocks, uint currentClock );   
     event MaxSIGHSpeedCalculated(uint _SIGHSpeed, uint _SIGHSpeedUsed, uint _totalVolatilityLimitPerBlock, uint _maxVolatilityToAddressPerBlock, uint _max_SIGHDistributionLimitDecimalsAdjusted );
@@ -113,7 +113,7 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
     event refreshingSighSpeeds( address _Instrument, uint8 side,  uint supplierSpeed, uint borrowerSpeed, uint _percentTotalSentimentVolatility, uint _percentTotalVolatility );
     
 
-    event SIGHSupplyIndexUpdated(address instrument, uint totalCompoundedSupply, uint sighAccured, uint ratioMantissa, uint newIndexMantissa,  uint blockNum );
+    event SIGHSupplyIndexUpdated(address instrument, uint totalCompoundedSupply, uint sighAccured, uint ratioMantissa, uint newIndexMantissa);
     event SIGHBorrowIndexUpdated(address instrument, uint totalCompoundedStableBorrows, uint totalCompoundedVariableBorrows, uint sighAccured, uint ratioMantissa, uint newIndexMantissa );
 
     event AccuredSIGHTransferredToTheUser(address instrument, address user, uint sigh_Amount );
@@ -223,7 +223,7 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
             instrumentPriceCycles[_instrument] = InstrumentPriceCycle({ recordedPriceSnapshot : emptyPrices, initializationCounter: uint32(0) }) ;
         }   
 
-        emit InstrumentAdded(_instrument,_iTokenAddress, _sighStreamAddress,  _decimals, block.number); 
+        emit InstrumentAdded(_instrument,_iTokenAddress, _sighStreamAddress,  _decimals);
         return true;
     }
 
@@ -252,7 +252,7 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
         delete Instrument_Sigh_Mechansim_States[_instrument];
         delete instrumentPriceCycles[_instrument];
 
-        emit InstrumentRemoved(_instrument, block.number); 
+        emit InstrumentRemoved(_instrument);
         return true;
     }
 
@@ -296,7 +296,7 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
         refreshSIGHSpeeds();
         uint oldSpeed = SIGHSpeed;
         SIGHSpeed = SIGHSpeed_;                                 // STATE UPDATED
-        emit SIGHSpeedUpdated(oldSpeed, SIGHSpeed, block.timestamp );         
+        emit SIGHSpeedUpdated(oldSpeed, SIGHSpeed);
         return true;
     }
     
@@ -312,7 +312,7 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
         uint prevStakingSpeed = Instrument_Sigh_Mechansim_States[instrument_].staking_Speed;
         Instrument_Sigh_Mechansim_States[instrument_].staking_Speed = newStakingSpeed;                    // STATE UPDATED
 
-        emit StakingSpeedUpdated(instrument_, prevStakingSpeed, Instrument_Sigh_Mechansim_States[instrument_].staking_Speed, getBlockNumber() );
+        emit StakingSpeedUpdated(instrument_, prevStakingSpeed, Instrument_Sigh_Mechansim_States[instrument_].staking_Speed);
         return true;
     }
 
@@ -631,7 +631,7 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
             uint totalCompoundedLiquidity = ERC20(crypto_instruments[currentInstrument].iTokenAddress).totalSupply();                           // Total amount supplied 
             Double memory ratio = totalCompoundedLiquidity > 0 ? fraction(sigh_Accrued, totalCompoundedLiquidity) : Double({mantissa: 0});    // SIGH Accured per Supplied Instrument Token
             Double memory newIndex = add_(Double({mantissa: instrumentState.supplyindex}), ratio);                                      // Updated Index
-            emit SIGHSupplyIndexUpdated( currentInstrument, totalCompoundedLiquidity, sigh_Accrued, ratio.mantissa , newIndex.mantissa, blockNumber );  
+            emit SIGHSupplyIndexUpdated( currentInstrument, totalCompoundedLiquidity, sigh_Accrued, ratio.mantissa , newIndex.mantissa);
 
             instrumentState.supplyindex = newIndex.mantissa;       // STATE UPDATE: New Index Committed to Storage 
         } 
