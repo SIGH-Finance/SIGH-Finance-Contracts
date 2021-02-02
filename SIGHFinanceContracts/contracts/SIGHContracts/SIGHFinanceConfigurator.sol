@@ -41,7 +41,7 @@ contract SIGHFinanceConfigurator is VersionedInitializable {
 // ####### PROXY RELATED #######
 // #############################
 
-    uint256 public constant CONFIGURATOR_REVISION = 0x1;
+    uint256 public constant CONFIGURATOR_REVISION = 0x2;
 
     function getRevision() internal override virtual pure returns (uint256) {
         return CONFIGURATOR_REVISION;
@@ -104,6 +104,18 @@ contract SIGHFinanceConfigurator is VersionedInitializable {
         sigh_volatility_harvester.refreshConfig() ;
     }
 
+    function UpdateCryptoMarketSentiment_VolatilityHarvester( uint maxVolatilityProtocolLimit_) external onlySIGHFinanceManager returns (bool) {
+        ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
+        require(sigh_volatility_harvester.updateCryptoMarketSentiment( maxVolatilityProtocolLimit_ ), "updateCryptoMarketSentiment() execution failed." );
+        return true;
+    }
+
+    function UpdateEthOracleAddress_VolatilityHarvester( address _EthOracleAddress) external onlySIGHFinanceManager returns (bool) {
+        ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
+        require(sigh_volatility_harvester.updateETHOracleAddress( _EthOracleAddress ), "updateETHOracleAddress() execution failed." );
+        return true;
+    }
+
     function updateInstrumentConfigVolatilityHarvester(address instrument_,  uint _bearSentiment,uint _bullSentiment, bool _isSIGHMechanismActivated ) external onlySIGHFinanceManager returns (bool) {
         ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
         require(sigh_volatility_harvester.Instrument_SIGH_StateUpdated( instrument_, _bearSentiment, _bullSentiment, _isSIGHMechanismActivated ), "Instrument_SIGH_StateUpdated() execution failed." );
@@ -123,11 +135,7 @@ contract SIGHFinanceConfigurator is VersionedInitializable {
         return true;
     }
 
-    function UpdateCryptoMarketSentiment_VolatilityHarvester( uint maxVolatilityProtocolLimit_) external onlySIGHFinanceManager returns (bool) {
-        ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );
-        require(sigh_volatility_harvester.updateCryptoMarketSentiment( maxVolatilityProtocolLimit_ ), "updateCryptoMarketSentiment() execution failed." );
-        return true;
-    }
+
 
     function updateDeltaTimestamp_VolatilityHarvester(uint deltaBlocksLimit) external onlySIGHFinanceManager returns (bool) {
         ISIGHVolatilityHarvester sigh_volatility_harvester = ISIGHVolatilityHarvester( globalAddressesProvider.getSIGHVolatilityHarvester() );

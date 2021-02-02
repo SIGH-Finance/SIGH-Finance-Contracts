@@ -49,7 +49,7 @@ interface ILendingPool {
    * @param loanRepaid The amount repaid
    * @param totalFeeRepaid The total Fee repaid
    **/
-  event Repay(address indexed instrument, address indexed user, address indexed repayer, uint256 loanRepaid, uint256 totalFeeRepaid);
+  event Repay(address indexed instrument, address indexed user, address indexed repayer, uint256 rateMode, uint256 loanRepaid, uint256 totalFeeRepaid);
 
   /**
    * @dev Emitted on swapBorrowRateMode()

@@ -56,10 +56,6 @@ contract LendingPoolConfigurator is VersionedInitializable  {
     * @param _liquidationThreshold the threshold at which loans using this asset as collateral will be considered undercollateralized
     * @param _liquidationBonus the bonus liquidators receive to liquidate this asset
     **/
-    event InstrumentEnabledAsCollateral(  address indexed _instrument,  uint256 _ltv,  uint256 _liquidationThreshold,  uint256 _liquidationBonus );
-    event InstrumentDisabledAsCollateral(address indexed _instrument);         // emitted when a instrument is disabled as collateral
-
-    event InstrumentDecimalsUpdated(address _instrument,uint256 decimals);
     event InstrumentCollateralParametersUpdated(address _instrument,uint256 _ltv,  uint256 _liquidationThreshold,  uint256 _liquidationBonus );
 
     event BorrowingOnInstrumentSwitched(address indexed _instrument, bool switch_ );
@@ -198,6 +194,55 @@ contract LendingPoolConfigurator is VersionedInitializable  {
 // ###################################################################################################
 
   /**
+  * @dev Freezes a Instrument. A frozen reserve doesn't allow any new deposit, borrow or rate swap
+  *  but allows repayments, liquidations, rate rebalances and withdrawals
+  * @param asset The address of the underlying asset of the reserve
+  **/
+  function freezeInstrument(address asset) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setFrozen(true);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit InstrumentFreezeSwitched(asset, true);
+  }
+
+  /**
+  * @dev Unfreezes a Instrument
+  * @param asset The address of the underlying asset of the Instrument
+  **/
+  function unfreezeInstrument(address asset) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setFrozen(false);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit InstrumentFreezeSwitched(asset, false);
+  }
+
+  /**
+  * @dev Activates a Instrument
+  * @param asset The address of the underlying asset of the reserve
+  **/
+  function activateInstrument(address asset) external onlyLendingPoolManager {
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setActive(true);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit InstrumentActivationSwitched(asset, true);
+  }
+
+  /**
+  * @dev Deactivates a Instrument
+  * @param asset The address of the underlying asset of the reserve
+  **/
+  function deactivateInstrument(address asset) external onlyLendingPoolManager {
+    _checkNoLiquidity(asset);
+    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
+    currentConfig.setActive(false);
+    pool.setConfiguration(asset, currentConfig.data);
+    emit InstrumentActivationSwitched(asset, false);
+  }
+
+
+
+
+  /**
   * @dev Enables borrowing on an instrument reserve
   * @param asset The address of the underlying asset
   * @param stableBorrowRateEnabled True if stable borrow rate needs to be enabled by default on this reserve
@@ -280,51 +325,8 @@ contract LendingPoolConfigurator is VersionedInitializable  {
     emit StableRateOnInstrumentSwitched(asset, false);
   }
 
-  /**
-  * @dev Activates a Instrument
-  * @param asset The address of the underlying asset of the reserve
-  **/
-  function activateInstrument(address asset) external onlyLendingPoolManager {
-    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
-    currentConfig.setActive(true);
-    pool.setConfiguration(asset, currentConfig.data);
-    emit InstrumentActivationSwitched(asset, true);
-  }
 
-  /**
-  * @dev Deactivates a Instrument
-  * @param asset The address of the underlying asset of the reserve
-  **/
-  function deactivateInstrument(address asset) external onlyLendingPoolManager {
-    _checkNoLiquidity(asset);
-    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
-    currentConfig.setActive(false);
-    pool.setConfiguration(asset, currentConfig.data);
-    emit InstrumentActivationSwitched(asset, false);
-  }
 
-  /**
-  * @dev Freezes a Instrument. A frozen reserve doesn't allow any new deposit, borrow or rate swap
-  *  but allows repayments, liquidations, rate rebalances and withdrawals
-  * @param asset The address of the underlying asset of the reserve
-  **/
-  function freezeInstrument(address asset) external onlyLendingPoolManager {
-    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
-    currentConfig.setFrozen(true);
-    pool.setConfiguration(asset, currentConfig.data);
-    emit InstrumentFreezeSwitched(asset, true);
-  }
-
-  /**
-  * @dev Unfreezes a Instrument
-  * @param asset The address of the underlying asset of the Instrument
-  **/
-  function unfreezeInstrument(address asset) external onlyLendingPoolManager {
-    DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
-    currentConfig.setFrozen(false);
-    pool.setConfiguration(asset, currentConfig.data);
-    emit InstrumentFreezeSwitched(asset, false);
-  }
     
   /**
   * @dev Updates the reserve factor of a Instrument
@@ -332,7 +334,6 @@ contract LendingPoolConfigurator is VersionedInitializable  {
   * @param reserveFactor The new reserve factor of the Instrument
   **/
   function setReserveFactor(address asset, uint256 reserveFactor) external onlyLendingPoolManager {
-      
     DataTypes.InstrumentConfigurationMap memory currentConfig = pool.getInstrumentConfiguration(asset);
     currentConfig.setReserveFactor(reserveFactor);
     pool.setConfiguration(asset, currentConfig.data);

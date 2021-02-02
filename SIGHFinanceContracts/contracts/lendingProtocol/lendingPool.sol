@@ -189,10 +189,8 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
   /**
    * @dev Allows users to borrow a specific `amount` of the reserve underlying asset, provided that the borrower
-   * already deposited enough collateral, or he was given enough allowance by a credit delegator on the
-   * corresponding debt token (StableDebtToken or VariableDebtToken)
-   * - E.g. User borrows 100 USDC passing as `onBehalfOf` his own address, receiving the 100 USDC in his wallet
-   *   and 100 stable/variable debt tokens, depending on the `interestRateMode`
+   * already deposited enough collateral, or he was given enough allowance by a credit delegator on the corresponding debt token (StableDebtToken or VariableDebtToken)
+   * - E.g. User borrows 100 USDC passing as `onBehalfOf` his own address, receiving the 100 USDC in his wallet   and 100 stable/variable debt tokens, depending on the `interestRateMode`
    * @param asset The address of the underlying asset to borrow
    * @param amount The amount to be borrowed
    * @param interestRateMode The interest rate mode at which the user wants to borrow: 1 for Stable, 2 for Variable
@@ -241,7 +239,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         (amount, vars.totalFeePaid) = instrument.updateFeeOnRepay(msg.sender, onBehalfOf, asset, amount, platformFeeCollector ,sighPayAggregator );
 
         if (amount == 0) {
-            emit Repay(asset, onBehalfOf, msg.sender, 0,  vars.totalFeePaid);
+            emit Repay(asset, onBehalfOf, msg.sender,rateMode, 0,  vars.totalFeePaid);
             return 0;
         }
 
@@ -269,7 +267,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 
         IERC20(asset).safeTransferFrom(msg.sender, iToken, vars.paybackAmount);
 
-        emit Repay(asset, onBehalfOf, msg.sender, vars.paybackAmount,  vars.totalFeePaid);
+        emit Repay(asset, onBehalfOf, msg.sender,rateMode, vars.paybackAmount,  vars.totalFeePaid);
         return vars.paybackAmount;
   }
 
@@ -279,7 +277,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
 // ####################################################################
 
   /**
-   * @dev Allows a borrower to swap his debt between stable and variable mode, or viceversa
+   * @dev Allows a borrower to swap his debt between stable and variable mode, or vice-versa
    * @param asset The address of the underlying asset borrowed
    * @param rateMode The rate mode that the user wants to swap to
    **/
@@ -582,7 +580,7 @@ contract LendingPool is VersionedInitializable, ILendingPool, LendingPoolStorage
         bool isFirstBorrowing = false;
         
         // Fee Related
-        instrument.updateFeeOnBorrow(vars.user, vars.asset, vars.amount, vars.boosterId, feeProvider);
+        instrument.updateFeeOnBorrow(vars.onBehalfOf, vars.asset, vars.amount, vars.boosterId, feeProvider);
 
         if (DataTypes.InterestRateMode(vars.interestRateMode) == DataTypes.InterestRateMode.STABLE) {
             currentStableRate = instrument.currentStableBorrowRate;

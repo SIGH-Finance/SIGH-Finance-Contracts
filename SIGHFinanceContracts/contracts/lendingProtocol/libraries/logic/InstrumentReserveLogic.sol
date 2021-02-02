@@ -299,15 +299,11 @@ library InstrumentReserveLogic {
 
     function deductFeeOnDeposit(DataTypes.InstrumentData memory instrument, address user, address instrumentAddress, uint amount, address platformFeeCollector, address sighPayAggregator, uint16 _boosterId, address feeProvider ) internal returns(uint) {
         (uint256 totalFee, uint256 platformFee, uint256 reserveFee) = IFeeProviderLendingPool(feeProvider).calculateDepositFee(user,instrumentAddress, amount, _boosterId);
-        if (platformFee > 0 && platformFeeCollector != address(0) ) {
+        if (platformFee > 0 ) {
             IERC20(instrumentAddress).safeTransferFrom( user, platformFeeCollector, platformFee );
-        } else {
-            platformFee = 0;
         }
-        if (reserveFee > 0 && sighPayAggregator  != address(0) ) {
+        if (reserveFee > 0 ) {
             IERC20(instrumentAddress).safeTransferFrom( user, sighPayAggregator, reserveFee );
-        } else {
-            reserveFee = 0;
         }
         emit depositFeeDeducted(instrumentAddress, user, amount, platformFee, reserveFee, _boosterId);
         return totalFee;
@@ -317,30 +313,30 @@ library InstrumentReserveLogic {
         (uint platformFee, uint reserveFee) = IFeeProviderLendingPool(feeProvider).calculateBorrowFee(user ,instrumentAddress, amount, _boosterId);
         ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(user,platformFee,0);
         ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(user,reserveFee,0);
-        emit borrowFeeUpdated(user,instrumentAddress, amount, platformFee, reserveFee, _boosterId);
+        emit borrowFeeUpdated(instrumentAddress,user, amount, platformFee, reserveFee, _boosterId);
     }
 
     function updateFeeOnRepay(DataTypes.InstrumentData storage instrument,address user, address onBehalfOf, address instrumentAddress, uint amount, address platformFeeCollector, address sighPayAggregator) internal returns(uint, uint) {
         uint platformFee = ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).getPlatformFee(onBehalfOf);    // getting platfrom Fee
         uint reserveFee = ISIGHHarvestDebtToken(instrument.variableDebtTokenAddress).getReserveFee(onBehalfOf);     // getting reserve Fee
-        uint reserveFeePay; uint platformFeePay;
+        uint reserveFeePay; uint platformFeePay; uint remAmount = amount;
         // PAY PLATFORM FEE
         if ( platformFee > 0 && platformFeeCollector != address(0) ) {
-            platformFeePay =  amount >= platformFee ? platformFee : amount;
+            platformFeePay =  remAmount >= platformFee ? platformFee : remAmount;
             IERC20(instrumentAddress).safeTransferFrom( user, platformFeeCollector, platformFeePay );   // Platform Fee transferred
-            amount = amount.sub(platformFeePay);  // Update amount
+            remAmount = remAmount.sub(platformFeePay);  // Update amount
             ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updatePlatformFee(onBehalfOf,0,platformFeePay);
         }
         // PAY RESERVE FEE
-        if (reserveFee > 0 && amount > 0 && sighPayAggregator != address(0) ) {
-            reserveFeePay =  amount > reserveFee ? reserveFee : amount;
+        if (reserveFee > 0 && remAmount > 0 && sighPayAggregator != address(0) ) {
+            reserveFeePay =  remAmount > reserveFee ? reserveFee : remAmount;
             IERC20(instrumentAddress).safeTransferFrom( user, sighPayAggregator, reserveFeePay );       // Reserve Fee transferred
-            amount = amount.sub(reserveFeePay);  // Update payback amount
+            remAmount = remAmount.sub(reserveFeePay);  // Update payback amount
             ISIGHHarvestDebtToken(instrument.stableDebtTokenAddress).updateReserveFee(onBehalfOf,0,reserveFeePay);
         }
 
         emit feeRepaid(instrumentAddress,user,onBehalfOf, amount, platformFeePay, reserveFeePay);
-        return (amount, platformFeePay.add(reserveFeePay));
+        return (remAmount, platformFeePay.add(reserveFeePay));
     }
 
 

@@ -205,8 +205,8 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
         // STATE UPDATED : INITITALIZE INSTRUMENT SPEEDS
         Instrument_Sigh_Mechansim_States[_instrument] = Instrument_Sigh_Mechansim_State({ 
                                                             side: uint8(0) ,
-                                                            bearSentiment : uint(1e18),
-                                                            bullSentiment: uint(1e18),
+                                                            bearSentiment : uint(0.5e18),
+                                                            bullSentiment: uint(0.5e18),
                                                             suppliers_Speed: uint(0),
                                                             borrowers_Speed: uint(0),
                                                             staking_Speed: uint(0),
@@ -331,8 +331,8 @@ contract SIGHVolatilityHarvester is ISIGHVolatilityHarvester, Exponential,  Vers
     }
 
     function updateCryptoMarketSentiment( uint cryptoMarketSentiment_ ) external override onlySighFinanceConfigurator returns (bool) {
-        require( cryptoMarketSentiment_ >= 0.01e18, 'The new Volatility Limit for Borrowers must be greater than 0.01e18 (1%)');
-        require( cryptoMarketSentiment_ <= 10e18, 'The new Volatility Limit for Borrowers must be less than 10e18 (10x)');
+        require( cryptoMarketSentiment_ >= 0.01e18, 'Must be greater than 0.01e18 (1%)');
+        require( cryptoMarketSentiment_ <= 10e18, 'Must be less than 10e18 (10x)');
         
         cryptoMarketSentiment = Exp({mantissa: cryptoMarketSentiment_ });  
         emit CryptoMarketSentimentUpdated( cryptoMarketSentiment.mantissa );
