@@ -13,7 +13,7 @@ interface ISIGHBoosters {
     event BoosterMinted(address _owner, string _type,string boosterURI,uint256 newItemId,uint256 totalBoostersOfThisCategory);
     event boosterURIUpdated(uint256 boosterId, string _boosterURI);
     event discountMultiplierUpdated(string _type,uint256 _platformFeeDiscount_,uint256 _sighPayDiscount_ );
-
+createNewBoosters
     event BoosterWhiteListed(uint256 boosterId);
     event BoosterBlackListed(uint256 boosterId);
 
@@ -22,7 +22,7 @@ interface ISIGHBoosters {
     // #################################
     
     function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_) external returns (bool) ;
-    function createNewBoosters(string[] memory _type,  string[] memory boosterURI) external returns (uint256);
+    function createNewBoosters(address receiver, string[] memory _type,  string[] memory boosterURI) external returns (uint256);
     function createNewSIGHBooster(address _owner, string memory _type,  string memory boosterURI, bytes memory _data ) external returns (uint256) ;
     function _updateBaseURI(string memory baseURI )  external ;
     function updateBoosterURI(uint256 boosterId, string memory boosterURI )  external returns (bool) ;

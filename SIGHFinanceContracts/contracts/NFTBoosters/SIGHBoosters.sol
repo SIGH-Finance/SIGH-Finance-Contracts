@@ -98,12 +98,12 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         return true;
      }
 
-    function createNewBoosters(string[] memory _type,  string[] memory boosterURI) public override onlyOwner returns (uint256) {
+    function createNewBoosters(address receiver, string[] memory _type,  string[] memory boosterURI) public override onlyOwner returns (uint256) {
         require( _type.length == boosterURI.length, 'Size not equal');
         bytes memory _data;
         uint i;
         for(; i< _type.length; i++) {
-            createNewSIGHBooster(msg.sender, _type[i], boosterURI[i], _data);
+            createNewSIGHBooster(receiver, _type[i], boosterURI[i], _data);
         }
         return i;
     }

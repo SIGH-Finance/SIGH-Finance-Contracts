@@ -155,3 +155,26 @@ def initSIGHVolatilityHarvester(globalAddressesProvider, account):
 
     sfHarvesterAddress = globalAddressesProvider.getSIGHVolatilityHarvester()
     sfHarvester = Contract.from_abi('sfHarvester', sfHarvesterAddress, SIGHVolatilityHarvester.abi)
+
+
+
+
+
+sighBoosters.updateBoosterURI(8,'bafybeibenjqt5it5ucdev566rgjfmleshxlhhzsi4gcs4ich6xn5cicyvm',{'from':account})
+sighBoosters.updateBoosterURI(9,'bafybeibenjqt5it5ucdev566rgjfmleshxlhhzsi4gcs4ich6xn5cicyvm',{'from':account})
+sighBoosters.updateBoosterURI(10,'bafybeibenjqt5it5ucdev566rgjfmleshxlhhzsi4gcs4ich6xn5cicyvm',{'from':account})
+sighBoosters.updateBoosterURI(11,'bafybeibenjqt5it5ucdev566rgjfmleshxlhhzsi4gcs4ich6xn5cicyvm',{'from':account})
+sighBoosters.updateBoosterURI(12,'bafybeibenjqt5it5ucdev566rgjfmleshxlhhzsi4gcs4ich6xn5cicyvm',{'from':account})
+sighBoosters.updateBoosterURI(13,'bafybeibenjqt5it5ucdev566rgjfmleshxlhhzsi4gcs4ich6xn5cicyvm',{'from':account})
+sighBoosters.updateBoosterURI(14,'bafybeibenjqt5it5ucdev566rgjfmleshxlhhzsi4gcs4ich6xn5cicyvm',{'from':account})
+sighBoosters.updateBoosterURI(15,'bafybeibenjqt5it5ucdev566rgjfmleshxlhhzsi4gcs4ich6xn5cicyvm',{'from':account})
+sighBoosters.updateBoosterURI(16,'bafybeibenjqt5it5ucdev566rgjfmleshxlhhzsi4gcs4ich6xn5cicyvm',{'from':account})
+sighBoosters.updateBoosterURI(17,'bafybeibenjqt5it5ucdev566rgjfmleshxlhhzsi4gcs4ich6xn5cicyvm',{'from':account})
+
+
+
+
+
+
+
+
