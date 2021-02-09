@@ -88,14 +88,15 @@ contract SIGHBoostersSale is IERC721Receiver,Ownable,ISIGHBoostersSale {
         emit TokensTransferred(token,to,amount);
     }
 
-    // ##########################################
-    // ######## FUNCTION TO BY A BOOSTER ########
-    // ##########################################
+    // ###########################################
+    // ######## FUNCTION TO BUY A BOOSTER ########
+    // ###########################################
 
     function buyBoosters(address receiver, string memory _BoosterType, uint boostersToBuy) override external {
         require( block.timestamp > initiateTimestamp,'Sale not begin');
-        require(boostersToBuy >= 1,"Invalid number of boosters");
+        require(listOfBoosters[_BoosterType].salePrice > 0 ,"Price cannot be Zero");
         require(boosterTypes[_BoosterType],"Invalid Booster Type");
+        require(boostersToBuy >= 1,"Invalid number of boosters");
         require(listOfBoosters[_BoosterType].totalAvailable >=  boostersToBuy,"Boosters not available");
 
         uint amountToBePaid = boostersToBuy.mul(listOfBoosters[_BoosterType].salePrice);
@@ -130,7 +131,7 @@ contract SIGHBoostersSale is IERC721Receiver,Ownable,ISIGHBoostersSale {
     }
 
     function getTokenBalance(address token) public view override returns (uint256) {
-        require(address(tokenAcceptedAsPayment)!=address(0));
+        require( token != address(0) );
         ERC20 token_ = ERC20(token);
         uint balance = token_.balanceOf(address(this));
         return balance;
@@ -142,7 +143,7 @@ contract SIGHBoostersSale is IERC721Receiver,Ownable,ISIGHBoostersSale {
 
     function addBoosterForSaleInternal(uint256 boosterId) internal {
         require( !boosterIdsForSale[boosterId], "Already Added");
-        ( , string memory _BoosterType, , ) = _SIGH_NFT_BoostersContract.getBoosterInfo(boosterId);
+        ( , string memory _BoosterType, , ,) = _SIGH_NFT_BoostersContract.getBoosterInfo(boosterId);
 
         if (!boosterTypes[_BoosterType]) {
             boosterTypes[_BoosterType] = true;
@@ -151,6 +152,8 @@ contract SIGHBoostersSale is IERC721Receiver,Ownable,ISIGHBoostersSale {
         listOfBoosters[_BoosterType].boosterIdsList.push( boosterId ); // ADDED the boosterID to the list of Boosters available for sale
         listOfBoosters[_BoosterType].totalAvailable = listOfBoosters[_BoosterType].totalAvailable.add(1); // Incremented total available by 1
         boosterIdsForSale[boosterId] = true;
+        require( _SIGH_NFT_BoostersContract.ownerOfBooster(boosterId) == address(this) ); // ONLY SIGH BOOSTERS CAN BE SENT TO THIS CONTRACT
+
         emit BoosterAddedForSale(_BoosterType , boosterId);
     }
 

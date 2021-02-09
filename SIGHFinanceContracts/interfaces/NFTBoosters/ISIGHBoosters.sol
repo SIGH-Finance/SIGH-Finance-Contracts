@@ -9,11 +9,11 @@ interface ISIGHBoosters {
     // ########################
 
     event baseURIUpdated(string baseURI);
-    event newCategoryAdded(string _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_);
+    event newCategoryAdded(string _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_, uint256 _maxBoosters);
     event BoosterMinted(address _owner, string _type,string boosterURI,uint256 newItemId,uint256 totalBoostersOfThisCategory);
     event boosterURIUpdated(uint256 boosterId, string _boosterURI);
     event discountMultiplierUpdated(string _type,uint256 _platformFeeDiscount_,uint256 _sighPayDiscount_ );
-createNewBoosters
+
     event BoosterWhiteListed(uint256 boosterId);
     event BoosterBlackListed(uint256 boosterId);
 
@@ -21,8 +21,8 @@ createNewBoosters
     // ######## ADMIN FUNCTIONS ########
     // #################################
     
-    function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_) external returns (bool) ;
-    function createNewBoosters(address receiver, string[] memory _type,  string[] memory boosterURI) external returns (uint256);
+    function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_, uint256 _maxBoosters) external returns (bool) ;
+    function createNewBoosters(address _owner, string[] memory _type,  string[] memory boosterURI) external returns (uint256);
     function createNewSIGHBooster(address _owner, string memory _type,  string memory boosterURI, bytes memory _data ) external returns (uint256) ;
     function _updateBaseURI(string memory baseURI )  external ;
     function updateBoosterURI(uint256 boosterId, string memory boosterURI )  external returns (bool) ;
@@ -68,13 +68,14 @@ createNewBoosters
     function getDiscountRatiosForBoosterCategory(string memory _category) external view returns ( uint platformFeeDiscount, uint sighPayDiscount );
 
     function totalBoostersAvailable(string memory _category) external view returns (uint256);
+    function maxBoostersAllowed(string memory _category) external view returns (uint256);
 
     function totalBoostersOwnedOfType(address owner, string memory _category) external view returns (uint256) ;  // Returns the number of Boosters of a particular category owned by the owner address
 
     function isValidBooster(uint256 boosterId) external view returns (bool);
     function getBoosterCategory(uint256 boosterId) external view returns ( string memory boosterType );
     function getDiscountRatiosForBooster(uint256 boosterId) external view returns ( uint platformFeeDiscount, uint sighPayDiscount );
-    function getBoosterInfo(uint256 boosterId) external view returns (address farmer, string memory boosterType,uint platformFeeDiscount, uint sighPayDiscount );
+    function getBoosterInfo(uint256 boosterId) external view returns (address farmer, string memory boosterType,uint platformFeeDiscount, uint sighPayDiscount, uint _maxBoosters );
 
     function isBlacklisted(uint boosterId) external view returns(bool) ;
 //     function getAllBoosterTypesSupported() external view returns (string[] memory) ;

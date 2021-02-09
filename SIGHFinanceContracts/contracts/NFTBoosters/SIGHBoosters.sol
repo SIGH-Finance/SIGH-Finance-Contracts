@@ -49,6 +49,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         uint256 totalBoosters;
         uint256 _platformFeeDiscount;
         uint256 _sighPayDiscount;
+        uint256 maxBoosters;
     }
     
     string[] private boosterTypesList ;
@@ -77,11 +78,11 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     // ######## ADMIN FUNCTIONS ########
     // #################################
 
-    function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_) public override onlyOwner returns (bool) {
+    function addNewBoosterType(string memory _type, uint256 _platformFeeDiscount_, uint256 _sighPayDiscount_, uint256 _maxBoosters) public override onlyOwner returns (bool) {
         require(!boosterCategories[_type].isSupported,"BOOSTERS: Type already exists");
-        boosterCategories[_type] =  boosterCategory({isSupported: true, totalBoosters:0, _platformFeeDiscount: _platformFeeDiscount_, _sighPayDiscount: _sighPayDiscount_  });
+        boosterCategories[_type] =  boosterCategory({isSupported: true, totalBoosters:0, _platformFeeDiscount: _platformFeeDiscount_, _sighPayDiscount: _sighPayDiscount_,maxBoosters: _maxBoosters  });
         boosterTypesList.push(_type);
-        emit newCategoryAdded(_type,_platformFeeDiscount_,_sighPayDiscount_);
+        emit newCategoryAdded(_type,_platformFeeDiscount_,_sighPayDiscount_,_maxBoosters);
         return true;
     }
 
@@ -110,6 +111,7 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     function createNewSIGHBooster(address _owner, string memory _type,  string memory boosterURI, bytes memory _data) public override onlyOwner returns (uint256) {
         require(boosterCategories[_type].isSupported,'Not a valid Type');
+        require( boosterCategories[_type].maxBoosters > boosterCategories[_type].totalBoosters ,'Max Boosters limit reached');
         require(_boosterIds.current() < 65535, 'Max Booster limit reached');
 
         _boosterIds.increment();
@@ -233,8 +235,6 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
 
     function setApprovalForAll(address operator, bool _approved) public virtual override(IERC721,ISIGHBoosters) {
         require(operator != _msgSender(), "BOOSTERS: Caller cannot be Approved");
-        require(_operatorApprovals[_msgSender()][operator] != _approved && _approved != true , "Already Approved");
-        require(_operatorApprovals[_msgSender()][operator] != _approved && _approved != false , "Already Not-Approved");
         _operatorApprovals[_msgSender()][operator] = _approved;
         emit ApprovalForAll(_msgSender(), operator, _approved);
     }
@@ -244,7 +244,6 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
 
     function safeTransferFrom(address from, address to, uint256 boosterId)  public virtual override(IERC721,ISIGHBoosters) {
-        require(!blacklistedBoosters[boosterId], "Booster blacklisted");
         safeTransferFrom(from, to, boosterId, "");
     }
 
@@ -290,10 +289,11 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
     }
 
     // Returns farmer address who owns this Booster and its boosterType 
-    function getBoosterInfo(uint256 boosterId) external view override returns (address farmer, string memory boosterType, uint platformFeeDiscount, uint sighPayDiscount ) {
+    function getBoosterInfo(uint256 boosterId) external view override returns (address farmer, string memory boosterType, uint platformFeeDiscount, uint sighPayDiscount, uint _maxBoosters ) {
          ( farmer, boosterType ) =  boostersData.get(boosterId);
          platformFeeDiscount = boosterCategories[boosterType]._platformFeeDiscount;
          sighPayDiscount = boosterCategories[boosterType]._sighPayDiscount ;
+        _maxBoosters =  boosterCategories[boosterType].maxBoosters ;
     }
 
     function isCategorySupported(string memory _category) external view override returns (bool) {
@@ -304,7 +304,9 @@ contract SIGHBoosters is ISIGHBoosters, ERC165,IERC721Metadata,IERC721Enumerable
         return boosterCategories[_category].totalBoosters;
     }
 
-    
+    function maxBoostersAllowed(string memory _category) external view override returns (uint256) {
+        return boosterCategories[_category].maxBoosters;
+    }
 
     // get Booster Type
     function getBoosterCategory(uint256 boosterId) public view override returns ( string memory boosterType ) {
